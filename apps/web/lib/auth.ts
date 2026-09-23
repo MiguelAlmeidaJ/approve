@@ -12,18 +12,45 @@ export async function getDesigner(): Promise<Designer | null> {
     return null;
   }
 
-  const response = await fetch(`${getApiUrl()}/api/auth/me`, {
-    headers: {
-      authorization: `Bearer ${token}`
-    },
-    cache: "no-store"
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiUrl()}/api/auth/me`, {
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json"
+      },
+      cache: "no-store",
+      redirect: "manual"
+    });
+  } catch (error) {
+    console.error("[auth] Falha ao validar sessão na API.", error);
+    return null;
+  }
 
   if (!response.ok) {
     return null;
   }
 
-  return response.json() as Promise<Designer>;
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!contentType.includes("application/json")) {
+    console.error(
+      "[auth] /api/auth/me respondeu com conteúdo não JSON.",
+      {
+        status: response.status,
+        contentType
+      }
+    );
+    return null;
+  }
+
+  try {
+    return (await response.json()) as Designer;
+  } catch (error) {
+    console.error("[auth] Resposta inválida ao validar sessão.", error);
+    return null;
+  }
 }
 
 export async function requireDesigner() {
