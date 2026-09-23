@@ -96,3 +96,21 @@ pm2 save
 - múltiplos designers com convite e recuperação de senha;
 - comentários visuais sobre a arte;
 - notificações por e-mail ou WhatsApp.
+
+
+## Migrations no desenvolvimento
+
+O `pnpm dev` executa `prisma migrate deploy` antes de subir a API e o Next. Assim, migrations já versionadas — como a tabela `CalendarPostingDay` — são aplicadas automaticamente no banco local.
+
+Se o banco ainda não estiver rodando:
+
+~~~bash
+pnpm db:up
+pnpm dev
+~~~
+
+Para aplicar manualmente:
+
+~~~bash
+pnpm db:migrate
+~~~

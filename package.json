@@ -6,7 +6,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "predev": "dotenv -e .env -- pnpm --filter @approve/database build",
+    "predev": "dotenv -e .env -- pnpm --filter @approve/database build && dotenv -e .env -- pnpm --filter @approve/database migrate",
     "dev": "dotenv -e .env -- pnpm --parallel --filter @approve/api --filter @approve/web dev",
     "build": "dotenv -e .env -- pnpm run build:workspace",
     "build:workspace": "pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
