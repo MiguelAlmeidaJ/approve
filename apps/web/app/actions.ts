@@ -30,6 +30,14 @@ function required(formData: FormData, key: string) {
   return value;
 }
 
+function brazilLocalDateTimeToIso(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return new Date(`${value}:00-03:00`).toISOString();
+  }
+
+  return new Date(value).toISOString();
+}
+
 export async function createClient(formData: FormData) {
   await adminPost("/api/admin/clients", {
     name: required(formData, "name")
@@ -56,7 +64,7 @@ export async function createContentItem(formData: FormData) {
   await adminPost("/api/admin/items", {
     calendarId: required(formData, "calendarId"),
     title: required(formData, "title"),
-    scheduledAt: new Date(rawDate).toISOString(),
+    scheduledAt: brazilLocalDateTimeToIso(rawDate),
     channel: required(formData, "channel"),
     format: required(formData, "format"),
     caption: required(formData, "caption"),
