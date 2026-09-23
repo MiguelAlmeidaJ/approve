@@ -17,6 +17,7 @@
     "db:logs": "docker compose logs -f mysql",
     "db:generate": "dotenv -e .env -- pnpm --filter @approve/database generate",
     "db:migrate": "dotenv -e .env -- pnpm --filter @approve/database migrate",
+    "db:migrate:dev": "dotenv -e .env -- pnpm --filter @approve/database migrate:dev",
     "db:deploy": "dotenv -e .env -- pnpm --filter @approve/database deploy",
     "db:seed": "dotenv -e .env -- pnpm --filter @approve/database seed",
     "start:pm2": "dotenv -e .env -- pm2 start ecosystem.config.cjs",
