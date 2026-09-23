@@ -7,9 +7,9 @@ import {
 } from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
 import {
+  canAccessClient,
   ContentItem,
-  getCalendar,
-  getDashboard
+  getCalendar
 } from "../../../lib/api";
 
 const statusLabel = {
@@ -64,13 +64,10 @@ export default async function CalendarPage({
 }) {
   const { calendarId } = await params;
   const { item: selectedId } = await searchParams;
-  const [designer, clients, calendar] = await Promise.all([
-    requireDesigner(),
-    getDashboard(),
-    getCalendar(calendarId)
-  ]);
+  const designer = await requireDesigner();
+  const calendar = await getCalendar(calendarId);
 
-  if (!calendar) {
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
     notFound();
   }
 
@@ -82,15 +79,11 @@ export default async function CalendarPage({
   const approved = calendar.contentItems.filter(
     (item) => item.status === "APPROVED"
   ).length;
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.APP_URL ?? "http://localhost:5005";
   const shareUrl = `${appUrl}/p/${calendar.shareToken}`;
 
   return (
-    <AppShell
-      designer={designer}
-      clients={clients}
-      activeClientId={calendar.client.id}
-    >
+    <AppShell designer={designer} activeSection="calendars">
       <header className="calendar-header">
         <div>
           <Link

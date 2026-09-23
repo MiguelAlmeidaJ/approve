@@ -1,18 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "../../../components/app-shell";
+import { assignClient } from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
-import { getClient, getDashboard } from "../../../lib/api";
-
-function monthName(value: string) {
-  const label = new Intl.DateTimeFormat("pt-BR", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC"
-  }).format(new Date(value));
-
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+import {
+  canAccessClient,
+  getClient,
+  getDesigners
+} from "../../../lib/api";
 
 export default async function ClientPage({
   params
@@ -20,22 +15,18 @@ export default async function ClientPage({
   params: Promise<{ clientId: string }>;
 }) {
   const { clientId } = await params;
-  const [designer, clients, client] = await Promise.all([
-    requireDesigner(),
-    getDashboard(),
-    getClient(clientId)
-  ]);
+  const designer = await requireDesigner();
+  const client = await getClient(clientId);
 
-  if (!client) {
+  if (!client || !canAccessClient(designer, client)) {
     notFound();
   }
 
+  const designers =
+    designer.role === "DESIGNER" ? [] : await getDesigners();
+
   return (
-    <AppShell
-      designer={designer}
-      clients={clients}
-      activeClientId={client.id}
-    >
+    <AppShell designer={designer} activeSection="clients">
       <header className="page-header">
         <div>
           <span className="micro-label">CLIENTE</span>
@@ -51,6 +42,39 @@ export default async function ClientPage({
           + Novo calendário
         </Link>
       </header>
+
+      <section className="client-responsibility">
+        <div>
+          <span className="micro-label">RESPONSÁVEL</span>
+          <strong>
+            {client.assignedDesigner?.name ?? "Sem designer atribuído"}
+          </strong>
+          <small>
+            {client.assignedDesigner?.email ??
+              "Admin ou dev pode definir um responsável."}
+          </small>
+        </div>
+
+        {designer.role !== "DESIGNER" ? (
+          <form action={assignClient} className="assignment-form">
+            <input type="hidden" name="clientId" value={client.id} />
+            <select
+              name="designerId"
+              defaultValue={client.assignedDesignerId ?? ""}
+            >
+              <option value="">Sem responsável</option>
+              {designers.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="button button-dark">
+              Atualizar responsável
+            </button>
+          </form>
+        ) : null}
+      </section>
 
       <section className="section">
         <div className="section-title-row">
@@ -99,10 +123,9 @@ export default async function ClientPage({
                   </div>
 
                   <div className="calendar-row-main">
-                    <h3>{calendar.title || monthName(calendar.periodStart)}</h3>
+                    <h3>{calendar.title}</h3>
                     <p>
-                      {calendar.contentItems.length} peça(s) · {approved}{" "}
-                      aprovada(s)
+                      {calendar.contentItems.length} peça(s) · {approved} aprovada(s)
                     </p>
                   </div>
 
@@ -120,9 +143,7 @@ export default async function ClientPage({
                       />
                     </div>
                     <small>
-                      {calendar.contentItems.length === 0
-                        ? "vazio"
-                        : `${approved}/${calendar.contentItems.length}`}
+                      {approved}/{calendar.contentItems.length}
                     </small>
                   </div>
 

@@ -3,8 +3,17 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireDesigner, SESSION_COOKIE } from "../lib/auth";
-import { getApiUrl } from "../lib/api";
+import {
+  requireDesigner,
+  requireRole,
+  SESSION_COOKIE
+} from "../lib/auth";
+import {
+  canAccessClient,
+  getApiUrl,
+  getCalendar,
+  getClient
+} from "../lib/api";
 
 async function adminPost<T>(path: string, body?: unknown): Promise<T> {
   await requireDesigner();
@@ -70,33 +79,89 @@ function defaultCalendarTitle(date: Date) {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
+export async function createDesigner(formData: FormData) {
+  await requireRole("ADMIN");
+
+  await adminPost("/api/admin/designers", {
+    name: required(formData, "name"),
+    email: required(formData, "email"),
+    password: required(formData, "password")
+  });
+
+  revalidatePath("/designers");
+}
+
 export async function createClient(formData: FormData) {
+  const designer = await requireDesigner();
+  const selectedDesignerId = String(
+    formData.get("assignedDesignerId") ?? ""
+  ).trim();
+
   const client = await adminPost<{ id: string }>("/api/admin/clients", {
-    name: required(formData, "name")
+    name: required(formData, "name"),
+    assignedDesignerId:
+      designer.role === "DESIGNER"
+        ? designer.id
+        : selectedDesignerId || undefined
   });
 
   revalidatePath("/");
+  revalidatePath("/clients");
   redirect(`/clients/${client.id}`);
 }
 
+export async function assignClient(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const clientId = required(formData, "clientId");
+  const designerId = String(formData.get("designerId") ?? "").trim();
+
+  await adminPost(
+    `/api/admin/clients/${encodeURIComponent(clientId)}/assign`,
+    {
+      designerId: designerId || null
+    }
+  );
+
+  revalidatePath("/");
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${clientId}`);
+}
+
 export async function createCalendar(formData: FormData) {
+  const designer = await requireDesigner();
+  const clientId = required(formData, "clientId");
+  const client = await getClient(clientId);
+
+  if (!client || !canAccessClient(designer, client)) {
+    throw new Error("Você não tem acesso a este cliente.");
+  }
+
   const month = required(formData, "month");
   const { start, end } = monthRange(month);
   const typedTitle = String(formData.get("title") ?? "").trim();
 
   const calendar = await adminPost<{ id: string }>("/api/admin/calendars", {
-    clientId: required(formData, "clientId"),
+    clientId,
     title: typedTitle || defaultCalendarTitle(start),
     periodStart: start.toISOString(),
     periodEnd: end.toISOString()
   });
 
   revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/clients/${clientId}`);
   redirect(`/calendars/${calendar.id}`);
 }
 
 export async function createContentItem(formData: FormData) {
+  const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
   const rawDate = required(formData, "scheduledAt");
   const assetUrl = String(formData.get("assetUrl") ?? "").trim();
 
@@ -110,10 +175,18 @@ export async function createContentItem(formData: FormData) {
     assetUrl: assetUrl || undefined
   });
 
+  revalidatePath("/calendars");
   revalidatePath(`/calendars/${calendarId}`);
 }
 
 export async function rotateCalendarToken(calendarId: string) {
+  const designer = await requireDesigner();
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
   await adminPost(
     `/api/admin/calendars/${encodeURIComponent(calendarId)}/rotate-token`
   );

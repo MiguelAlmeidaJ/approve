@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Designer, getApiUrl } from "./api";
+import { Designer, getApiUrl, UserRole } from "./api";
 
 export const SESSION_COOKIE = "ta_designer_session";
 
@@ -35,13 +35,6 @@ export async function getDesigner(): Promise<Designer | null> {
   const contentType = response.headers.get("content-type") ?? "";
 
   if (!contentType.includes("application/json")) {
-    console.error(
-      "[auth] /api/auth/me respondeu com conteúdo não JSON.",
-      {
-        status: response.status,
-        contentType
-      }
-    );
     return null;
   }
 
@@ -58,6 +51,16 @@ export async function requireDesigner() {
 
   if (!designer) {
     redirect("/login");
+  }
+
+  return designer;
+}
+
+export async function requireRole(...roles: UserRole[]) {
+  const designer = await requireDesigner();
+
+  if (!roles.includes(designer.role)) {
+    redirect("/");
   }
 
   return designer;

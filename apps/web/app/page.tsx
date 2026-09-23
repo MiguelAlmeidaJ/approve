@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AppShell } from "../components/app-shell";
 import { requireDesigner } from "../lib/auth";
-import { getDashboard } from "../lib/api";
+import { getAccessibleClients } from "../lib/api";
 
 function calendarLabel(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -13,7 +13,7 @@ function calendarLabel(value: string) {
 
 export default async function DashboardPage() {
   const designer = await requireDesigner();
-  const clients = await getDashboard();
+  const clients = await getAccessibleClients(designer);
   const calendars = clients.flatMap((client) => client.calendars);
   const pieces = calendars.flatMap((calendar) => calendar.contentItems);
   const waiting = pieces.filter(
@@ -21,14 +21,19 @@ export default async function DashboardPage() {
   ).length;
 
   return (
-    <AppShell designer={designer} clients={clients}>
+    <AppShell designer={designer} activeSection="panel">
       <header className="page-header">
         <div>
           <span className="micro-label">PAINEL</span>
-          <h1>Seus clientes</h1>
+          <h1>
+            {designer.role === "DESIGNER"
+              ? "Seus clientes"
+              : "Visão geral"}
+          </h1>
           <p>
-            Escolha um cliente para organizar o calendário e preparar a
-            aprovação.
+            {designer.role === "DESIGNER"
+              ? "Aqui estão os clientes sob sua responsabilidade e os calendários que você acompanha."
+              : "Acompanhe clientes, calendários e aprovações da operação."}
           </p>
         </div>
         <Link href="/clients/new" className="button button-primary">
@@ -54,15 +59,17 @@ export default async function DashboardPage() {
       <section className="section">
         <div className="section-title-row">
           <h2>Clientes</h2>
-          <span>{clients.length} no total</span>
+          <Link href="/clients">Ver todos →</Link>
         </div>
 
         {clients.length === 0 ? (
           <div className="empty-card">
             <div className="empty-icon">+</div>
-            <h3>Cadastre o primeiro cliente</h3>
+            <h3>Nenhum cliente disponível</h3>
             <p>
-              Depois disso você poderá criar o primeiro calendário mensal.
+              {designer.role === "DESIGNER"
+                ? "Peça a um administrador para atribuir um cliente a você ou cadastre um novo cliente."
+                : "Cadastre o primeiro cliente para iniciar a operação."}
             </p>
             <Link href="/clients/new" className="button button-primary">
               Cadastrar cliente
@@ -70,7 +77,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="client-card-grid">
-            {clients.map((client) => {
+            {clients.slice(0, 6).map((client) => {
               const latest = client.calendars[0];
 
               return (
@@ -88,20 +95,16 @@ export default async function DashboardPage() {
                   <div>
                     <h3>{client.name}</h3>
                     <p>
-                      {client.calendars.length === 0
-                        ? "Nenhum calendário criado"
-                        : `${client.calendars.length} calendário(s)`}
+                      {client.assignedDesigner
+                        ? `Responsável: ${client.assignedDesigner.name}`
+                        : "Sem designer responsável"}
                     </p>
                   </div>
-                  {latest ? (
-                    <span className="latest-calendar">
-                      Último: {calendarLabel(latest.periodStart)}
-                    </span>
-                  ) : (
-                    <span className="latest-calendar">
-                      Criar primeiro calendário
-                    </span>
-                  )}
+                  <span className="latest-calendar">
+                    {latest
+                      ? `Último: ${calendarLabel(latest.periodStart)}`
+                      : "Nenhum calendário criado"}
+                  </span>
                 </Link>
               );
             })}

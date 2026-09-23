@@ -4,8 +4,8 @@ import { AppShell } from "../../../../../components/app-shell";
 import { createCalendar } from "../../../../actions";
 import { requireDesigner } from "../../../../../lib/auth";
 import {
-  getClient,
-  getDashboard
+  canAccessClient,
+  getClient
 } from "../../../../../lib/api";
 
 export default async function NewCalendarPage({
@@ -14,22 +14,15 @@ export default async function NewCalendarPage({
   params: Promise<{ clientId: string }>;
 }) {
   const { clientId } = await params;
-  const [designer, clients, client] = await Promise.all([
-    requireDesigner(),
-    getDashboard(),
-    getClient(clientId)
-  ]);
+  const designer = await requireDesigner();
+  const client = await getClient(clientId);
 
-  if (!client) {
+  if (!client || !canAccessClient(designer, client)) {
     notFound();
   }
 
   return (
-    <AppShell
-      designer={designer}
-      clients={clients}
-      activeClientId={client.id}
-    >
+    <AppShell designer={designer} activeSection="calendars">
       <header className="page-header compact-header">
         <div>
           <Link href={`/clients/${client.id}`} className="back-link">
@@ -62,7 +55,10 @@ export default async function NewCalendarPage({
           </label>
 
           <div className="form-tip">
-            O link de aprovação do cliente será criado automaticamente.
+            Responsável:{" "}
+            <strong>
+              {client.assignedDesigner?.name ?? "sem designer atribuído"}
+            </strong>
           </div>
 
           <div className="form-actions">

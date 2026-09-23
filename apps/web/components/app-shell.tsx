@@ -1,7 +1,20 @@
 import Link from "next/link";
 import { logoutDesigner } from "../app/actions";
-import type { Client, Designer } from "../lib/api";
+import type { Designer } from "../lib/api";
 import { Brand } from "./brand";
+
+export type AppSection =
+  | "panel"
+  | "calendars"
+  | "clients"
+  | "designers"
+  | "config";
+
+const roleLabel = {
+  DEV: "dev",
+  ADMIN: "admin",
+  DESIGNER: "designer"
+} as const;
 
 function initials(name: string) {
   return name
@@ -14,15 +27,17 @@ function initials(name: string) {
 
 export function AppShell({
   designer,
-  clients,
-  activeClientId,
+  activeSection = "panel",
   children
 }: {
   designer: Designer;
-  clients: Client[];
-  activeClientId?: string;
+  activeSection?: AppSection;
   children: React.ReactNode;
 }) {
+  const canSeeDesigners =
+    designer.role === "ADMIN" || designer.role === "DEV";
+  const canSeeConfig = designer.role === "DEV";
+
   return (
     <div className="app-frame">
       <aside className="sidebar">
@@ -31,46 +46,61 @@ export function AppShell({
           <span>aprovação</span>
         </div>
 
-        <nav className="sidebar-nav" aria-label="Navegação principal">
+        <nav className="sidebar-nav main-menu" aria-label="Navegação principal">
           <Link
             href="/"
-            className={!activeClientId ? "nav-link active" : "nav-link"}
+            className={activeSection === "panel" ? "nav-link active" : "nav-link"}
           >
-            <span className="nav-dot" />
-            Visão geral
+            <span className="nav-icon">●</span>
+            Painel
           </Link>
 
-          <div className="sidebar-section">
-            <div className="sidebar-section-title">
-              <span>Clientes</span>
-              <Link href="/clients/new" aria-label="Cadastrar cliente">
-                +
-              </Link>
-            </div>
+          <Link
+            href="/calendars"
+            className={
+              activeSection === "calendars" ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">▦</span>
+            Calendário
+          </Link>
 
-            <div className="client-nav-list">
-              {clients.length === 0 ? (
-                <p className="sidebar-empty">Nenhum cliente ainda.</p>
-              ) : (
-                clients.map((client) => (
-                  <Link
-                    href={`/clients/${client.id}`}
-                    key={client.id}
-                    className={
-                      client.id === activeClientId
-                        ? "client-nav-link active"
-                        : "client-nav-link"
-                    }
-                  >
-                    <span className="client-avatar">
-                      {initials(client.name) || "C"}
-                    </span>
-                    <span>{client.name}</span>
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
+          <Link
+            href="/clients"
+            className={
+              activeSection === "clients" ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">□</span>
+            Clientes
+          </Link>
+
+          {canSeeDesigners ? (
+            <Link
+              href="/designers"
+              className={
+                activeSection === "designers" ? "nav-link active" : "nav-link"
+              }
+            >
+              <span className="nav-icon">◇</span>
+              Designers
+            </Link>
+          ) : null}
+
+          {canSeeConfig ? (
+            <>
+              <div className="menu-divider" />
+              <Link
+                href="/config"
+                className={
+                  activeSection === "config" ? "nav-link active" : "nav-link"
+                }
+              >
+                <span className="nav-icon">⚙</span>
+                Config
+              </Link>
+            </>
+          ) : null}
         </nav>
 
         <div className="sidebar-footer">
@@ -80,6 +110,9 @@ export function AppShell({
           <div className="designer-meta">
             <strong>{designer.name}</strong>
             <span>{designer.email}</span>
+            <span className={`sidebar-role role-${designer.role.toLowerCase()}`}>
+              {roleLabel[designer.role]}
+            </span>
           </div>
           <form action={logoutDesigner}>
             <button

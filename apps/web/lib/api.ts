@@ -1,3 +1,5 @@
+export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
+
 export type ContentStatus =
   | "DRAFT"
   | "PENDING_APPROVAL"
@@ -23,6 +25,20 @@ export type ContentItem = {
   }>;
 };
 
+export type Designer = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+};
+
+export type DesignerListItem = Designer & {
+  createdAt: string;
+  _count: {
+    clients: number;
+  };
+};
+
 export type Calendar = {
   id: string;
   clientId: string;
@@ -37,6 +53,8 @@ export type Client = {
   id: string;
   name: string;
   slug: string;
+  assignedDesignerId: string | null;
+  assignedDesigner?: Designer | null;
   calendars: Calendar[];
 };
 
@@ -45,18 +63,14 @@ export type CalendarWithClient = Calendar & {
     id: string;
     name: string;
     slug: string;
+    assignedDesignerId: string | null;
+    assignedDesigner?: Designer | null;
   };
 };
 
 export type PublicCalendar = CalendarWithClient;
 
-export type Designer = {
-  id: string;
-  name: string;
-  email: string;
-};
-
-const API_URL = process.env.API_URL ?? "http://localhost:3333";
+const API_URL = process.env.API_URL ?? "http://localhost:4334";
 
 async function adminGet<T>(path: string): Promise<T | null> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -85,6 +99,26 @@ export async function getDashboard(): Promise<Client[]> {
   );
 }
 
+export async function getAccessibleClients(
+  designer: Designer
+): Promise<Client[]> {
+  const clients = await getDashboard();
+
+  if (designer.role !== "DESIGNER") {
+    return clients;
+  }
+
+  return clients.filter(
+    (client) => client.assignedDesignerId === designer.id
+  );
+}
+
+export async function getDesigners(): Promise<DesignerListItem[]> {
+  return (
+    (await adminGet<DesignerListItem[]>("/api/admin/designers")) ?? []
+  );
+}
+
 export function getClient(id: string) {
   return adminGet<Client>(`/api/admin/clients/${encodeURIComponent(id)}`);
 }
@@ -92,6 +126,16 @@ export function getClient(id: string) {
 export function getCalendar(id: string) {
   return adminGet<CalendarWithClient>(
     `/api/admin/calendars/${encodeURIComponent(id)}`
+  );
+}
+
+export function canAccessClient(
+  designer: Designer,
+  client: Pick<Client, "assignedDesignerId">
+) {
+  return (
+    designer.role !== "DESIGNER" ||
+    client.assignedDesignerId === designer.id
   );
 }
 
