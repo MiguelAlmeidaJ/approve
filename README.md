@@ -21,7 +21,7 @@ apps/
   api/        # NestJS
   web/        # Next.js
 packages/
-  database/   # Prisma schema + client compartilhado
+  database/   # Prisma schema, migrations, seed e client compartilhado
 ~~~
 
 ## Identidade visual
@@ -32,7 +32,8 @@ A interface segue a referência da Terceiro Andar:
 - preto: #000000
 - branco: #FFFFFF
 - fundo neutro cinza claro
-- títulos condensados + corpo em Poppins
+- Open Sans Condensed nos títulos
+- Poppins no corpo
 - marca reconstruída em CSS para manter o projeto independente de assets externos
 
 ## Desenvolvimento local
@@ -50,20 +51,20 @@ cp .env.example .env
 pnpm install
 ~~~
 
+Na primeira instalação será criado o `pnpm-lock.yaml`; vale a pena versioná-lo antes do deploy.
+
 4. Suba o MySQL:
 
 ~~~
 pnpm db:up
 ~~~
 
-5. Gere o Prisma Client e crie a migration inicial:
+5. Aplique a migration inicial já versionada:
 
 ~~~
 pnpm db:generate
 pnpm db:migrate
 ~~~
-
-Quando o Prisma pedir o nome da migration, use algo como `init`.
 
 6. Carregue os dados de demonstração:
 
@@ -76,6 +77,8 @@ pnpm db:seed
 ~~~
 pnpm dev
 ~~~
+
+O comando `pnpm dev` compila o pacote de banco antes de iniciar os dois apps e carrega as variáveis do `.env` da raiz.
 
 - Painel interno: http://localhost:3000
 - API: http://localhost:3333/api
@@ -112,14 +115,17 @@ Cada ação gera um registro em `ReviewHistory`.
 
 ## Produção com PM2
 
-Depois de configurar as variáveis de ambiente e o banco de produção:
+Depois de configurar o `.env` da raiz e apontar `DATABASE_URL` para o MySQL de produção:
 
 ~~~
-pnpm install --frozen-lockfile
+pnpm install
+pnpm db:deploy
 pnpm build
 pnpm start:pm2
 pm2 save
 ~~~
+
+Depois que o `pnpm-lock.yaml` estiver versionado, prefira `pnpm install --frozen-lockfile` no servidor/CI.
 
 O arquivo `ecosystem.config.cjs` inicia os dois processos.
 
