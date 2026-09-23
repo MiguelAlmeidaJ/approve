@@ -6,19 +6,21 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @approve/api --filter @approve/web dev",
-    "build": "pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
+    "predev": "dotenv -e .env -- pnpm --filter @approve/database build",
+    "dev": "dotenv -e .env -- pnpm --parallel --filter @approve/api --filter @approve/web dev",
+    "build": "dotenv -e .env -- pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
     "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d mysql",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f mysql",
-    "db:generate": "pnpm --filter @approve/database generate",
-    "db:migrate": "pnpm --filter @approve/database migrate",
-    "db:seed": "pnpm --filter @approve/database seed",
-    "start:pm2": "pm2 start ecosystem.config.cjs",
+    "db:generate": "dotenv -e .env -- pnpm --filter @approve/database generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @approve/database migrate",
+    "db:seed": "dotenv -e .env -- pnpm --filter @approve/database seed",
+    "start:pm2": "dotenv -e .env -- pm2 start ecosystem.config.cjs",
     "stop:pm2": "pm2 delete ecosystem.config.cjs"
   },
   "devDependencies": {
+    "dotenv-cli": "^8.0.0",
     "pm2": "^6.0.10",
     "prettier": "^3.6.2"
   }
