@@ -36,7 +36,9 @@ export function middleware(request: NextRequest) {
   return new NextResponse("Autenticação necessária.", {
     status: 401,
     headers: {
-      "WWW-Authenticate": 'Basic realm="Terceiro Andar — Aprovação"'
+      // Headers da Fetch API usam ByteString. Mantenha o challenge em ASCII
+      // para evitar TypeError com caracteres como travessão (U+2014).
+      "WWW-Authenticate": 'Basic realm="Terceiro Andar - Aprovacao"'
     }
   });
 }
