@@ -9,7 +9,7 @@ async function bootstrap() {
   app.setGlobalPrefix("api");
   app.enableCors({
     origin: process.env.WEB_ORIGIN?.split(",").map((origin) => origin.trim()) ?? [
-      "http://localhost:3000"
+      "http://localhost:5005"
     ],
     credentials: true
   });
@@ -20,7 +20,7 @@ async function bootstrap() {
     })
   );
 
-  const port = Number(process.env.PORT ?? 3333);
+  const port = Number(process.env.API_PORT ?? process.env.PORT ?? 4334);
   await app.listen(port);
   console.log(`Approve API rodando em http://localhost:${port}/api`);
 }

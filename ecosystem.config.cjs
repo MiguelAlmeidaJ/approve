@@ -7,7 +7,7 @@ module.exports = {
       args: "--filter @approve/api start:prod",
       env: {
         NODE_ENV: "production",
-        PORT: 3333
+        API_PORT: 3333
       }
     },
     {
@@ -17,7 +17,7 @@ module.exports = {
       args: "--filter @approve/web start",
       env: {
         NODE_ENV: "production",
-        PORT: 3000
+        WEB_PORT: 3000
       }
     }
   ]

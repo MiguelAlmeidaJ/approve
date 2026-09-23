@@ -2,7 +2,7 @@
 
 Sistema simples para montar calendários de conteúdo e enviar aprovação para clientes da Terceiro Andar.
 
-A interface foi reorganizada com base no fluxo visual da referência enviada: navegação lateral por cliente, calendário em grade, abertura de cada peça em detalhe e uma experiência pública semelhante para aprovação. A identidade continua exclusivamente na paleta da Terceiro Andar.
+A interface segue um fluxo direto: login do designer, clientes, calendários mensais, prévia das peças e link público para aprovação.
 
 ## Stack
 
@@ -35,24 +35,40 @@ pnpm db:seed
 pnpm dev
 ~~~
 
+Por padrão no desenvolvimento:
+
+- Next: http://localhost:5005
+- Login: http://localhost:5005/login
+- Nest API: http://localhost:4334/api
+- Healthcheck: http://localhost:4334/api/health
+- Demo público: http://localhost:5005/p/demo-terceiro-andar
+
+As portas ficam separadas por `WEB_PORT` e `API_PORT`. Não use uma única variável `PORT` para os dois apps durante o desenvolvimento.
+
+A configuração esperada é:
+
+~~~env
+API_PORT=4334
+WEB_ORIGIN="http://localhost:5005"
+
+WEB_PORT=5005
+API_URL="http://localhost:4334"
+APP_URL="http://localhost:5005"
+~~~
+
+`API_URL` sempre aponta para o Nest. `APP_URL` e `WEB_ORIGIN` apontam para o Next.
+
 O comando `pnpm db:migrate` aplica as migrations já versionadas usando `prisma migrate deploy`. Isso funciona com o usuário MySQL `approve` sem exigir permissão para criar um shadow database.
 
-Use `pnpm db:migrate:dev` somente quando estiver criando uma nova migration a partir de alterações no `schema.prisma`. O `prisma migrate dev` usa um shadow database e, por isso, exige um usuário MySQL com permissão para criar bancos ou uma configuração específica de shadow database.
-
-- Painel: http://localhost:3000
-- Login: http://localhost:3000/login
-- API: http://localhost:3333/api
-- Demo público: http://localhost:3000/p/demo-terceiro-andar
+Use `pnpm db:migrate:dev` somente quando estiver criando uma nova migration a partir de alterações no `schema.prisma`.
 
 O `pnpm db:seed` cria o designer definido no `.env`:
 
 ~~~env
 DESIGNER_NAME="Designer Terceiro Andar"
-DESIGNER_EMAIL="designer@terceiroandar.com.br"
-DESIGNER_PASSWORD="troque-esta-senha"
+DESIGNER_EMAIL="designer@dev.com"
+DESIGNER_PASSWORD="senha123"
 ~~~
-
-Se `DESIGNER_PASSWORD` não estiver configurada, o seed local usa `terceiroandar` como fallback.
 
 ## Autenticação
 
@@ -61,20 +77,6 @@ O login do designer usa uma sessão opaca de 7 dias salva no banco. A senha é a
 As rotas administrativas da API continuam protegidas também por `API_ADMIN_KEY`, usada apenas na comunicação server-to-server do Next com o Nest.
 
 O link do cliente continua independente do login e usa o `shareToken` do calendário.
-
-## Banco
-
-A migration `20260923183000_designer_auth` adiciona:
-
-- `Designer`
-- `DesignerSession`
-
-Para uma instalação já existente, basta:
-
-~~~bash
-pnpm db:migrate
-pnpm db:seed
-~~~
 
 ## Produção
 

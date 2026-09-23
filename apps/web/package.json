@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/next.mjs dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "start": "next start"
+    "start": "node scripts/next.mjs start"
   },
   "dependencies": {
     "next": "^15.5.2",
