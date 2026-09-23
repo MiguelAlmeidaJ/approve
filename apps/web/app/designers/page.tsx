@@ -1,4 +1,6 @@
+import { FiUserPlus } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
+import { DesignersList } from "../../components/designers-list";
 import { createDesigner } from "../actions";
 import { requireRole } from "../../lib/auth";
 import { getDesigners } from "../../lib/api";
@@ -28,22 +30,7 @@ export default async function DesignersPage() {
             <span>{designers.length} no total</span>
           </div>
 
-          <div className="designer-grid">
-            {designers.map((item) => (
-              <article className="designer-card" key={item.id}>
-                <div className="designer-card-avatar">
-                  {item.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>{item.email}</p>
-                </div>
-                <span className="role-chip">designer</span>
-                <strong>{item._count.clients}</strong>
-                <small>cliente(s) atribuído(s)</small>
-              </article>
-            ))}
-          </div>
+          <DesignersList designers={designers} />
         </div>
 
         <aside className="form-surface designer-create-panel">
@@ -77,6 +64,7 @@ export default async function DesignersPage() {
                 </label>
 
                 <button type="submit" className="button button-primary">
+                  <FiUserPlus aria-hidden="true" />
                   Criar designer
                 </button>
               </form>

@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  FiCalendar,
+  FiHome,
+  FiLogOut,
+  FiSettings,
+  FiUserCheck,
+  FiUsers
+} from "react-icons/fi";
 import { logoutDesigner } from "../app/actions";
 import type { Designer } from "../lib/api";
 import { Brand } from "./brand";
@@ -51,7 +59,7 @@ export function AppShell({
             href="/"
             className={activeSection === "panel" ? "nav-link active" : "nav-link"}
           >
-            <span className="nav-icon">●</span>
+            <FiHome className="nav-icon" aria-hidden="true" />
             Painel
           </Link>
 
@@ -61,7 +69,7 @@ export function AppShell({
               activeSection === "calendars" ? "nav-link active" : "nav-link"
             }
           >
-            <span className="nav-icon">▦</span>
+            <FiCalendar className="nav-icon" aria-hidden="true" />
             Calendário
           </Link>
 
@@ -71,7 +79,7 @@ export function AppShell({
               activeSection === "clients" ? "nav-link active" : "nav-link"
             }
           >
-            <span className="nav-icon">□</span>
+            <FiUsers className="nav-icon" aria-hidden="true" />
             Clientes
           </Link>
 
@@ -82,7 +90,7 @@ export function AppShell({
                 activeSection === "designers" ? "nav-link active" : "nav-link"
               }
             >
-              <span className="nav-icon">◇</span>
+              <FiUserCheck className="nav-icon" aria-hidden="true" />
               Designers
             </Link>
           ) : null}
@@ -96,7 +104,7 @@ export function AppShell({
                   activeSection === "config" ? "nav-link active" : "nav-link"
                 }
               >
-                <span className="nav-icon">⚙</span>
+                <FiSettings className="nav-icon" aria-hidden="true" />
                 Config
               </Link>
             </>
@@ -121,7 +129,7 @@ export function AppShell({
               aria-label="Sair"
               title="Sair"
             >
-              ↗
+              <FiLogOut aria-hidden="true" />
             </button>
           </form>
         </div>
