@@ -15,6 +15,12 @@ export default async function LoginPage({
   }
 
   const { error } = await searchParams;
+  const errorMessage =
+    error === "api"
+      ? "Não foi possível conectar ao serviço de autenticação. Verifique se a API Nest está rodando e se API_URL aponta para a porta correta."
+      : error
+        ? "E-mail ou senha inválidos."
+        : null;
 
   return (
     <main className="login-page">
@@ -45,8 +51,8 @@ export default async function LoginPage({
             <p>Use seu acesso da Terceiro Andar.</p>
           </div>
 
-          {error ? (
-            <div className="form-error">E-mail ou senha inválidos.</div>
+          {errorMessage ? (
+            <div className="form-error">{errorMessage}</div>
           ) : null}
 
           <label className="field">
