@@ -3,17 +3,8 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  requireDesigner,
-  requireRole,
-  SESSION_COOKIE
-} from "../lib/auth";
-import {
-  canAccessClient,
-  getApiUrl,
-  getCalendar,
-  getClient
-} from "../lib/api";
+import { requireDesigner, requireRole, SESSION_COOKIE } from "../lib/auth";
+import { canAccessClient, getApiUrl, getCalendar, getClient } from "../lib/api";
 
 async function adminPost<T>(path: string, body?: unknown): Promise<T> {
   await requireDesigner();
@@ -22,10 +13,31 @@ async function adminPost<T>(path: string, body?: unknown): Promise<T> {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-admin-key": process.env.API_ADMIN_KEY ?? ""
+      "x-admin-key": process.env.API_ADMIN_KEY ?? "",
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-    cache: "no-store"
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Erro ${response.status} ao salvar.`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function adminPatch<T>(path: string, body: unknown): Promise<T> {
+  await requireDesigner();
+
+  const response = await fetch(`${getApiUrl()}${path}`, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      "x-admin-key": process.env.API_ADMIN_KEY ?? "",
+    },
+    body: JSON.stringify(body),
+    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -73,7 +85,7 @@ function defaultCalendarTitle(date: Date) {
   const formatted = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",
-    timeZone: "UTC"
+    timeZone: "UTC",
   }).format(date);
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
@@ -85,16 +97,46 @@ export async function createDesigner(formData: FormData) {
   await adminPost("/api/admin/designers", {
     name: required(formData, "name"),
     email: required(formData, "email"),
-    password: required(formData, "password")
+    password: required(formData, "password"),
   });
 
   revalidatePath("/designers");
 }
 
+export async function createUser(formData: FormData) {
+  await requireRole("ADMIN");
+
+  await adminPost("/api/admin/users", {
+    name: required(formData, "name"),
+    email: required(formData, "email"),
+    password: required(formData, "password"),
+    role: required(formData, "role"),
+  });
+
+  revalidatePath("/equipe");
+}
+
+export async function updateUser(formData: FormData) {
+  await requireRole("ADMIN");
+  const userId = required(formData, "userId");
+  const password = String(formData.get("password") ?? "").trim();
+
+  await adminPatch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+    name: required(formData, "name"),
+    email: required(formData, "email"),
+    role: required(formData, "role"),
+    ...(password ? { password } : {}),
+  });
+
+  revalidatePath("/equipe");
+  revalidatePath("/");
+  redirect("/equipe");
+}
+
 export async function createClient(formData: FormData) {
   const designer = await requireDesigner();
   const selectedDesignerId = String(
-    formData.get("assignedDesignerId") ?? ""
+    formData.get("assignedDesignerId") ?? "",
   ).trim();
 
   const client = await adminPost<{ id: string }>("/api/admin/clients", {
@@ -102,7 +144,7 @@ export async function createClient(formData: FormData) {
     assignedDesignerId:
       designer.role === "DESIGNER"
         ? designer.id
-        : selectedDesignerId || undefined
+        : selectedDesignerId || undefined,
   });
 
   revalidatePath("/");
@@ -115,12 +157,9 @@ export async function assignClient(formData: FormData) {
   const clientId = required(formData, "clientId");
   const designerId = String(formData.get("designerId") ?? "").trim();
 
-  await adminPost(
-    `/api/admin/clients/${encodeURIComponent(clientId)}/assign`,
-    {
-      designerId: designerId || null
-    }
-  );
+  await adminPost(`/api/admin/clients/${encodeURIComponent(clientId)}/assign`, {
+    designerId: designerId || null,
+  });
 
   revalidatePath("/");
   revalidatePath("/clients");
@@ -139,12 +178,38 @@ export async function createCalendar(formData: FormData) {
   const month = required(formData, "month");
   const { start, end } = monthRange(month);
   const typedTitle = String(formData.get("title") ?? "").trim();
+  const rawPostingDays = required(formData, "postingDays");
+  let postingDayValues: unknown;
+
+  try {
+    postingDayValues = JSON.parse(rawPostingDays);
+  } catch {
+    throw new Error("Os dias de postagem informados são inválidos.");
+  }
+
+  if (
+    !Array.isArray(postingDayValues) ||
+    postingDayValues.length === 0 ||
+    postingDayValues.some(
+      (value) =>
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        !value.startsWith(`${month}-`),
+    )
+  ) {
+    throw new Error("Selecione ao menos um dia de postagem para este mês.");
+  }
+
+  const postingDays = [...new Set(postingDayValues)].map((value) =>
+    new Date(`${value}T12:00:00.000Z`).toISOString(),
+  );
 
   const calendar = await adminPost<{ id: string }>("/api/admin/calendars", {
     clientId,
     title: typedTitle || defaultCalendarTitle(start),
     periodStart: start.toISOString(),
-    periodEnd: end.toISOString()
+    periodEnd: end.toISOString(),
+    postingDays,
   });
 
   revalidatePath("/");
@@ -172,7 +237,7 @@ export async function createContentItem(formData: FormData) {
     channel: required(formData, "channel"),
     format: required(formData, "format"),
     caption: required(formData, "caption"),
-    assetUrl: assetUrl || undefined
+    assetUrl: assetUrl || undefined,
   });
 
   revalidatePath("/calendars");
@@ -188,7 +253,7 @@ export async function rotateCalendarToken(calendarId: string) {
   }
 
   await adminPost(
-    `/api/admin/calendars/${encodeURIComponent(calendarId)}/rotate-token`
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/rotate-token`,
   );
 
   revalidatePath(`/calendars/${calendarId}`);
@@ -202,9 +267,9 @@ export async function logoutDesigner() {
     await fetch(`${getApiUrl()}/api/auth/logout`, {
       method: "POST",
       headers: {
-        authorization: `Bearer ${token}`
+        authorization: `Bearer ${token}`,
       },
-      cache: "no-store"
+      cache: "no-store",
     }).catch(() => undefined);
   }
 

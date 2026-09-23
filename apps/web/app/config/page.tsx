@@ -7,20 +7,20 @@ export default async function ConfigPage() {
   const settings = [
     {
       label: "Ambiente",
-      value: process.env.NODE_ENV ?? "development"
+      value: process.env.NODE_ENV ?? "development",
     },
     {
       label: "API Nest",
-      value: process.env.API_URL ?? "não configurada"
+      value: process.env.API_URL ?? "não configurada",
     },
     {
       label: "Aplicação",
-      value: process.env.APP_URL ?? "não configurada"
+      value: process.env.APP_URL ?? "não configurada",
     },
     {
       label: "Origem web",
-      value: process.env.WEB_ORIGIN ?? "não configurada"
-    }
+      value: process.env.WEB_ORIGIN ?? "não configurada",
+    },
   ];
 
   return (
@@ -51,11 +51,11 @@ export default async function ConfigPage() {
         <div className="permission-matrix">
           <div>
             <strong>dev</strong>
-            <span>Acesso geral + Config. Não cria designers.</span>
+            <span>Acesso geral + Config. Visualiza a equipe.</span>
           </div>
           <div>
             <strong>admin</strong>
-            <span>Acesso geral + criação de designers e atribuições.</span>
+            <span>Acesso geral + gestão da equipe e atribuições.</span>
           </div>
           <div>
             <strong>designer</strong>

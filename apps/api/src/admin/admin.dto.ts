@@ -1,12 +1,15 @@
-import { Channel } from "@approve/database";
+import { Channel, UserRole } from "@approve/database";
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsDateString,
   IsEmail,
   IsEnum,
   IsOptional,
   IsString,
   IsUrl,
-  MinLength
+  MinLength,
 } from "class-validator";
 
 export class CreateClientDto {
@@ -40,6 +43,27 @@ export class CreateDesignerDto {
   @IsString()
   @MinLength(6)
   password!: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+}
+
+export class UpdateUserDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsEnum(UserRole)
+  role!: UserRole;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 }
 
 export class CreateCalendarDto {
@@ -55,6 +79,12 @@ export class CreateCalendarDto {
 
   @IsDateString()
   periodEnd!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(31)
+  @IsDateString({}, { each: true })
+  postingDays!: string[];
 }
 
 export class CreateContentItemDto {
@@ -81,11 +111,11 @@ export class CreateContentItemDto {
   @IsOptional()
   @IsUrl(
     {
-      require_protocol: true
+      require_protocol: true,
     },
     {
-      message: "assetUrl precisa ser uma URL completa."
-    }
+      message: "assetUrl precisa ser uma URL completa.",
+    },
   )
   assetUrl?: string;
 }

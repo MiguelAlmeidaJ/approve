@@ -1,10 +1,7 @@
 export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
 
 export type ContentStatus =
-  | "DRAFT"
-  | "PENDING_APPROVAL"
-  | "APPROVED"
-  | "CHANGES_REQUESTED";
+  "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "CHANGES_REQUESTED";
 
 export type ContentItem = {
   id: string;
@@ -39,6 +36,13 @@ export type DesignerListItem = Designer & {
   };
 };
 
+export type CalendarPostingDay = {
+  id: string;
+  scheduledDate: string;
+};
+
+export type UserListItem = DesignerListItem;
+
 export type Calendar = {
   id: string;
   clientId: string;
@@ -46,6 +50,7 @@ export type Calendar = {
   periodStart: string;
   periodEnd: string;
   shareToken: string;
+  postingDays: CalendarPostingDay[];
   contentItems: ContentItem[];
 };
 
@@ -75,9 +80,9 @@ const API_URL = process.env.API_URL ?? "http://localhost:4334";
 async function adminGet<T>(path: string): Promise<T | null> {
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
-      "x-admin-key": process.env.API_ADMIN_KEY ?? ""
+      "x-admin-key": process.env.API_ADMIN_KEY ?? "",
     },
-    cache: "no-store"
+    cache: "no-store",
   });
 
   if (response.status === 404) {
@@ -86,7 +91,7 @@ async function adminGet<T>(path: string): Promise<T | null> {
 
   if (!response.ok) {
     throw new Error(
-      `Falha ao carregar dados: ${response.status} ${response.statusText}`
+      `Falha ao carregar dados: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -94,13 +99,11 @@ async function adminGet<T>(path: string): Promise<T | null> {
 }
 
 export async function getDashboard(): Promise<Client[]> {
-  return (
-    (await adminGet<Client[]>("/api/admin/dashboard")) ?? []
-  );
+  return (await adminGet<Client[]>("/api/admin/dashboard")) ?? [];
 }
 
 export async function getAccessibleClients(
-  designer: Designer
+  designer: Designer,
 ): Promise<Client[]> {
   const clients = await getDashboard();
 
@@ -108,15 +111,15 @@ export async function getAccessibleClients(
     return clients;
   }
 
-  return clients.filter(
-    (client) => client.assignedDesignerId === designer.id
-  );
+  return clients.filter((client) => client.assignedDesignerId === designer.id);
 }
 
 export async function getDesigners(): Promise<DesignerListItem[]> {
-  return (
-    (await adminGet<DesignerListItem[]>("/api/admin/designers")) ?? []
-  );
+  return (await adminGet<DesignerListItem[]>("/api/admin/designers")) ?? [];
+}
+
+export async function getUsers(): Promise<UserListItem[]> {
+  return (await adminGet<UserListItem[]>("/api/admin/users")) ?? [];
 }
 
 export function getClient(id: string) {
@@ -125,28 +128,27 @@ export function getClient(id: string) {
 
 export function getCalendar(id: string) {
   return adminGet<CalendarWithClient>(
-    `/api/admin/calendars/${encodeURIComponent(id)}`
+    `/api/admin/calendars/${encodeURIComponent(id)}`,
   );
 }
 
 export function canAccessClient(
   designer: Designer,
-  client: Pick<Client, "assignedDesignerId">
+  client: Pick<Client, "assignedDesignerId">,
 ) {
   return (
-    designer.role !== "DESIGNER" ||
-    client.assignedDesignerId === designer.id
+    designer.role !== "DESIGNER" || client.assignedDesignerId === designer.id
   );
 }
 
 export async function getPublicCalendar(
-  token: string
+  token: string,
 ): Promise<PublicCalendar | null> {
   const response = await fetch(
     `${API_URL}/api/public/calendars/${encodeURIComponent(token)}`,
     {
-      cache: "no-store"
-    }
+      cache: "no-store",
+    },
   );
 
   if (response.status === 404) {
@@ -155,7 +157,7 @@ export async function getPublicCalendar(
 
   if (!response.ok) {
     throw new Error(
-      `Falha ao carregar calendário: ${response.status} ${response.statusText}`
+      `Falha ao carregar calendário: ${response.status} ${response.statusText}`,
     );
   }
 

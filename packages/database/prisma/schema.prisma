@@ -82,9 +82,21 @@ model Calendar {
   updatedAt    DateTime      @updatedAt
   client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   contentItems ContentItem[]
+  postingDays  CalendarPostingDay[]
 
   @@index([clientId])
   @@index([periodStart, periodEnd])
+}
+
+model CalendarPostingDay {
+  id            String   @id @default(cuid())
+  calendarId    String
+  scheduledDate DateTime
+  createdAt     DateTime @default(now())
+  calendar      Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, scheduledDate])
+  @@index([scheduledDate])
 }
 
 model ContentItem {

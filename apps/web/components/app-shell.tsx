@@ -5,23 +5,18 @@ import {
   FiLogOut,
   FiSettings,
   FiUserCheck,
-  FiUsers
+  FiUsers,
 } from "react-icons/fi";
 import { logoutDesigner } from "../app/actions";
 import type { Designer } from "../lib/api";
 import { Brand } from "./brand";
 
-export type AppSection =
-  | "panel"
-  | "calendars"
-  | "clients"
-  | "designers"
-  | "config";
+export type AppSection = "panel" | "calendars" | "clients" | "team" | "config";
 
 const roleLabel = {
   DEV: "dev",
   ADMIN: "admin",
-  DESIGNER: "designer"
+  DESIGNER: "designer",
 } as const;
 
 function initials(name: string) {
@@ -36,14 +31,13 @@ function initials(name: string) {
 export function AppShell({
   designer,
   activeSection = "panel",
-  children
+  children,
 }: {
   designer: Designer;
   activeSection?: AppSection;
   children: React.ReactNode;
 }) {
-  const canSeeDesigners =
-    designer.role === "ADMIN" || designer.role === "DEV";
+  const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
 
   return (
@@ -57,7 +51,9 @@ export function AppShell({
         <nav className="sidebar-nav main-menu" aria-label="Navegação principal">
           <Link
             href="/"
-            className={activeSection === "panel" ? "nav-link active" : "nav-link"}
+            className={
+              activeSection === "panel" ? "nav-link active" : "nav-link"
+            }
           >
             <FiHome className="nav-icon" aria-hidden="true" />
             Painel
@@ -83,15 +79,15 @@ export function AppShell({
             Clientes
           </Link>
 
-          {canSeeDesigners ? (
+          {canSeeUsers ? (
             <Link
-              href="/designers"
+              href="/equipe"
               className={
-                activeSection === "designers" ? "nav-link active" : "nav-link"
+                activeSection === "team" ? "nav-link active" : "nav-link"
               }
             >
               <FiUserCheck className="nav-icon" aria-hidden="true" />
-              Designers
+              Equipe
             </Link>
           ) : null}
 
@@ -118,7 +114,9 @@ export function AppShell({
           <div className="designer-meta">
             <strong>{designer.name}</strong>
             <span>{designer.email}</span>
-            <span className={`sidebar-role role-${designer.role.toLowerCase()}`}>
+            <span
+              className={`sidebar-role role-${designer.role.toLowerCase()}`}
+            >
               {roleLabel[designer.role]}
             </span>
           </div>

@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from "@nestjs/common";
 import { ContentStatus, UserRole } from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
@@ -11,7 +11,8 @@ import {
   CreateCalendarDto,
   CreateClientDto,
   CreateContentItemDto,
-  CreateDesignerDto
+  CreateDesignerDto,
+  UpdateUserDto,
 } from "./admin.dto";
 
 function hashPassword(password: string) {
@@ -34,25 +35,28 @@ export class AdminService {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         calendars: {
           orderBy: { periodStart: "desc" },
           include: {
+            postingDays: {
+              orderBy: { scheduledDate: "asc" },
+            },
             contentItems: {
-              orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }]
-            }
-          }
-        }
-      }
+              orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
+            },
+          },
+        },
+      },
     });
   }
 
   listDesigners() {
     return this.prisma.designer.findMany({
       where: {
-        role: UserRole.DESIGNER
+        role: UserRole.DESIGNER,
       },
       orderBy: { name: "asc" },
       select: {
@@ -63,10 +67,28 @@ export class AdminService {
         createdAt: true,
         _count: {
           select: {
-            clients: true
-          }
-        }
-      }
+            clients: true,
+          },
+        },
+      },
+    });
+  }
+
+  listUsers() {
+    return this.prisma.designer.findMany({
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: {
+            clients: true,
+          },
+        },
+      },
     });
   }
 
@@ -79,18 +101,21 @@ export class AdminService {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         calendars: {
           orderBy: { periodStart: "desc" },
           include: {
+            postingDays: {
+              orderBy: { scheduledDate: "asc" },
+            },
             contentItems: {
-              orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }]
-            }
-          }
-        }
-      }
+              orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
+            },
+          },
+        },
+      },
     });
 
     if (!client) {
@@ -111,21 +136,24 @@ export class AdminService {
                 id: true,
                 name: true,
                 email: true,
-                role: true
-              }
-            }
-          }
+                role: true,
+              },
+            },
+          },
         },
         contentItems: {
           orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
           include: {
             reviews: {
               orderBy: { createdAt: "desc" },
-              take: 1
-            }
-          }
-        }
-      }
+              take: 1,
+            },
+          },
+        },
+        postingDays: {
+          orderBy: { scheduledDate: "asc" },
+        },
+      },
     });
 
     if (!calendar) {
@@ -136,9 +164,13 @@ export class AdminService {
   }
 
   async createDesigner(dto: CreateDesignerDto) {
+    return this.createUser({ ...dto, role: UserRole.DESIGNER });
+  }
+
+  async createUser(dto: CreateDesignerDto) {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.designer.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (existing) {
@@ -150,16 +182,77 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         passwordHash: hashPassword(dto.password),
-        role: UserRole.DESIGNER
+        role: dto.role ?? UserRole.DESIGNER,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
+  }
+
+  async updateUser(id: string, dto: UpdateUserDto) {
+    const current = await this.prisma.designer.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        role: true,
+        _count: { select: { clients: true } },
+      },
+    });
+
+    if (!current) {
+      throw new NotFoundException("Usuário não encontrado.");
+    }
+
+    if (
+      current.role === UserRole.DESIGNER &&
+      dto.role !== UserRole.DESIGNER &&
+      current._count.clients > 0
+    ) {
+      throw new BadRequestException(
+        "Reatribua os clientes deste designer antes de alterar o perfil.",
+      );
+    }
+
+    const email = dto.email.trim().toLowerCase();
+    const emailOwner = await this.prisma.designer.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (emailOwner && emailOwner.id !== id) {
+      throw new BadRequestException("Já existe um usuário com esse e-mail.");
+    }
+
+    const password = dto.password?.trim();
+    const updated = await this.prisma.designer.update({
+      where: { id },
+      data: {
+        name: dto.name.trim(),
+        email,
+        role: dto.role,
+        ...(password ? { passwordHash: hashPassword(password) } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    if (password) {
+      await this.prisma.designerSession.deleteMany({
+        where: { designerId: id },
+      });
+    }
+
+    return updated;
   }
 
   async createClient(dto: CreateClientDto) {
@@ -173,7 +266,7 @@ export class AdminService {
 
     if (!baseSlug) {
       throw new BadRequestException(
-        "Não foi possível gerar um slug para o cliente."
+        "Não foi possível gerar um slug para o cliente.",
       );
     }
 
@@ -182,7 +275,7 @@ export class AdminService {
     }
 
     const existing = await this.prisma.client.findUnique({
-      where: { slug: baseSlug }
+      where: { slug: baseSlug },
     });
 
     const slug = existing
@@ -193,15 +286,15 @@ export class AdminService {
       data: {
         name: dto.name.trim(),
         slug,
-        assignedDesignerId: dto.assignedDesignerId || null
-      }
+        assignedDesignerId: dto.assignedDesignerId || null,
+      },
     });
   }
 
   async assignClient(clientId: string, dto: AssignClientDto) {
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!client) {
@@ -215,7 +308,7 @@ export class AdminService {
     return this.prisma.client.update({
       where: { id: clientId },
       data: {
-        assignedDesignerId: dto.designerId || null
+        assignedDesignerId: dto.designerId || null,
       },
       include: {
         assignedDesigner: {
@@ -223,20 +316,36 @@ export class AdminService {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
-        }
-      }
+            role: true,
+          },
+        },
+      },
     });
   }
 
   async createCalendar(dto: CreateCalendarDto) {
     const periodStart = new Date(dto.periodStart);
     const periodEnd = new Date(dto.periodEnd);
+    const postingDays = [
+      ...new Set(
+        dto.postingDays.map((value) => new Date(value).toISOString()),
+      ),
+    ].map((value) => new Date(value));
 
     if (periodEnd < periodStart) {
       throw new BadRequestException(
-        "A data final do calendário deve ser posterior à data inicial."
+        "A data final do calendário deve ser posterior à data inicial.",
+      );
+    }
+
+    if (
+      postingDays.some(
+        (scheduledDate) =>
+          scheduledDate < periodStart || scheduledDate > periodEnd,
+      )
+    ) {
+      throw new BadRequestException(
+        "Todos os dias de postagem devem pertencer ao período do calendário.",
       );
     }
 
@@ -246,8 +355,16 @@ export class AdminService {
         title: dto.title.trim(),
         periodStart,
         periodEnd,
-        shareToken: randomBytes(24).toString("hex")
-      }
+        shareToken: randomBytes(24).toString("hex"),
+        postingDays: {
+          create: postingDays.map((scheduledDate) => ({ scheduledDate })),
+        },
+      },
+      include: {
+        postingDays: {
+          orderBy: { scheduledDate: "asc" },
+        },
+      },
     });
   }
 
@@ -261,8 +378,8 @@ export class AdminService {
         format: dto.format.trim(),
         caption: dto.caption.trim(),
         assetUrl: dto.assetUrl?.trim() || null,
-        status: ContentStatus.PENDING_APPROVAL
-      }
+        status: ContentStatus.PENDING_APPROVAL,
+      },
     });
   }
 
@@ -270,8 +387,8 @@ export class AdminService {
     return this.prisma.calendar.update({
       where: { id: calendarId },
       data: {
-        shareToken: randomBytes(24).toString("hex")
-      }
+        shareToken: randomBytes(24).toString("hex"),
+      },
     });
   }
 
@@ -279,14 +396,14 @@ export class AdminService {
     const designer = await this.prisma.designer.findFirst({
       where: {
         id,
-        role: UserRole.DESIGNER
+        role: UserRole.DESIGNER,
       },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!designer) {
       throw new BadRequestException(
-        "O responsável informado não é um designer válido."
+        "O responsável informado não é um designer válido.",
       );
     }
   }

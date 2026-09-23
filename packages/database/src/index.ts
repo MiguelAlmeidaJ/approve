@@ -12,6 +12,7 @@ export type {
   DesignerSession,
   Client,
   Calendar,
+  CalendarPostingDay,
   ContentItem,
   ReviewHistory
 } from "@prisma/client";
