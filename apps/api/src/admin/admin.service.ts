@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
 import { ContentStatus } from "@approve/database";
 import { randomBytes } from "node:crypto";
 import { PrismaService } from "../prisma.service";
@@ -28,6 +32,52 @@ export class AdminService {
     });
   }
 
+  async getClient(id: string) {
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+      include: {
+        calendars: {
+          orderBy: { periodStart: "desc" },
+          include: {
+            contentItems: {
+              orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }]
+            }
+          }
+        }
+      }
+    });
+
+    if (!client) {
+      throw new NotFoundException("Cliente não encontrado.");
+    }
+
+    return client;
+  }
+
+  async getCalendar(id: string) {
+    const calendar = await this.prisma.calendar.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        contentItems: {
+          orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
+          include: {
+            reviews: {
+              orderBy: { createdAt: "desc" },
+              take: 1
+            }
+          }
+        }
+      }
+    });
+
+    if (!calendar) {
+      throw new NotFoundException("Calendário não encontrado.");
+    }
+
+    return calendar;
+  }
+
   async createClient(dto: CreateClientDto) {
     const baseSlug = (dto.slug || dto.name)
       .normalize("NFD")
@@ -38,7 +88,9 @@ export class AdminService {
       .replace(/^-|-$/g, "");
 
     if (!baseSlug) {
-      throw new BadRequestException("Não foi possível gerar um slug para o cliente.");
+      throw new BadRequestException(
+        "Não foi possível gerar um slug para o cliente."
+      );
     }
 
     const existing = await this.prisma.client.findUnique({

@@ -28,6 +28,28 @@ enum ReviewAction {
   CHANGES_REQUESTED
 }
 
+model Designer {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  sessions     DesignerSession[]
+}
+
+model DesignerSession {
+  id         String   @id @default(cuid())
+  designerId String
+  tokenHash  String   @unique @db.VarChar(64)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  designer   Designer @relation(fields: [designerId], references: [id], onDelete: Cascade)
+
+  @@index([designerId])
+  @@index([expiresAt])
+}
+
 model Client {
   id        String     @id @default(cuid())
   name      String
@@ -38,15 +60,15 @@ model Client {
 }
 
 model Calendar {
-  id          String        @id @default(cuid())
-  clientId    String
-  title       String
-  periodStart DateTime
-  periodEnd   DateTime
-  shareToken  String        @unique @db.VarChar(64)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  clientId     String
+  title        String
+  periodStart  DateTime
+  periodEnd    DateTime
+  shareToken   String        @unique @db.VarChar(64)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   contentItems ContentItem[]
 
   @@index([clientId])
@@ -75,13 +97,13 @@ model ContentItem {
 }
 
 model ReviewHistory {
-  id           String       @id @default(cuid())
+  id            String       @id @default(cuid())
   contentItemId String
-  action       ReviewAction
-  message      String?      @db.Text
-  reviewerName String?
-  createdAt    DateTime     @default(now())
-  contentItem  ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  action        ReviewAction
+  message       String?      @db.Text
+  reviewerName  String?
+  createdAt     DateTime     @default(now())
+  contentItem   ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
 
   @@index([contentItemId, createdAt])
 }

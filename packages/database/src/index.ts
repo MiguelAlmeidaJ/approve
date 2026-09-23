@@ -7,6 +7,8 @@ export {
 } from "@prisma/client";
 
 export type {
+  Designer,
+  DesignerSession,
   Client,
   Calendar,
   ContentItem,

@@ -15,6 +15,16 @@ export class AdminController {
     return this.adminService.dashboard();
   }
 
+  @Get("clients/:id")
+  getClient(@Param("id") id: string) {
+    return this.adminService.getClient(id);
+  }
+
+  @Get("calendars/:id")
+  getCalendar(@Param("id") id: string) {
+    return this.adminService.getCalendar(id);
+  }
+
   @Post("clients")
   createClient(@Body() dto: CreateClientDto) {
     return this.adminService.createClient(dto);
