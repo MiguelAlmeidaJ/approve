@@ -1,0 +1,30 @@
+{
+  "name": "approve",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "predev": "dotenv -e .env -- pnpm --filter @approve/database build",
+    "dev": "dotenv -e .env -- pnpm --parallel --filter @approve/api --filter @approve/web dev",
+    "build": "dotenv -e .env -- pnpm run build:workspace",
+    "build:workspace": "pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
+    "pretypecheck": "dotenv -e .env -- pnpm --filter @approve/database generate",
+    "typecheck": "pnpm -r typecheck",
+    "db:up": "docker compose up -d mysql",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mysql",
+    "db:generate": "dotenv -e .env -- pnpm --filter @approve/database generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @approve/database migrate",
+    "db:deploy": "dotenv -e .env -- pnpm --filter @approve/database deploy",
+    "db:seed": "dotenv -e .env -- pnpm --filter @approve/database seed",
+    "start:pm2": "dotenv -e .env -- pm2 start ecosystem.config.cjs",
+    "stop:pm2": "pm2 delete ecosystem.config.cjs"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0",
+    "pm2": "^6.0.10",
+    "prettier": "^3.6.2"
+  }
+}
