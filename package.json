@@ -1,0 +1,25 @@
+{
+  "name": "approve",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @approve/api --filter @approve/web dev",
+    "build": "pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
+    "typecheck": "pnpm -r typecheck",
+    "db:up": "docker compose up -d mysql",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mysql",
+    "db:generate": "pnpm --filter @approve/database generate",
+    "db:migrate": "pnpm --filter @approve/database migrate",
+    "db:seed": "pnpm --filter @approve/database seed",
+    "start:pm2": "pm2 start ecosystem.config.cjs",
+    "stop:pm2": "pm2 delete ecosystem.config.cjs"
+  },
+  "devDependencies": {
+    "pm2": "^6.0.10",
+    "prettier": "^3.6.2"
+  }
+}

@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: approve-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: approve
+      MYSQL_USER: approve
+      MYSQL_PASSWORD: approve
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - approve_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  approve_mysql_data:

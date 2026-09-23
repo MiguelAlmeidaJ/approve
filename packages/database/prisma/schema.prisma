@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Channel {
+  INSTAGRAM
+  FACEBOOK
+  LINKEDIN
+  TIKTOK
+  STORIES
+  OTHER
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum ReviewAction {
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+model Client {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  calendars Calendar[]
+}
+
+model Calendar {
+  id          String        @id @default(cuid())
+  clientId    String
+  title       String
+  periodStart DateTime
+  periodEnd   DateTime
+  shareToken  String        @unique @db.VarChar(64)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contentItems ContentItem[]
+
+  @@index([clientId])
+  @@index([periodStart, periodEnd])
+}
+
+model ContentItem {
+  id          String        @id @default(cuid())
+  calendarId  String
+  title       String
+  scheduledAt DateTime
+  channel     Channel
+  format      String
+  caption     String        @db.Text
+  assetUrl    String?       @db.Text
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  reviewedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  calendar    Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  reviews     ReviewHistory[]
+
+  @@index([calendarId, scheduledAt])
+  @@index([status])
+}
+
+model ReviewHistory {
+  id           String       @id @default(cuid())
+  contentItemId String
+  action       ReviewAction
+  message      String?      @db.Text
+  reviewerName String?
+  createdAt    DateTime     @default(now())
+  contentItem  ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@index([contentItemId, createdAt])
+}
