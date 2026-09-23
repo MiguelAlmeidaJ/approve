@@ -5,12 +5,15 @@ export default function NotFound() {
   return (
     <main className="not-found">
       <Brand />
-      <span className="eyebrow">404</span>
-      <h1>Esse link de aprovação não está mais disponível.</h1>
+      <span className="micro-label">404</span>
+      <h1>Essa página não está disponível.</h1>
       <p>
-        Peça à equipe da Terceiro Andar o link atualizado do seu calendário.
+        Se você recebeu um link de aprovação, peça à equipe da Terceiro Andar
+        o endereço atualizado.
       </p>
-      <Link href="/">Voltar</Link>
+      <Link href="/" className="button button-primary">
+        Voltar
+      </Link>
     </main>
   );
 }

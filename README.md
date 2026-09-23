@@ -1,141 +1,92 @@
 # Approve — Terceiro Andar
 
-Sistema de calendário e aprovação de conteúdo para a agência Terceiro Andar.
+Sistema simples para montar calendários de conteúdo e enviar aprovação para clientes da Terceiro Andar.
 
-O time interno cadastra clientes, calendários e peças. Cada calendário recebe um link público exclusivo para o cliente aprovar a peça ou solicitar alteração com comentário.
+A interface foi reorganizada com base no fluxo visual da referência enviada: navegação lateral por cliente, calendário em grade, abertura de cada peça em detalhe e uma experiência pública semelhante para aprovação. A identidade continua exclusivamente na paleta da Terceiro Andar.
 
 ## Stack
 
-- pnpm workspace / TypeScript
-- Next.js (web)
-- NestJS (API)
-- Prisma ORM
+- pnpm workspace + TypeScript
+- Next.js
+- NestJS
+- Prisma
 - MySQL
-- Docker Compose para o banco em desenvolvimento
-- PM2 para executar web + API em produção
+- Docker Compose no desenvolvimento
+- PM2 em produção
 
-## Estrutura
+## Fluxo atual
 
-~~~
-apps/
-  api/        # NestJS
-  web/        # Next.js
-packages/
-  database/   # Prisma schema, migrations, seed e client compartilhado
-~~~
+1. Designer entra em `/login`.
+2. Cadastra um cliente.
+3. Cria um calendário mensal.
+4. Adiciona as peças ao calendário.
+5. Abre ou compartilha o link público.
+6. Cliente abre cada peça, aprova ou solicita alteração.
 
-## Identidade visual
+## Desenvolvimento
 
-A interface segue a referência da Terceiro Andar:
-
-- rosa: #FF014A
-- preto: #000000
-- branco: #FFFFFF
-- fundo neutro cinza claro
-- Open Sans Condensed nos títulos
-- Poppins no corpo
-- marca reconstruída em CSS para manter o projeto independente de assets externos
-
-## Desenvolvimento local
-
-1. Requisitos: Node 20+, pnpm 10+ e Docker.
-2. Copie o ambiente:
-
-~~~
+~~~bash
 cp .env.example .env
-~~~
-
-3. Instale as dependências:
-
-~~~
 pnpm install
-~~~
-
-Na primeira instalação será criado o `pnpm-lock.yaml`; vale a pena versioná-lo antes do deploy.
-
-4. Suba o MySQL:
-
-~~~
 pnpm db:up
-~~~
-
-5. Aplique a migration inicial já versionada:
-
-~~~
 pnpm db:generate
 pnpm db:migrate
-~~~
-
-6. Carregue os dados de demonstração:
-
-~~~
 pnpm db:seed
-~~~
-
-7. Rode web e API:
-
-~~~
 pnpm dev
 ~~~
 
-O comando `pnpm dev` compila o pacote de banco antes de iniciar os dois apps e carrega as variáveis do `.env` da raiz.
-
-- Painel interno: http://localhost:3000
+- Painel: http://localhost:3000
+- Login: http://localhost:3000/login
 - API: http://localhost:3333/api
-- Healthcheck: http://localhost:3333/api/health
-- Link demo do cliente: http://localhost:3000/p/demo-terceiro-andar
+- Demo público: http://localhost:3000/p/demo-terceiro-andar
 
-## Segurança do MVP
+O `pnpm db:seed` cria o designer definido no `.env`:
 
-Há duas camadas simples e independentes:
-
-1. O painel Next pode ser protegido com HTTP Basic Auth usando `DASHBOARD_USER` e `DASHBOARD_PASSWORD`.
-2. As rotas administrativas do Nest exigem `X-Admin-Key`, configurada por `API_ADMIN_KEY`. O segredo é usado apenas no servidor Next e não é exposto ao navegador.
-
-Os links dos clientes usam token aleatório de 48 caracteres hexadecimais. A agência pode rotacionar o token pelo painel, invalidando o link anterior.
-
-Para produção com múltiplos usuários internos, o próximo passo recomendado é trocar Basic Auth por autenticação de equipe com sessão, usuários e permissões.
-
-## Fluxo do cliente
-
-Cada peça pode ficar em:
-
-- DRAFT
-- PENDING_APPROVAL
-- APPROVED
-- CHANGES_REQUESTED
-
-No link público, o cliente pode:
-
-- aprovar;
-- solicitar alteração com comentário obrigatório;
-- identificar-se opcionalmente pelo nome.
-
-Cada ação gera um registro em `ReviewHistory`.
-
-## Produção com PM2
-
-Depois de configurar o `.env` da raiz e apontar `DATABASE_URL` para o MySQL de produção:
-
+~~~env
+DESIGNER_NAME="Designer Terceiro Andar"
+DESIGNER_EMAIL="designer@terceiroandar.com.br"
+DESIGNER_PASSWORD="troque-esta-senha"
 ~~~
-pnpm install
+
+Se `DESIGNER_PASSWORD` não estiver configurada, o seed local usa `terceiroandar` como fallback.
+
+## Autenticação
+
+O login do designer usa uma sessão opaca de 7 dias salva no banco. A senha é armazenada com `scrypt`; o navegador recebe somente um cookie HttpOnly com o token da sessão.
+
+As rotas administrativas da API continuam protegidas também por `API_ADMIN_KEY`, usada apenas na comunicação server-to-server do Next com o Nest.
+
+O link do cliente continua independente do login e usa o `shareToken` do calendário.
+
+## Banco
+
+A migration `20260923183000_designer_auth` adiciona:
+
+- `Designer`
+- `DesignerSession`
+
+Para uma instalação já existente, basta:
+
+~~~bash
+pnpm db:migrate
+pnpm db:seed
+~~~
+
+## Produção
+
+~~~bash
+pnpm install --frozen-lockfile
 pnpm db:deploy
 pnpm build
 pnpm start:pm2
 pm2 save
 ~~~
 
-Depois que o `pnpm-lock.yaml` estiver versionado, prefira `pnpm install --frozen-lockfile` no servidor/CI.
+## Próximos passos
 
-O arquivo `ecosystem.config.cjs` inicia os dois processos.
-
-## Próximas evoluções
-
-- upload de artes para S3/R2 em vez de URL manual;
-- login real para equipe da agência;
-- usuários e permissões por cliente;
-- edição/reordenação das peças;
-- notificações por e-mail/WhatsApp;
-- histórico visual de versões da arte;
-- comentários por região da imagem;
-- status do calendário e aprovação em lote.
+- upload real de artes em Cloudflare R2/S3;
+- edição e exclusão de clientes/calendários/peças;
+- drag-and-drop para ordenar o feed;
+- múltiplos designers com convite e recuperação de senha;
+- comentários visuais sobre a arte;
+- notificações por e-mail ou WhatsApp.
