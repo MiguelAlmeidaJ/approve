@@ -35,6 +35,10 @@ pnpm db:seed
 pnpm dev
 ~~~
 
+O comando `pnpm db:migrate` aplica as migrations já versionadas usando `prisma migrate deploy`. Isso funciona com o usuário MySQL `approve` sem exigir permissão para criar um shadow database.
+
+Use `pnpm db:migrate:dev` somente quando estiver criando uma nova migration a partir de alterações no `schema.prisma`. O `prisma migrate dev` usa um shadow database e, por isso, exige um usuário MySQL com permissão para criar bancos ou uma configuração específica de shadow database.
+
 - Painel: http://localhost:3000
 - Login: http://localhost:3000/login
 - API: http://localhost:3333/api
