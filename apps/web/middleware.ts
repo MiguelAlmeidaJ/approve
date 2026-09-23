@@ -1,46 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const SESSION_COOKIE = "ta_designer_session";
+
 export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
   if (
-    request.nextUrl.pathname.startsWith("/p/") ||
-    request.nextUrl.pathname.startsWith("/_next/") ||
-    request.nextUrl.pathname === "/favicon.ico"
+    pathname === "/login" ||
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/_next/") ||
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
-  const expectedUser = process.env.DASHBOARD_USER;
-  const expectedPassword = process.env.DASHBOARD_PASSWORD;
-
-  if (!expectedUser || !expectedPassword) {
-    return NextResponse.next();
+  if (!request.cookies.get(SESSION_COOKIE)?.value) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const authorization = request.headers.get("authorization");
-
-  if (authorization?.startsWith("Basic ")) {
-    try {
-      const decoded = atob(authorization.slice(6));
-      const separator = decoded.indexOf(":");
-      const user = decoded.slice(0, separator);
-      const password = decoded.slice(separator + 1);
-
-      if (user === expectedUser && password === expectedPassword) {
-        return NextResponse.next();
-      }
-    } catch {
-      // Cai no 401 abaixo.
-    }
-  }
-
-  return new NextResponse("Autenticação necessária.", {
-    status: 401,
-    headers: {
-      // Headers da Fetch API usam ByteString. Mantenha o challenge em ASCII
-      // para evitar TypeError com caracteres como travessão (U+2014).
-      "WWW-Authenticate": 'Basic realm="Terceiro Andar - Aprovacao"'
-    }
-  });
+  return NextResponse.next();
 }
 
 export const config = {

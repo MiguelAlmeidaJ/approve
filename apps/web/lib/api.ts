@@ -25,6 +25,7 @@ export type ContentItem = {
 
 export type Calendar = {
   id: string;
+  clientId: string;
   title: string;
   periodStart: string;
   periodEnd: string;
@@ -39,7 +40,7 @@ export type Client = {
   calendars: Calendar[];
 };
 
-export type PublicCalendar = Calendar & {
+export type CalendarWithClient = Calendar & {
   client: {
     id: string;
     name: string;
@@ -47,23 +48,51 @@ export type PublicCalendar = Calendar & {
   };
 };
 
+export type PublicCalendar = CalendarWithClient;
+
+export type Designer = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 const API_URL = process.env.API_URL ?? "http://localhost:3333";
 
-export async function getDashboard(): Promise<Client[]> {
-  const response = await fetch(`${API_URL}/api/admin/dashboard`, {
+async function adminGet<T>(path: string): Promise<T | null> {
+  const response = await fetch(`${API_URL}${path}`, {
     headers: {
       "x-admin-key": process.env.API_ADMIN_KEY ?? ""
     },
     cache: "no-store"
   });
 
+  if (response.status === 404) {
+    return null;
+  }
+
   if (!response.ok) {
     throw new Error(
-      `Falha ao carregar painel: ${response.status} ${response.statusText}`
+      `Falha ao carregar dados: ${response.status} ${response.statusText}`
     );
   }
 
-  return response.json() as Promise<Client[]>;
+  return response.json() as Promise<T>;
+}
+
+export async function getDashboard(): Promise<Client[]> {
+  return (
+    (await adminGet<Client[]>("/api/admin/dashboard")) ?? []
+  );
+}
+
+export function getClient(id: string) {
+  return adminGet<Client>(`/api/admin/clients/${encodeURIComponent(id)}`);
+}
+
+export function getCalendar(id: string) {
+  return adminGet<CalendarWithClient>(
+    `/api/admin/calendars/${encodeURIComponent(id)}`
+  );
 }
 
 export async function getPublicCalendar(

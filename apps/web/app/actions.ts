@@ -1,9 +1,14 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireDesigner, SESSION_COOKIE } from "../lib/auth";
 import { getApiUrl } from "../lib/api";
 
-async function adminPost(path: string, body?: unknown) {
+async function adminPost<T>(path: string, body?: unknown): Promise<T> {
+  await requireDesigner();
+
   const response = await fetch(`${getApiUrl()}${path}`, {
     method: "POST",
     headers: {
@@ -18,6 +23,8 @@ async function adminPost(path: string, body?: unknown) {
     const text = await response.text();
     throw new Error(text || `Erro ${response.status} ao salvar.`);
   }
+
+  return response.json() as Promise<T>;
 }
 
 function required(formData: FormData, key: string) {
@@ -38,31 +45,63 @@ function brazilLocalDateTimeToIso(value: string) {
   return new Date(value).toISOString();
 }
 
+function monthRange(value: string) {
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    throw new Error("Mês de referência inválido.");
+  }
+
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  const start = new Date(Date.UTC(year, monthIndex, 1));
+  const end = new Date(Date.UTC(year, monthIndex + 1, 0, 23, 59, 59, 999));
+
+  return { start, end };
+}
+
+function defaultCalendarTitle(date: Date) {
+  const formatted = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 export async function createClient(formData: FormData) {
-  await adminPost("/api/admin/clients", {
+  const client = await adminPost<{ id: string }>("/api/admin/clients", {
     name: required(formData, "name")
   });
 
   revalidatePath("/");
+  redirect(`/clients/${client.id}`);
 }
 
 export async function createCalendar(formData: FormData) {
-  await adminPost("/api/admin/calendars", {
+  const month = required(formData, "month");
+  const { start, end } = monthRange(month);
+  const typedTitle = String(formData.get("title") ?? "").trim();
+
+  const calendar = await adminPost<{ id: string }>("/api/admin/calendars", {
     clientId: required(formData, "clientId"),
-    title: required(formData, "title"),
-    periodStart: new Date(required(formData, "periodStart")).toISOString(),
-    periodEnd: new Date(required(formData, "periodEnd")).toISOString()
+    title: typedTitle || defaultCalendarTitle(start),
+    periodStart: start.toISOString(),
+    periodEnd: end.toISOString()
   });
 
   revalidatePath("/");
+  redirect(`/calendars/${calendar.id}`);
 }
 
 export async function createContentItem(formData: FormData) {
+  const calendarId = required(formData, "calendarId");
   const rawDate = required(formData, "scheduledAt");
   const assetUrl = String(formData.get("assetUrl") ?? "").trim();
 
   await adminPost("/api/admin/items", {
-    calendarId: required(formData, "calendarId"),
+    calendarId,
     title: required(formData, "title"),
     scheduledAt: brazilLocalDateTimeToIso(rawDate),
     channel: required(formData, "channel"),
@@ -71,7 +110,7 @@ export async function createContentItem(formData: FormData) {
     assetUrl: assetUrl || undefined
   });
 
-  revalidatePath("/");
+  revalidatePath(`/calendars/${calendarId}`);
 }
 
 export async function rotateCalendarToken(calendarId: string) {
@@ -79,5 +118,23 @@ export async function rotateCalendarToken(calendarId: string) {
     `/api/admin/calendars/${encodeURIComponent(calendarId)}/rotate-token`
   );
 
-  revalidatePath("/");
+  revalidatePath(`/calendars/${calendarId}`);
+}
+
+export async function logoutDesigner() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (token) {
+    await fetch(`${getApiUrl()}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`
+      },
+      cache: "no-store"
+    }).catch(() => undefined);
+  }
+
+  cookieStore.delete(SESSION_COOKIE);
+  redirect("/login");
 }
