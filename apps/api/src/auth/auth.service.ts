@@ -72,7 +72,8 @@ export class AuthService {
       designer: {
         id: designer.id,
         name: designer.name,
-        email: designer.email
+        email: designer.email,
+        role: designer.role
       }
     };
   }
@@ -94,7 +95,8 @@ export class AuthService {
     return {
       id: session.designer.id,
       name: session.designer.name,
-      email: session.designer.email
+      email: session.designer.email,
+      role: session.designer.role
     };
   }
 

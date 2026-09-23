@@ -1,6 +1,7 @@
 import { Channel } from "@approve/database";
 import {
   IsDateString,
+  IsEmail,
   IsEnum,
   IsOptional,
   IsString,
@@ -16,6 +17,29 @@ export class CreateClientDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @IsOptional()
+  @IsString()
+  assignedDesignerId?: string;
+}
+
+export class AssignClientDto {
+  @IsOptional()
+  @IsString()
+  designerId?: string | null;
+}
+
+export class CreateDesignerDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(6)
+  password!: string;
 }
 
 export class CreateCalendarDto {

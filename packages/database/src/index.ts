@@ -1,6 +1,7 @@
 export {
   PrismaClient,
   Prisma,
+  UserRole,
   Channel,
   ContentStatus,
   ReviewAction

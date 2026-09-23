@@ -3,14 +3,23 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { ContentStatus } from "@approve/database";
-import { randomBytes } from "node:crypto";
+import { ContentStatus, UserRole } from "@approve/database";
+import { randomBytes, scryptSync } from "node:crypto";
 import { PrismaService } from "../prisma.service";
 import {
+  AssignClientDto,
   CreateCalendarDto,
   CreateClientDto,
-  CreateContentItemDto
+  CreateContentItemDto,
+  CreateDesignerDto
 } from "./admin.dto";
+
+function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+
+  return `scrypt:${salt}:${hash}`;
+}
 
 @Injectable()
 export class AdminService {
@@ -20,6 +29,14 @@ export class AdminService {
     return this.prisma.client.findMany({
       orderBy: { createdAt: "desc" },
       include: {
+        assignedDesigner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        },
         calendars: {
           orderBy: { periodStart: "desc" },
           include: {
@@ -32,10 +49,39 @@ export class AdminService {
     });
   }
 
+  listDesigners() {
+    return this.prisma.designer.findMany({
+      where: {
+        role: UserRole.DESIGNER
+      },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: {
+            clients: true
+          }
+        }
+      }
+    });
+  }
+
   async getClient(id: string) {
     const client = await this.prisma.client.findUnique({
       where: { id },
       include: {
+        assignedDesigner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        },
         calendars: {
           orderBy: { periodStart: "desc" },
           include: {
@@ -58,7 +104,18 @@ export class AdminService {
     const calendar = await this.prisma.calendar.findUnique({
       where: { id },
       include: {
-        client: true,
+        client: {
+          include: {
+            assignedDesigner: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        },
         contentItems: {
           orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
           include: {
@@ -78,6 +135,33 @@ export class AdminService {
     return calendar;
   }
 
+  async createDesigner(dto: CreateDesignerDto) {
+    const email = dto.email.trim().toLowerCase();
+    const existing = await this.prisma.designer.findUnique({
+      where: { email }
+    });
+
+    if (existing) {
+      throw new BadRequestException("Já existe um usuário com esse e-mail.");
+    }
+
+    return this.prisma.designer.create({
+      data: {
+        name: dto.name.trim(),
+        email,
+        passwordHash: hashPassword(dto.password),
+        role: UserRole.DESIGNER
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
+    });
+  }
+
   async createClient(dto: CreateClientDto) {
     const baseSlug = (dto.slug || dto.name)
       .normalize("NFD")
@@ -93,6 +177,10 @@ export class AdminService {
       );
     }
 
+    if (dto.assignedDesignerId) {
+      await this.ensureDesigner(dto.assignedDesignerId);
+    }
+
     const existing = await this.prisma.client.findUnique({
       where: { slug: baseSlug }
     });
@@ -104,7 +192,40 @@ export class AdminService {
     return this.prisma.client.create({
       data: {
         name: dto.name.trim(),
-        slug
+        slug,
+        assignedDesignerId: dto.assignedDesignerId || null
+      }
+    });
+  }
+
+  async assignClient(clientId: string, dto: AssignClientDto) {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+      select: { id: true }
+    });
+
+    if (!client) {
+      throw new NotFoundException("Cliente não encontrado.");
+    }
+
+    if (dto.designerId) {
+      await this.ensureDesigner(dto.designerId);
+    }
+
+    return this.prisma.client.update({
+      where: { id: clientId },
+      data: {
+        assignedDesignerId: dto.designerId || null
+      },
+      include: {
+        assignedDesigner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        }
       }
     });
   }
@@ -152,5 +273,21 @@ export class AdminService {
         shareToken: randomBytes(24).toString("hex")
       }
     });
+  }
+
+  private async ensureDesigner(id: string) {
+    const designer = await this.prisma.designer.findFirst({
+      where: {
+        id,
+        role: UserRole.DESIGNER
+      },
+      select: { id: true }
+    });
+
+    if (!designer) {
+      throw new BadRequestException(
+        "O responsável informado não é um designer válido."
+      );
+    }
   }
 }

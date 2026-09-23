@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  DEV
+  ADMIN
+  DESIGNER
+}
+
 enum Channel {
   INSTAGRAM
   FACEBOOK
@@ -33,9 +39,11 @@ model Designer {
   name         String
   email        String            @unique
   passwordHash String
+  role         UserRole          @default(DESIGNER)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   sessions     DesignerSession[]
+  clients      Client[]          @relation("ClientDesigner")
 }
 
 model DesignerSession {
@@ -51,12 +59,16 @@ model DesignerSession {
 }
 
 model Client {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  calendars Calendar[]
+  id                 String     @id @default(cuid())
+  name               String
+  slug               String     @unique
+  assignedDesignerId String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  assignedDesigner   Designer?  @relation("ClientDesigner", fields: [assignedDesignerId], references: [id], onDelete: SetNull)
+  calendars          Calendar[]
+
+  @@index([assignedDesignerId])
 }
 
 model Calendar {

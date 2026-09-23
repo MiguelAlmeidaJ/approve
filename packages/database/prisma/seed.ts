@@ -1,7 +1,8 @@
 import {
   Channel,
   ContentStatus,
-  PrismaClient
+  PrismaClient,
+  UserRole
 } from "@prisma/client";
 import { randomBytes, scryptSync } from "node:crypto";
 
@@ -14,34 +15,69 @@ function hashPassword(password: string) {
   return `scrypt:${salt}:${hash}`;
 }
 
-async function main() {
-  const designerName =
-    process.env.DESIGNER_NAME?.trim() || "Designer Terceiro Andar";
-  const designerEmail =
-    process.env.DESIGNER_EMAIL?.trim().toLowerCase() ||
-    "designer@terceiroandar.com.br";
-  const designerPassword =
-    process.env.DESIGNER_PASSWORD || "terceiroandar";
-
-  await prisma.designer.upsert({
-    where: { email: designerEmail },
+async function upsertUser(input: {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}) {
+  return prisma.designer.upsert({
+    where: { email: input.email.trim().toLowerCase() },
     update: {
-      name: designerName,
-      passwordHash: hashPassword(designerPassword)
+      name: input.name.trim(),
+      role: input.role,
+      passwordHash: hashPassword(input.password)
     },
     create: {
-      name: designerName,
-      email: designerEmail,
-      passwordHash: hashPassword(designerPassword)
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      role: input.role,
+      passwordHash: hashPassword(input.password)
     }
+  });
+}
+
+async function main() {
+  const dev = await upsertUser({
+    name:
+      process.env.DEV_NAME?.trim() ||
+      process.env.DESIGNER_NAME?.trim() ||
+      "Dev Terceiro Andar",
+    email:
+      process.env.DEV_EMAIL?.trim() ||
+      process.env.DESIGNER_EMAIL?.trim() ||
+      "designer@dev.com",
+    password:
+      process.env.DEV_PASSWORD ||
+      process.env.DESIGNER_PASSWORD ||
+      "senha123",
+    role: UserRole.DEV
+  });
+
+  const admin = await upsertUser({
+    name: process.env.ADMIN_NAME?.trim() || "Admin Terceiro Andar",
+    email: process.env.ADMIN_EMAIL?.trim() || "admin@dev.com",
+    password: process.env.ADMIN_PASSWORD || "senha123",
+    role: UserRole.ADMIN
+  });
+
+  const designer = await upsertUser({
+    name: process.env.STAFF_DESIGNER_NAME?.trim() || "Designer Demo",
+    email: process.env.STAFF_DESIGNER_EMAIL?.trim() || "social@dev.com",
+    password: process.env.STAFF_DESIGNER_PASSWORD || "senha123",
+    role: UserRole.DESIGNER
   });
 
   const client = await prisma.client.upsert({
     where: { slug: "cliente-demo" },
-    update: { name: "Cliente Demo" },
+    update: {
+      name: "Cliente Demo",
+      assignedDesignerId: designer.id
+    },
     create: {
       name: "Cliente Demo",
-      slug: "cliente-demo"
+      slug: "cliente-demo",
+      assignedDesignerId: designer.id
     }
   });
 
@@ -108,11 +144,10 @@ async function main() {
   });
 
   console.log("Seed concluído.");
-  console.log(`Designer: ${designerEmail}`);
-  if (!process.env.DESIGNER_PASSWORD) {
-    console.log("Senha local padrão: terceiroandar");
-  }
-  console.log("Link público: http://localhost:3000/p/demo-terceiro-andar");
+  console.log(`DEV: ${dev.email}`);
+  console.log(`ADMIN: ${admin.email}`);
+  console.log(`DESIGNER: ${designer.email}`);
+  console.log("Link público: http://localhost:5005/p/demo-terceiro-andar");
 }
 
 main()
