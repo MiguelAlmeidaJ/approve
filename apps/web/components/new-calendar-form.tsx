@@ -8,8 +8,11 @@ import {
   FiCalendar,
   FiCheck,
   FiClock,
+  FiGrid,
+  FiRepeat,
   FiUser,
-  FiX
+  FiX,
+  FiZap
 } from "react-icons/fi";
 import { createCalendar } from "../app/actions";
 
@@ -28,12 +31,32 @@ const monthNames = [
   "Dezembro"
 ] as const;
 
-const shortWeekdays = ["D", "S", "T", "Q", "Q", "S", "S"];
+const weekdays = [
+  { value: 1, label: "Seg", longLabel: "Segunda" },
+  { value: 2, label: "Ter", longLabel: "Terça" },
+  { value: 3, label: "Qua", longLabel: "Quarta" },
+  { value: 4, label: "Qui", longLabel: "Quinta" },
+  { value: 5, label: "Sex", longLabel: "Sexta" },
+  { value: 6, label: "Sáb", longLabel: "Sábado" },
+  { value: 0, label: "Dom", longLabel: "Domingo" }
+] as const;
 
 const postingPatterns = [
-  { label: "2x por semana", weekdays: [2, 4] },
-  { label: "3x por semana", weekdays: [1, 3, 5] },
-  { label: "Dias úteis", weekdays: [1, 2, 3, 4, 5] }
+  {
+    label: "2x por semana",
+    description: "Ter e Qui",
+    weekdays: [2, 4]
+  },
+  {
+    label: "3x por semana",
+    description: "Seg, Qua e Sex",
+    weekdays: [1, 3, 5]
+  },
+  {
+    label: "Dias úteis",
+    description: "Seg a Sex",
+    weekdays: [1, 2, 3, 4, 5]
+  }
 ] as const;
 
 export type CalendarClientOption = {
@@ -47,24 +70,42 @@ function toMonthValue(year: number, monthIndex: number) {
 }
 
 function calendarDays(year: number, monthIndex: number) {
-  const firstWeekday = new Date(Date.UTC(year, monthIndex, 1)).getUTCDay();
+  const sundayBased = new Date(Date.UTC(year, monthIndex, 1)).getUTCDay();
+  const mondayBased = (sundayBased + 6) % 7;
   const totalDays = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
 
   return [
-    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: mondayBased }, () => null),
     ...Array.from({ length: totalDays }, (_, index) => index + 1)
   ];
 }
 
+function daysMatchingWeekdays(
+  year: number,
+  monthIndex: number,
+  selectedWeekdays: readonly number[]
+) {
+  const totalDays = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+
+  return Array.from({ length: totalDays }, (_, index) => index + 1).filter(
+    (day) =>
+      selectedWeekdays.includes(
+        new Date(Date.UTC(year, monthIndex, day)).getUTCDay()
+      )
+  );
+}
+
 function formatPostingDay(day: number, year: number, monthIndex: number) {
-  return new Intl.DateTimeFormat("pt-BR", {
+  const value = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",
     weekday: "short",
     timeZone: "UTC"
   })
     .format(new Date(Date.UTC(year, monthIndex, day)))
-    .replace(".", "");
+    .replaceAll(".", "");
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 export function NewCalendarForm({
@@ -87,8 +128,10 @@ export function NewCalendarForm({
   const [visibleYear, setVisibleYear] = useState(
     Number(initialMonth.slice(0, 4))
   );
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [title, setTitle] = useState("");
+
   const selectedMonthIndex = Number(selectedMonth.slice(5, 7)) - 1;
   const selectedYear = Number(selectedMonth.slice(0, 4));
   const selectedClient = clients.find((client) => client.id === clientId);
@@ -102,8 +145,15 @@ export function NewCalendarForm({
   );
 
   function chooseMonth(value: string) {
+    const year = Number(value.slice(0, 4));
+    const monthIndex = Number(value.slice(5, 7)) - 1;
+
     setSelectedMonth(value);
-    setSelectedDays([]);
+    setSelectedDays(
+      selectedWeekdays.length > 0
+        ? daysMatchingWeekdays(year, monthIndex, selectedWeekdays)
+        : []
+    );
   }
 
   function togglePostingDay(day: number) {
@@ -114,17 +164,25 @@ export function NewCalendarForm({
     );
   }
 
-  function applyPattern(weekdays: readonly number[]) {
-    const matchingDays = days.filter(
-      (day): day is number =>
-        day !== null &&
-        weekdays.includes(
-          new Date(
-            Date.UTC(selectedYear, selectedMonthIndex, day)
-          ).getUTCDay()
-        )
+  function applyWeekdays(nextWeekdays: readonly number[]) {
+    const normalized = [...nextWeekdays].sort((first, second) => first - second);
+    setSelectedWeekdays(normalized);
+    setSelectedDays(
+      daysMatchingWeekdays(selectedYear, selectedMonthIndex, normalized)
     );
-    setSelectedDays(matchingDays);
+  }
+
+  function toggleWeekday(weekday: number) {
+    const next = selectedWeekdays.includes(weekday)
+      ? selectedWeekdays.filter((item) => item !== weekday)
+      : [...selectedWeekdays, weekday];
+
+    applyWeekdays(next);
+  }
+
+  function clearSchedule() {
+    setSelectedWeekdays([]);
+    setSelectedDays([]);
   }
 
   return (
@@ -138,155 +196,227 @@ export function NewCalendarForm({
       />
 
       <div className="calendar-builder planner-builder">
-        <div className="builder-field-heading">
-          <span className="builder-step">01</span>
-          <div>
-            <strong>Escolha o cliente</strong>
-            <small>O calendário ficará vinculado a esta conta</small>
+        <section className="planner-section">
+          <div className="builder-field-heading">
+            <span className="builder-step">01</span>
+            <div>
+              <strong>Escolha o cliente</strong>
+              <small>O calendário ficará vinculado a esta conta</small>
+            </div>
           </div>
-        </div>
 
-        <label className="field planner-client-field">
-          <span>Cliente</span>
-          <select
-            value={clientId}
-            onChange={(event) => setClientId(event.target.value)}
-            required
-          >
-            {clients.map((client) => (
-              <option value={client.id} key={client.id}>
-                {client.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="field planner-client-field">
+            <span>Cliente</span>
+            <select
+              value={clientId}
+              onChange={(event) => setClientId(event.target.value)}
+              required
+            >
+              {clients.map((client) => (
+                <option value={client.id} key={client.id}>
+                  {client.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
 
         <div className="builder-divider" />
 
-        <div className="builder-topline">
-          <div>
-            <span className="builder-step">02</span>
+        <section className="planner-section">
+          <div className="builder-topline">
             <div>
-              <strong>Defina o período</strong>
-              <small>Escolha o mês do planejamento</small>
+              <span className="builder-step">02</span>
+              <div>
+                <strong>Defina o período</strong>
+                <small>Escolha o mês do planejamento</small>
+              </div>
             </div>
-          </div>
-          <div className="year-switcher">
-            <button
-              type="button"
-              onClick={() => setVisibleYear((year) => year - 1)}
-              aria-label="Ano anterior"
-            >
-              <FiArrowLeft aria-hidden="true" />
-            </button>
-            <strong>{visibleYear}</strong>
-            <button
-              type="button"
-              onClick={() => setVisibleYear((year) => year + 1)}
-              aria-label="Próximo ano"
-            >
-              <FiArrowRight aria-hidden="true" />
-            </button>
-          </div>
-        </div>
 
-        <div className="month-picker" role="group" aria-label="Selecione o mês">
-          {monthNames.map((monthName, monthIndex) => {
-            const value = toMonthValue(visibleYear, monthIndex);
-            const selected = value === selectedMonth;
-
-            return (
+            <div className="year-switcher">
               <button
                 type="button"
-                className={selected ? "month-option selected" : "month-option"}
-                onClick={() => chooseMonth(value)}
-                aria-pressed={selected}
-                key={monthName}
+                onClick={() => setVisibleYear((year) => year - 1)}
+                aria-label="Ano anterior"
               >
-                <span>{monthName.slice(0, 3)}</span>
-                {selected ? <FiCheck aria-hidden="true" /> : null}
+                <FiArrowLeft aria-hidden="true" />
               </button>
-            );
-          })}
-        </div>
-
-        <div className="builder-divider" />
-
-        <div className="builder-field-heading">
-          <span className="builder-step">03</span>
-          <div>
-            <strong>Planeje as postagens</strong>
-            <small>Use um ritmo sugerido ou clique nos dias da prévia</small>
+              <strong>{visibleYear}</strong>
+              <button
+                type="button"
+                onClick={() => setVisibleYear((year) => year + 1)}
+                aria-label="Próximo ano"
+              >
+                <FiArrowRight aria-hidden="true" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="posting-patterns" role="group" aria-label="Sugestões de frequência">
-          {postingPatterns.map((pattern) => (
-            <button
-              type="button"
-              onClick={() => applyPattern(pattern.weekdays)}
-              key={pattern.label}
-            >
-              {pattern.label}
-            </button>
-          ))}
-          {selectedDays.length > 0 ? (
-            <button
-              type="button"
-              className="clear-pattern"
-              onClick={() => setSelectedDays([])}
-            >
-              Limpar
-            </button>
-          ) : null}
-        </div>
+          <div className="month-picker" role="group" aria-label="Selecione o mês">
+            {monthNames.map((monthName, monthIndex) => {
+              const value = toMonthValue(visibleYear, monthIndex);
+              const selected = value === selectedMonth;
 
-        <div className="selected-posting-days">
-          <div>
-            <FiClock aria-hidden="true" />
-            <span>
-              <strong>{selectedDays.length}</strong>
-              {selectedDays.length === 1 ? " postagem" : " postagens"}
-            </span>
-          </div>
-          {selectedDays.length === 0 ? (
-            <p>Selecione os dias no calendário ao lado.</p>
-          ) : (
-            <div className="posting-day-chips">
-              {selectedDays.map((day) => (
+              return (
                 <button
                   type="button"
-                  onClick={() => togglePostingDay(day)}
-                  aria-label={`Remover ${formatPostingDay(day, selectedYear, selectedMonthIndex)}`}
-                  key={day}
+                  className={selected ? "month-option selected" : "month-option"}
+                  onClick={() => chooseMonth(value)}
+                  aria-pressed={selected}
+                  key={monthName}
                 >
-                  {formatPostingDay(day, selectedYear, selectedMonthIndex)}
-                  <FiX aria-hidden="true" />
+                  <span>{monthName.slice(0, 3)}</span>
+                  {selected ? <FiCheck aria-hidden="true" /> : null}
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        </section>
 
         <div className="builder-divider" />
 
-        <div className="builder-field-heading">
-          <span className="builder-step">04</span>
-          <div>
-            <strong>Dê um nome</strong>
-            <small>Opcional — criamos um automaticamente</small>
+        <section className="planner-section schedule-section">
+          <div className="builder-field-heading schedule-heading">
+            <span className="builder-step">03</span>
+            <div>
+              <strong>Defina os dias de publicação</strong>
+              <small>
+                Selecione os dias da semana e o mês será preenchido
+                automaticamente
+              </small>
+            </div>
           </div>
-        </div>
 
-        <label className="field calendar-title-field">
-          <span>Título do calendário</span>
-          <input
-            name="title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder={`Ex.: Campanha de ${monthNames[selectedMonthIndex]}`}
-          />
-        </label>
+          <div className="weekday-planner">
+            <div className="planner-control-label">
+              <div>
+                <FiRepeat aria-hidden="true" />
+                <span>Repetir toda semana</span>
+              </div>
+              {selectedWeekdays.length > 0 ? (
+                <button type="button" onClick={clearSchedule}>
+                  Limpar seleção
+                </button>
+              ) : null}
+            </div>
+
+            <div
+              className="weekday-selector"
+              role="group"
+              aria-label="Dias da semana com publicação"
+            >
+              {weekdays.map((weekday) => {
+                const selected = selectedWeekdays.includes(weekday.value);
+
+                return (
+                  <button
+                    type="button"
+                    className={selected ? "weekday-option selected" : "weekday-option"}
+                    onClick={() => toggleWeekday(weekday.value)}
+                    aria-pressed={selected}
+                    title={weekday.longLabel}
+                    key={weekday.value}
+                  >
+                    <span>{weekday.label}</span>
+                    <i>
+                      {selected ? <FiCheck aria-hidden="true" /> : null}
+                    </i>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="schedule-presets">
+            <div className="planner-control-label compact">
+              <div>
+                <FiZap aria-hidden="true" />
+                <span>Atalhos</span>
+              </div>
+            </div>
+
+            <div className="posting-patterns">
+              {postingPatterns.map((pattern) => {
+                const active =
+                  selectedWeekdays.length === pattern.weekdays.length &&
+                  pattern.weekdays.every((weekday) =>
+                    selectedWeekdays.includes(weekday)
+                  );
+
+                return (
+                  <button
+                    type="button"
+                    className={active ? "active" : ""}
+                    onClick={() => applyWeekdays(pattern.weekdays)}
+                    key={pattern.label}
+                  >
+                    <strong>{pattern.label}</strong>
+                    <small>{pattern.description}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="selected-posting-days">
+            <div className="schedule-summary">
+              <div className="schedule-summary-icon">
+                <FiClock aria-hidden="true" />
+              </div>
+              <div>
+                <strong>
+                  {selectedDays.length}{" "}
+                  {selectedDays.length === 1 ? "postagem" : "postagens"}
+                </strong>
+                <span>
+                  {selectedWeekdays.length > 0
+                    ? "Preenchidas automaticamente. Você ainda pode ajustar dias individuais na prévia."
+                    : "Escolha um ou mais dias da semana ou clique diretamente no calendário."}
+                </span>
+              </div>
+            </div>
+
+            {selectedDays.length > 0 ? (
+              <div className="posting-day-chips">
+                {selectedDays.map((day) => (
+                  <button
+                    type="button"
+                    onClick={() => togglePostingDay(day)}
+                    aria-label={`Remover ${formatPostingDay(day, selectedYear, selectedMonthIndex)}`}
+                    key={day}
+                  >
+                    <span>
+                      {formatPostingDay(day, selectedYear, selectedMonthIndex)}
+                    </span>
+                    <FiX aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <div className="builder-divider" />
+
+        <section className="planner-section">
+          <div className="builder-field-heading">
+            <span className="builder-step">04</span>
+            <div>
+              <strong>Dê um nome</strong>
+              <small>Opcional — criamos um automaticamente</small>
+            </div>
+          </div>
+
+          <label className="field calendar-title-field">
+            <span>Título do calendário</span>
+            <input
+              name="title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder={`Ex.: Campanha de ${monthNames[selectedMonthIndex]}`}
+            />
+          </label>
+        </section>
 
         <div className="calendar-creator-actions">
           <Link href={cancelHref} className="button button-ghost">
@@ -306,11 +436,18 @@ export function NewCalendarForm({
       <aside className="calendar-preview-panel planner-preview-panel">
         <div className="preview-orbit preview-orbit-one" />
         <div className="preview-orbit preview-orbit-two" />
+
         <div className="calendar-preview-content planner-preview-content">
           <div className="planner-preview-topline">
-            <span className="micro-label micro-label-light">AGENDA DE POSTAGENS</span>
-            <span>{selectedDays.length} selecionado(s)</span>
+            <span className="preview-eyebrow">
+              <FiGrid aria-hidden="true" />
+              Prévia do planejamento
+            </span>
+            <span className="preview-count">
+              {selectedDays.length} selecionado(s)
+            </span>
           </div>
+
           <div className="calendar-preview-heading">
             <div className="calendar-preview-icon">
               <FiCalendar aria-hidden="true" />
@@ -322,19 +459,20 @@ export function NewCalendarForm({
           </div>
 
           <p className="planner-preview-hint">
-            Clique nos dias em que haverá publicação.
+            Clique em qualquer data para incluir ou remover uma publicação.
           </p>
 
           <div className="mini-calendar interactive-calendar">
             <div className="mini-calendar-labels">
-              {shortWeekdays.map((day, index) => (
-                <span key={`${day}-${index}`}>{day}</span>
+              {weekdays.map((weekday) => (
+                <span key={weekday.value}>{weekday.label}</span>
               ))}
             </div>
+
             <div className="mini-calendar-days">
               {days.map((day, index) =>
                 day === null ? (
-                  <span key={`empty-${index}`} />
+                  <span className="calendar-empty-day" key={`empty-${index}`} />
                 ) : (
                   <button
                     type="button"
@@ -345,9 +483,27 @@ export function NewCalendarForm({
                     key={day}
                   >
                     {day}
+                    {selectedDays.includes(day) ? <i /> : null}
                   </button>
                 )
               )}
+            </div>
+          </div>
+
+          <div className="preview-schedule-note">
+            <FiRepeat aria-hidden="true" />
+            <div>
+              <span>Ritmo selecionado</span>
+              <strong>
+                {selectedWeekdays.length > 0
+                  ? weekdays
+                      .filter((weekday) =>
+                        selectedWeekdays.includes(weekday.value)
+                      )
+                      .map((weekday) => weekday.label)
+                      .join(" · ")
+                  : "Personalizado"}
+              </strong>
             </div>
           </div>
 
@@ -356,7 +512,9 @@ export function NewCalendarForm({
               <FiUser aria-hidden="true" />
               <span>
                 Responsável
-                <strong>{selectedClient?.designerName ?? "Sem responsável"}</strong>
+                <strong>
+                  {selectedClient?.designerName ?? "Sem responsável"}
+                </strong>
               </span>
             </div>
             <div>
