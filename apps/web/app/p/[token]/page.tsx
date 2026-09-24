@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  FiCheck,
   FiGrid,
   FiHeart,
   FiMessageCircle,
@@ -11,6 +10,7 @@ import {
   FiSmartphone
 } from "react-icons/fi";
 import { Brand } from "../../../components/brand";
+import { PublicReviewActions } from "../../../components/public-review-actions";
 import {
   ProtectedPublicImage,
   ProtectedPublicVideo
@@ -20,7 +20,6 @@ import {
   ContentItem,
   getPublicCalendar
 } from "../../../lib/api";
-import { submitReview } from "./actions";
 
 export const metadata = {
   robots: {
@@ -312,62 +311,13 @@ export default async function ApprovalPage({
                 </span>
               </div>
 
-              <div className="instagram-approval-panel">
-                <form action={submitReview}>
-                  <input type="hidden" name="token" value={token} />
-                  <input type="hidden" name="itemId" value={selectedItem.id} />
-                  <input type="hidden" name="action" value="APPROVED" />
-                  <label className="field public-reviewer-field">
-                    <span>Seu nome</span>
-                    <input
-                      name="reviewerName"
-                      defaultValue={account?.name ?? ""}
-                      placeholder="Quem está aprovando?"
-                      required
-                    />
-                  </label>
-                  <button
-                    className="button button-dark button-wide"
-                    type="submit"
-                    disabled={selectedItem.status === "APPROVED"}
-                  >
-                    <FiCheck aria-hidden="true" />
-                    {selectedItem.status === "APPROVED"
-                      ? "Conteúdo aprovado"
-                      : "Aprovar conteúdo"}
-                  </button>
-                </form>
-
-                <form action={submitReview} className="approval-form">
-                  <input type="hidden" name="token" value={token} />
-                  <input type="hidden" name="itemId" value={selectedItem.id} />
-                  <input type="hidden" name="action" value="CHANGES_REQUESTED" />
-                  <label className="field public-reviewer-field">
-                    <span>Seu nome</span>
-                    <input
-                      name="reviewerName"
-                      defaultValue={account?.name ?? ""}
-                      placeholder="Quem está solicitando?"
-                      required
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Solicitar alteração</span>
-                    <textarea
-                      name="message"
-                      rows={3}
-                      maxLength={4000}
-                      placeholder="Explique o que precisa ser ajustado..."
-                      required
-                    />
-                  </label>
-                  <button
-                    className="button button-primary button-wide"
-                    type="submit"
-                  >
-                    Enviar solicitação
-                  </button>
-                </form>
+              <div className="instagram-approval-panel compact">
+                <PublicReviewActions
+                  token={token}
+                  itemId={selectedItem.id}
+                  defaultName={account?.name}
+                  approved={selectedItem.status === "APPROVED"}
+                />
               </div>
             </div>
           </article>
