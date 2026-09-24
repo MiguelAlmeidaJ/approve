@@ -15,6 +15,7 @@ import {
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
   UpdateUserDto
@@ -129,6 +130,31 @@ export class AdminController {
     @Body() dto: CreateCalendarDto
   ) {
     return this.adminService.createCalendar(request.actor, dto);
+  }
+
+  @Patch("calendars/:id")
+  updateCalendar(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateCalendarDto
+  ) {
+    return this.adminService.updateCalendar(request.actor, id, dto);
+  }
+
+  @Post("calendars/:id/archive")
+  archiveCalendar(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.archiveCalendar(request.actor, id);
+  }
+
+  @Post("calendars/:id/restore")
+  restoreCalendar(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.restoreCalendar(request.actor, id);
   }
 
   @Post("items")

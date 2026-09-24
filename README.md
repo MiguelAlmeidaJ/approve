@@ -90,8 +90,8 @@ pm2 save
 
 ## Próximos passos
 
-- upload real de artes em Cloudflare R2/S3;
-- edição e exclusão de clientes/calendários/peças;
+- edição/exclusão de peças e histórico de versões;
+- comentários visuais sobre a arte;
 - drag-and-drop para ordenar o feed;
 - múltiplos designers com convite e recuperação de senha;
 - comentários visuais sobre a arte;
@@ -164,3 +164,57 @@ Cada conteúdo registra:
 - `CLIENTE`: somente os calendários da própria conta.
 
 O escopo é validado novamente na API; não depende apenas das telas do Next.
+
+
+## Nextcloud
+
+As artes ficam armazenadas somente no Nextcloud. O Approve guarda apenas a
+referência do arquivo e faz o streaming de mídia com validação de permissão.
+
+Configure no `.env`:
+
+~~~env
+NEXTCLOUD_URL="https://fileserver.terceiroandar.com.br"
+NEXTCLOUD_USERNAME="approve-integration"
+NEXTCLOUD_APP_PASSWORD="app-password-gerada-no-nextcloud"
+NEXTCLOUD_ROOT_PATH="/Clientes"
+~~~
+
+A conta técnica não precisa ser administradora. Ela precisa somente ter acesso
+WebDAV à pasta configurada em `NEXTCLOUD_ROOT_PATH`.
+
+Por padrão, o Approve procura os arquivos de cada cliente em:
+
+~~~text
+/Clientes/<slug-do-cliente>
+~~~
+
+Exemplo para o cliente com slug `cliente-demo`:
+
+~~~text
+/Clientes/cliente-demo
+~~~
+
+No cadastro da peça, o designer navega por essa pasta dentro do próprio
+Approve. Post, Reels e Stories aceitam uma arte; Carrossel aceita até dez
+arquivos, na ordem em que forem selecionados.
+
+As credenciais do Nextcloud ficam somente no backend Nest e nunca são enviadas
+ao navegador. Designers continuam limitados aos clientes atribuídos a eles e o
+cliente final só consegue carregar assets dos próprios calendários.
+
+## Edição e arquivamento de calendários
+
+Calendários podem ser editados pela tela do planejamento. É possível alterar
+título, mês e dias de postagem. Um dia que já possui conteúdo não pode ser
+removido até a peça correspondente ser ajustada.
+
+Arquivar um calendário:
+
+- remove o planejamento das listas ativas;
+- impede novas peças e alterações operacionais;
+- remove o calendário da área do cliente;
+- invalida o acesso de aprovação enquanto estiver arquivado;
+- mantém todo o histórico para uma restauração futura.
+
+A listagem de calendários possui filtro para visualizar os arquivados.

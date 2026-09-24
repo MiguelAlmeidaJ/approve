@@ -21,6 +21,27 @@ export default async function ConfigPage() {
       label: "Origem web",
       value: process.env.WEB_ORIGIN ?? "não configurada",
     },
+    {
+      label: "Nextcloud",
+      value: process.env.NEXTCLOUD_URL ?? "não configurado",
+    },
+    {
+      label: "Usuário Nextcloud",
+      value: process.env.NEXTCLOUD_USERNAME ?? "não configurado",
+    },
+    {
+      label: "Pasta raiz Nextcloud",
+      value: process.env.NEXTCLOUD_ROOT_PATH ?? "/Clientes",
+    },
+    {
+      label: "Credencial Nextcloud",
+      value:
+        process.env.NEXTCLOUD_APP_PASSWORD &&
+        process.env.NEXTCLOUD_USERNAME &&
+        process.env.NEXTCLOUD_URL
+          ? "configurada"
+          : "incompleta",
+    },
   ];
 
   return (

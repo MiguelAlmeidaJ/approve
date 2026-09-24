@@ -9,7 +9,11 @@ import {
 } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { ContentComposer } from "../../../components/content-composer";
-import { rotateCalendarToken } from "../../actions";
+import {
+  archiveCalendar,
+  restoreCalendar,
+  rotateCalendarToken
+} from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
@@ -58,6 +62,22 @@ function PreviewArt({
   index: number;
   className?: string;
 }) {
+  const primaryAsset = item.assets?.[0];
+
+  if (primaryAsset) {
+    const src = `/api/media/${primaryAsset.id}`;
+
+    return (
+      <div className={`preview-art has-image ${className}`}>
+        {primaryAsset.mimeType?.startsWith("video/") ? (
+          <video src={src} muted playsInline preload="metadata" />
+        ) : (
+          <img src={src} alt={item.title} />
+        )}
+      </div>
+    );
+  }
+
   if (item.assetUrl) {
     return (
       <div className={`preview-art has-image ${className}`}>
@@ -129,19 +149,47 @@ export default async function CalendarPage({
         </div>
 
         <div className="calendar-actions">
-          <a
-            href={shareUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="button button-ghost"
-          >
-            Visão do cliente ↗
-          </a>
-          <a href="#novo-conteudo" className="button button-primary">
-            + Adicionar conteúdo
-          </a>
+          {calendar.archivedAt ? null : (
+            <Link
+              href={`/calendars/${calendar.id}/edit`}
+              className="button button-ghost"
+            >
+              Editar calendário
+            </Link>
+          )}
+          {calendar.archivedAt ? null : (
+            <>
+              <a
+                href={shareUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="button button-ghost"
+              >
+                Visão do cliente ↗
+              </a>
+              <a href="#novo-conteudo" className="button button-primary">
+                + Adicionar conteúdo
+              </a>
+            </>
+          )}
         </div>
       </header>
+
+      {calendar.archivedAt ? (
+        <section className="calendar-archived-banner">
+          <div>
+            <strong>Calendário arquivado</strong>
+            <span>
+              Ele não aparece mais para o cliente e não aceita novas peças.
+            </span>
+          </div>
+          <form action={restoreCalendar.bind(null, calendar.id)}>
+            <button type="submit" className="button button-dark">
+              Restaurar calendário
+            </button>
+          </form>
+        </section>
+      ) : null}
 
       <section className="calendar-meta-bar">
         <div>
@@ -160,11 +208,13 @@ export default async function CalendarPage({
           <span>Acesso do cliente</span>
           <code>/cliente</code>
         </div>
-        <form action={rotateCalendarToken.bind(null, calendar.id)}>
-          <button type="submit" className="text-button">
-            Renovar link
-          </button>
-        </form>
+        {calendar.archivedAt ? null : (
+          <form action={rotateCalendarToken.bind(null, calendar.id)}>
+            <button type="submit" className="text-button">
+              Renovar link
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="feed-board">
@@ -175,9 +225,11 @@ export default async function CalendarPage({
             <p>
               Os dias já estão planejados. Agora adicione a primeira peça.
             </p>
-            <a href="#novo-conteudo" className="button button-primary">
-              Adicionar conteúdo
-            </a>
+            {calendar.archivedAt ? null : (
+              <a href="#novo-conteudo" className="button button-primary">
+                Adicionar conteúdo
+              </a>
+            )}
           </div>
         ) : (
           <div className="feed-grid">
@@ -215,11 +267,32 @@ export default async function CalendarPage({
         )}
       </section>
 
-      <ContentComposer
-        calendarId={calendar.id}
-        postingDays={calendar.postingDays}
-        formats={formats}
-      />
+      {calendar.archivedAt ? null : (
+        <ContentComposer
+          calendarId={calendar.id}
+          clientId={calendar.client.id}
+          postingDays={calendar.postingDays}
+          formats={formats}
+        />
+      )}
+
+      {calendar.archivedAt ? null : (
+        <section className="calendar-danger-zone">
+          <div>
+            <span className="micro-label">ARQUIVAR</span>
+            <strong>Encerrar este planejamento</strong>
+            <p>
+              O calendário sai das listas ativas e deixa de aparecer para o
+              cliente. Você poderá restaurá-lo depois.
+            </p>
+          </div>
+          <form action={archiveCalendar.bind(null, calendar.id)}>
+            <button type="submit" className="button button-ghost danger">
+              Arquivar calendário
+            </button>
+          </form>
+        </section>
+      )}
 
       {selectedItem ? (
         <div className="modal-layer">

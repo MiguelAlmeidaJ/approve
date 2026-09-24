@@ -17,6 +17,10 @@ import type {
   ContentFormat,
   ContentType
 } from "../lib/api";
+import {
+  NextcloudAssetPicker,
+  type SelectedNextcloudAsset
+} from "./nextcloud-asset-picker";
 
 const contentTypes: Array<{
   value: ContentType;
@@ -67,10 +71,12 @@ function formatPostingDate(value: string) {
 
 export function ContentComposer({
   calendarId,
+  clientId,
   postingDays,
   formats
 }: {
   calendarId: string;
+  clientId: string;
   postingDays: CalendarPostingDay[];
   formats: ContentFormat[];
 }) {
@@ -81,6 +87,9 @@ export function ContentComposer({
     postingDays[0] ? dateKey(postingDays[0].scheduledDate) : ""
   );
   const [formatId, setFormatId] = useState("");
+  const [selectedAssets, setSelectedAssets] = useState<
+    SelectedNextcloudAsset[]
+  >([]);
 
   const availableFormats = useMemo(
     () =>
@@ -102,6 +111,10 @@ export function ContentComposer({
 
   function selectType(nextType: ContentType) {
     setContentType(nextType);
+
+    if (nextType !== "CAROUSEL" && selectedAssets.length > 1) {
+      setSelectedAssets(selectedAssets.slice(0, 1));
+    }
 
     if (nextType === "STORY") {
       setPublishToFeed(false);
@@ -145,6 +158,14 @@ export function ContentComposer({
       <form action={createContentItem} className="content-composer-form">
         <input type="hidden" name="calendarId" value={calendarId} />
         <input type="hidden" name="contentType" value={contentType} />
+        {selectedAssets.map((asset) => (
+          <input
+            type="hidden"
+            name="assetPath"
+            value={asset.path}
+            key={asset.path}
+          />
+        ))}
 
         <section className="composer-block">
           <div className="composer-block-title">
@@ -316,14 +337,15 @@ export function ContentComposer({
               </select>
             </label>
 
-            <label className="field">
-              <span>URL da arte</span>
-              <input
-                type="url"
-                name="assetUrl"
-                placeholder="https://..."
+            <div className="field field-span-2">
+              <span>Arte</span>
+              <NextcloudAssetPicker
+                clientId={clientId}
+                multiple={contentType === "CAROUSEL"}
+                selected={selectedAssets}
+                onChange={setSelectedAssets}
               />
-            </label>
+            </div>
 
             <label className="field field-span-2">
               <span>Legenda</span>
@@ -349,7 +371,9 @@ export function ContentComposer({
           <button
             type="submit"
             className="button button-primary"
-            disabled={!postingDate || !formatId}
+            disabled={
+              !postingDate || !formatId || selectedAssets.length === 0
+            }
           >
             Adicionar ao calendário
           </button>

@@ -97,6 +97,34 @@ function defaultCalendarTitle(date: Date) {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
+function parsePostingDays(formData: FormData, month: string) {
+  const rawPostingDays = required(formData, "postingDays");
+  let postingDayValues: unknown;
+
+  try {
+    postingDayValues = JSON.parse(rawPostingDays);
+  } catch {
+    throw new Error("Os dias de postagem informados são inválidos.");
+  }
+
+  if (
+    !Array.isArray(postingDayValues) ||
+    postingDayValues.length === 0 ||
+    postingDayValues.some(
+      (value) =>
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        !value.startsWith(`${month}-`),
+    )
+  ) {
+    throw new Error("Selecione ao menos um dia de postagem para este mês.");
+  }
+
+  return [...new Set(postingDayValues)].map((value) =>
+    new Date(`${value}T12:00:00.000Z`).toISOString(),
+  );
+}
+
 export async function createDesigner(formData: FormData) {
   await requireRole("ADMIN");
 
@@ -227,31 +255,7 @@ export async function createCalendar(formData: FormData) {
   const month = required(formData, "month");
   const { start, end } = monthRange(month);
   const typedTitle = String(formData.get("title") ?? "").trim();
-  const rawPostingDays = required(formData, "postingDays");
-  let postingDayValues: unknown;
-
-  try {
-    postingDayValues = JSON.parse(rawPostingDays);
-  } catch {
-    throw new Error("Os dias de postagem informados são inválidos.");
-  }
-
-  if (
-    !Array.isArray(postingDayValues) ||
-    postingDayValues.length === 0 ||
-    postingDayValues.some(
-      (value) =>
-        typeof value !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-        !value.startsWith(`${month}-`),
-    )
-  ) {
-    throw new Error("Selecione ao menos um dia de postagem para este mês.");
-  }
-
-  const postingDays = [...new Set(postingDayValues)].map((value) =>
-    new Date(`${value}T12:00:00.000Z`).toISOString(),
-  );
+  const postingDays = parsePostingDays(formData, month);
 
   const calendar = await adminPost<{ id: string }>("/api/admin/calendars", {
     clientId,
@@ -267,6 +271,73 @@ export async function createCalendar(formData: FormData) {
   redirect(`/calendars/${calendar.id}`);
 }
 
+export async function updateCalendar(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  const month = required(formData, "month");
+  const { start, end } = monthRange(month);
+  const typedTitle = String(formData.get("title") ?? "").trim();
+  const postingDays = parsePostingDays(formData, month);
+
+  await adminPatch(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}`,
+    {
+      title: typedTitle || defaultCalendarTitle(start),
+      periodStart: start.toISOString(),
+      periodEnd: end.toISOString(),
+      postingDays,
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/clients/${calendar.client.id}`);
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function archiveCalendar(calendarId: string) {
+  const designer = await requireDesigner();
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  await adminPost(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/archive`,
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/clients/${calendar.client.id}`);
+  redirect("/calendars");
+}
+
+export async function restoreCalendar(calendarId: string) {
+  const designer = await requireDesigner();
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  await adminPost(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/restore`,
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/clients/${calendar.client.id}`);
+  revalidatePath(`/calendars/${calendarId}`);
+}
+
 export async function createContentItem(formData: FormData) {
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
@@ -278,12 +349,19 @@ export async function createContentItem(formData: FormData) {
 
   const postingDate = required(formData, "postingDate");
   const postingTime = required(formData, "postingTime");
-  const assetUrl = String(formData.get("assetUrl") ?? "").trim();
+  const assetPaths = formData
+    .getAll("assetPath")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
   const publishToFeed = formData.get("publishToFeed") === "on";
   const publishToStories = formData.get("publishToStories") === "on";
 
   if (!publishToFeed && !publishToStories) {
     throw new Error("Selecione Feed, Stories ou ambos.");
+  }
+
+  if (assetPaths.length === 0) {
+    throw new Error("Selecione ao menos uma arte no Nextcloud.");
   }
 
   const scheduledAt = new Date(
@@ -300,7 +378,7 @@ export async function createContentItem(formData: FormData) {
     publishToFeed,
     publishToStories,
     caption: required(formData, "caption"),
-    assetUrl: assetUrl || undefined,
+    assetPaths,
     channel: "INSTAGRAM"
   });
 

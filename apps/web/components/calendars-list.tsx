@@ -12,12 +12,26 @@ import type { Client } from "../lib/api";
 
 const PAGE_SIZE = 8;
 
-type CalendarState = "all" | "pending" | "approved" | "changes";
+type CalendarState =
+  | "all"
+  | "active"
+  | "pending"
+  | "approved"
+  | "changes"
+  | "archived";
 
 function getCalendarState(client: Client, calendarId: string) {
   const calendar = client.calendars.find((item) => item.id === calendarId);
 
-  if (!calendar || calendar.contentItems.length === 0) {
+  if (!calendar) {
+    return "pending";
+  }
+
+  if (calendar.archivedAt) {
+    return "archived";
+  }
+
+  if (calendar.contentItems.length === 0) {
     return "pending";
   }
 
@@ -41,7 +55,7 @@ function getCalendarState(client: Client, calendarId: string) {
 export function CalendarsList({ clients }: { clients: Client[] }) {
   const [query, setQuery] = useState("");
   const [clientId, setClientId] = useState("all");
-  const [state, setState] = useState<CalendarState>("all");
+  const [state, setState] = useState<CalendarState>("active");
   const [page, setPage] = useState(1);
 
   const calendars = useMemo(
@@ -68,7 +82,9 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
       const matchesClient =
         clientId === "all" || calendar.client.id === clientId;
       const matchesState =
-        state === "all" || calendar.state === state;
+        state === "all" ||
+        (state === "active" && calendar.state !== "archived") ||
+        calendar.state === state;
 
       return matchesQuery && matchesClient && matchesState;
     });
@@ -128,10 +144,12 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           }}
           aria-label="Filtrar por status"
         >
+          <option value="active">Ativos</option>
           <option value="all">Todos os status</option>
           <option value="pending">Em aprovação</option>
           <option value="approved">Concluídos</option>
           <option value="changes">Com alterações</option>
+          <option value="archived">Arquivados</option>
         </select>
 
         <span className="list-result-count">
@@ -153,7 +171,11 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
             return (
               <Link
                 href={`/calendars/${calendar.id}`}
-                className="calendar-row"
+                className={
+                  calendar.archivedAt
+                    ? "calendar-row calendar-row-archived"
+                    : "calendar-row"
+                }
                 key={calendar.id}
               >
                 <div className="calendar-month-block">
@@ -172,7 +194,12 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
                 </div>
 
                 <div className="calendar-row-main">
-                  <h3>{calendar.title}</h3>
+                  <h3>
+                    {calendar.title}
+                    {calendar.archivedAt ? (
+                      <span className="archive-chip">Arquivado</span>
+                    ) : null}
+                  </h3>
                   <p>
                     {calendar.client.name} · {calendar.contentItems.length} peça(s)
                   </p>

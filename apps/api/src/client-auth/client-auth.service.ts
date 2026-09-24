@@ -98,6 +98,9 @@ export class ClientAuthService {
               }
             },
             calendars: {
+              where: {
+                archivedAt: null
+              },
               orderBy: {
                 periodStart: "desc"
               },

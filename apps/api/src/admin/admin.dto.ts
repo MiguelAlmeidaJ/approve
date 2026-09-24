@@ -132,6 +132,24 @@ export class CreateCalendarDto {
   postingDays!: string[];
 }
 
+export class UpdateCalendarDto {
+  @IsString()
+  @MinLength(3)
+  title!: string;
+
+  @IsDateString()
+  periodStart!: string;
+
+  @IsDateString()
+  periodEnd!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(31)
+  @IsDateString({}, { each: true })
+  postingDays!: string[];
+}
+
 export class CreateContentFormatDto {
   @IsString()
   @MinLength(2)
@@ -189,6 +207,12 @@ export class CreateContentItemDto {
 
   @IsString()
   caption!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  assetPaths!: string[];
 
   @IsOptional()
   @IsUrl(

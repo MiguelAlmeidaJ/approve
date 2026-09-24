@@ -170,7 +170,9 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                   </span>
                 </div>
                 <div className="client-calendar-count">
-                  <strong>{client.calendars.length}</strong>
+                  <strong>
+                    {client.calendars.filter((calendar) => !calendar.archivedAt).length}
+                  </strong>
                   <span>calendário(s)</span>
                 </div>
               </div>

@@ -7,10 +7,12 @@ import {
 import {
   Channel,
   ContentStatus,
+  ContentType,
   UserRole
 } from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
 import type { InternalActor } from "../common/internal-actor";
+import { NextcloudService } from "../nextcloud/nextcloud.service";
 import { PrismaService } from "../prisma.service";
 import {
   AssignClientDto,
@@ -19,6 +21,7 @@ import {
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
   UpdateUserDto
@@ -48,6 +51,43 @@ function saoPauloDateKey(value: Date) {
   const day = parts.find((part) => part.type === "day")?.value;
 
   return `${year}-${month}-${day}`;
+}
+
+function parseCalendarDates(
+  periodStartValue: string,
+  periodEndValue: string,
+  postingDayValues: string[]
+) {
+  const periodStart = new Date(periodStartValue);
+  const periodEnd = new Date(periodEndValue);
+  const postingDays = [
+    ...new Set(
+      postingDayValues.map((value) => new Date(value).toISOString())
+    )
+  ].map((value) => new Date(value));
+
+  if (periodEnd < periodStart) {
+    throw new BadRequestException(
+      "A data final do calendário deve ser posterior à data inicial."
+    );
+  }
+
+  if (
+    postingDays.some(
+      (scheduledDate) =>
+        scheduledDate < periodStart || scheduledDate > periodEnd
+    )
+  ) {
+    throw new BadRequestException(
+      "Todos os dias de postagem devem pertencer ao período do calendário."
+    );
+  }
+
+  return {
+    periodStart,
+    periodEnd,
+    postingDays
+  };
 }
 
 const clientInclude = {
@@ -80,7 +120,12 @@ const clientInclude = {
           { sortOrder: "asc" as const }
         ],
         include: {
-          formatPreset: true
+          formatPreset: true,
+          assets: {
+            orderBy: {
+              sortOrder: "asc" as const
+            }
+          }
         }
       }
     }
@@ -89,7 +134,10 @@ const clientInclude = {
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nextcloud: NextcloudService
+  ) {}
 
   dashboard(actor: InternalActor) {
     return this.prisma.client.findMany({
@@ -207,6 +255,11 @@ export class AdminService {
           orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
           include: {
             formatPreset: true,
+            assets: {
+              orderBy: {
+                sortOrder: "asc"
+              }
+            },
             reviews: {
               orderBy: { createdAt: "desc" },
               take: 1
@@ -549,41 +602,23 @@ export class AdminService {
 
   async createCalendar(actor: InternalActor, dto: CreateCalendarDto) {
     await this.assertClientAccess(actor, dto.clientId);
-
-    const periodStart = new Date(dto.periodStart);
-    const periodEnd = new Date(dto.periodEnd);
-    const postingDays = [
-      ...new Set(
-        dto.postingDays.map((value) => new Date(value).toISOString())
-      )
-    ].map((value) => new Date(value));
-
-    if (periodEnd < periodStart) {
-      throw new BadRequestException(
-        "A data final do calendário deve ser posterior à data inicial."
-      );
-    }
-
-    if (
-      postingDays.some(
-        (scheduledDate) =>
-          scheduledDate < periodStart || scheduledDate > periodEnd
-      )
-    ) {
-      throw new BadRequestException(
-        "Todos os dias de postagem devem pertencer ao período do calendário."
-      );
-    }
+    const dates = parseCalendarDates(
+      dto.periodStart,
+      dto.periodEnd,
+      dto.postingDays
+    );
 
     return this.prisma.calendar.create({
       data: {
         clientId: dto.clientId,
         title: dto.title.trim(),
-        periodStart,
-        periodEnd,
+        periodStart: dates.periodStart,
+        periodEnd: dates.periodEnd,
         shareToken: randomBytes(24).toString("hex"),
         postingDays: {
-          create: postingDays.map((scheduledDate) => ({ scheduledDate }))
+          create: dates.postingDays.map((scheduledDate) => ({
+            scheduledDate
+          }))
         }
       },
       include: {
@@ -594,11 +629,100 @@ export class AdminService {
     });
   }
 
+  async updateCalendar(
+    actor: InternalActor,
+    calendarId: string,
+    dto: UpdateCalendarDto
+  ) {
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (calendar.archivedAt) {
+      throw new BadRequestException(
+        "Restaure o calendário antes de editá-lo."
+      );
+    }
+
+    const dates = parseCalendarDates(
+      dto.periodStart,
+      dto.periodEnd,
+      dto.postingDays
+    );
+    const selectedDateKeys = new Set(
+      dates.postingDays.map((day) => dateKey(day))
+    );
+    const usedDateKeys = calendar.contentItems.map((item) =>
+      saoPauloDateKey(item.scheduledAt)
+    );
+    const removedUsedDate = usedDateKeys.find(
+      (value) => !selectedDateKeys.has(value)
+    );
+
+    if (removedUsedDate) {
+      throw new BadRequestException(
+        "Não é possível remover um dia que já possui conteúdo. Ajuste a peça antes de alterar o planejamento."
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.calendar.update({
+        where: { id: calendarId },
+        data: {
+          title: dto.title.trim(),
+          periodStart: dates.periodStart,
+          periodEnd: dates.periodEnd
+        }
+      }),
+      this.prisma.calendarPostingDay.deleteMany({
+        where: { calendarId }
+      }),
+      this.prisma.calendarPostingDay.createMany({
+        data: dates.postingDays.map((scheduledDate) => ({
+          calendarId,
+          scheduledDate
+        }))
+      })
+    ]);
+
+    return this.getCalendar(actor, calendarId);
+  }
+
+  async archiveCalendar(actor: InternalActor, calendarId: string) {
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (calendar.archivedAt) {
+      return calendar;
+    }
+
+    return this.prisma.calendar.update({
+      where: { id: calendarId },
+      data: {
+        archivedAt: new Date()
+      }
+    });
+  }
+
+  async restoreCalendar(actor: InternalActor, calendarId: string) {
+    await this.assertCalendarAccess(actor, calendarId);
+
+    return this.prisma.calendar.update({
+      where: { id: calendarId },
+      data: {
+        archivedAt: null
+      }
+    });
+  }
+
   async createContentItem(
     actor: InternalActor,
     dto: CreateContentItemDto
   ) {
     const calendar = await this.assertCalendarAccess(actor, dto.calendarId);
+
+    if (calendar.archivedAt) {
+      throw new BadRequestException(
+        "Restaure o calendário antes de adicionar conteúdos."
+      );
+    }
 
     const postingDay = calendar.postingDays.find(
       (day) => dateKey(day.scheduledDate) === dto.postingDate
@@ -624,6 +748,12 @@ export class AdminService {
     if (!dto.publishToFeed && !dto.publishToStories) {
       throw new BadRequestException(
         "Selecione Feed, Stories ou ambos para a publicação."
+      );
+    }
+
+    if (dto.contentType !== ContentType.CAROUSEL && dto.assetPaths.length > 1) {
+      throw new BadRequestException(
+        "Post, Reels e Stories aceitam uma arte por peça. Use Carrossel para selecionar várias."
       );
     }
 
@@ -653,6 +783,25 @@ export class AdminService {
       );
     }
 
+    const assets = await Promise.all(
+      dto.assetPaths.map((path) =>
+        this.nextcloud.getMetadata(calendar.client.slug, path)
+      )
+    );
+
+    if (
+      assets.some(
+        (asset) =>
+          !asset.mimeType ||
+          (!asset.mimeType.startsWith("image/") &&
+            !asset.mimeType.startsWith("video/"))
+      )
+    ) {
+      throw new BadRequestException(
+        "Selecione apenas imagens ou vídeos do Nextcloud."
+      );
+    }
+
     return this.prisma.contentItem.create({
       data: {
         calendarId: dto.calendarId,
@@ -666,16 +815,37 @@ export class AdminService {
         publishToStories: dto.publishToStories,
         caption: dto.caption.trim(),
         assetUrl: dto.assetUrl?.trim() || null,
-        status: ContentStatus.PENDING_APPROVAL
+        status: ContentStatus.PENDING_APPROVAL,
+        assets: {
+          create: assets.map((asset, index) => ({
+            filePath: asset.storedPath,
+            fileName: asset.name,
+            fileId: asset.fileId,
+            mimeType: asset.mimeType,
+            etag: asset.etag,
+            sortOrder: index
+          }))
+        }
       },
       include: {
-        formatPreset: true
+        formatPreset: true,
+        assets: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        }
       }
     });
   }
 
   async rotateCalendarToken(actor: InternalActor, calendarId: string) {
-    await this.assertCalendarAccess(actor, calendarId);
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (calendar.archivedAt) {
+      throw new BadRequestException(
+        "Restaure o calendário antes de renovar o link."
+      );
+    }
 
     return this.prisma.calendar.update({
       where: { id: calendarId },
@@ -719,7 +889,19 @@ export class AdminService {
           : {})
       },
       include: {
-        postingDays: true
+        client: {
+          select: {
+            id: true,
+            slug: true
+          }
+        },
+        postingDays: true,
+        contentItems: {
+          select: {
+            id: true,
+            scheduledAt: true
+          }
+        }
       }
     });
 

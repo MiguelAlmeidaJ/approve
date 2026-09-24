@@ -34,6 +34,22 @@ function PublicArt({
   index: number;
   className?: string;
 }) {
+  const primaryAsset = item.assets?.[0];
+
+  if (primaryAsset) {
+    const src = `/api/media/${primaryAsset.id}`;
+
+    return (
+      <div className={`ig-art has-image ${className}`}>
+        {primaryAsset.mimeType?.startsWith("video/") ? (
+          <video src={src} muted playsInline preload="metadata" />
+        ) : (
+          <img src={src} alt={item.title} />
+        )}
+      </div>
+    );
+  }
+
   if (item.assetUrl) {
     return (
       <div className={`ig-art has-image ${className}`}>
@@ -130,7 +146,16 @@ export default async function ApprovalPage({
             >
               <span className="instagram-story-ring">
                 <span>
-                  {item.assetUrl ? (
+                  {item.assets?.[0] ? (
+                    item.assets[0].mimeType?.startsWith("video/") ? (
+                      <FiPlay aria-hidden="true" />
+                    ) : (
+                      <img
+                        src={`/api/media/${item.assets[0].id}`}
+                        alt=""
+                      />
+                    )
+                  ) : item.assetUrl ? (
                     <img src={item.assetUrl} alt="" />
                   ) : (
                     <FiSmartphone aria-hidden="true" />
@@ -190,11 +215,33 @@ export default async function ApprovalPage({
           />
           <article className="instagram-post-modal">
             <div className="instagram-post-media">
-              <PublicArt
-                item={selectedItem}
-                index={Math.max(selectedIndex, 0)}
-                className="instagram-post-art"
-              />
+              {selectedItem.assets?.length > 1 ? (
+                <div className="instagram-carousel-media">
+                  {selectedItem.assets.map((asset) => (
+                    <div className="instagram-carousel-slide" key={asset.id}>
+                      {asset.mimeType?.startsWith("video/") ? (
+                        <video
+                          src={`/api/media/${asset.id}`}
+                          controls
+                          playsInline
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img
+                          src={`/api/media/${asset.id}`}
+                          alt={selectedItem.title}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <PublicArt
+                  item={selectedItem}
+                  index={Math.max(selectedIndex, 0)}
+                  className="instagram-post-art"
+                />
+              )}
             </div>
 
             <div className="instagram-post-panel">

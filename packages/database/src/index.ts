@@ -5,7 +5,8 @@ export {
   Channel,
   ContentType,
   ContentStatus,
-  ReviewAction
+  ReviewAction,
+  AssetProvider
 } from "@prisma/client";
 
 export type {
@@ -18,5 +19,6 @@ export type {
   Calendar,
   CalendarPostingDay,
   ContentItem,
+  ContentAsset,
   ReviewHistory
 } from "@prisma/client";

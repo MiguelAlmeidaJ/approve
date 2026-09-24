@@ -41,6 +41,10 @@ enum ReviewAction {
   CHANGES_REQUESTED
 }
 
+enum AssetProvider {
+  NEXTCLOUD
+}
+
 model Designer {
   id           String            @id @default(cuid())
   name         String
@@ -127,6 +131,7 @@ model Calendar {
   periodStart  DateTime
   periodEnd    DateTime
   shareToken   String               @unique @db.VarChar(64)
+  archivedAt   DateTime?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   client       Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -168,11 +173,28 @@ model ContentItem {
   updatedAt        DateTime      @updatedAt
   calendar         Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   formatPreset     ContentFormat? @relation(fields: [formatId], references: [id], onDelete: SetNull)
+  assets           ContentAsset[]
   reviews          ReviewHistory[]
 
   @@index([calendarId, scheduledAt])
   @@index([formatId])
   @@index([status])
+}
+
+model ContentAsset {
+  id            String        @id @default(cuid())
+  contentItemId String
+  provider      AssetProvider @default(NEXTCLOUD)
+  filePath      String        @db.Text
+  fileName      String
+  fileId        String?
+  mimeType      String?
+  etag          String?
+  sortOrder     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  contentItem   ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@index([contentItemId, sortOrder])
 }
 
 model ReviewHistory {

@@ -14,7 +14,9 @@ function calendarLabel(value: string) {
 export default async function DashboardPage() {
   const designer = await requireDesigner();
   const clients = await getAccessibleClients(designer);
-  const calendars = clients.flatMap((client) => client.calendars);
+  const calendars = clients.flatMap((client) =>
+    client.calendars.filter((calendar) => !calendar.archivedAt)
+  );
   const pieces = calendars.flatMap((calendar) => calendar.contentItems);
   const waiting = pieces.filter(
     (item) => item.status === "PENDING_APPROVAL"
@@ -78,7 +80,9 @@ export default async function DashboardPage() {
         ) : (
           <div className="client-card-grid">
             {clients.slice(0, 6).map((client) => {
-              const latest = client.calendars[0];
+              const latest = client.calendars.find(
+                (calendar) => !calendar.archivedAt
+              );
 
               return (
                 <Link

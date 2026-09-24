@@ -19,6 +19,27 @@ export type ContentFormat = {
   updatedAt: string;
 };
 
+export type ContentAsset = {
+  id: string;
+  provider: "NEXTCLOUD";
+  filePath: string;
+  fileName: string;
+  fileId: string | null;
+  mimeType: string | null;
+  etag: string | null;
+  sortOrder: number;
+};
+
+export type NextcloudFileItem = {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  mimeType: string | null;
+  etag: string | null;
+  fileId: string | null;
+  size: number | null;
+};
+
 export type ContentItem = {
   id: string;
   title: string;
@@ -32,6 +53,7 @@ export type ContentItem = {
   publishToStories: boolean;
   caption: string;
   assetUrl: string | null;
+  assets: ContentAsset[];
   status: ContentStatus;
   reviewedAt: string | null;
   reviews?: Array<{
@@ -71,6 +93,7 @@ export type Calendar = {
   periodStart: string;
   periodEnd: string;
   shareToken: string;
+  archivedAt: string | null;
   postingDays: CalendarPostingDay[];
   contentItems: ContentItem[];
 };

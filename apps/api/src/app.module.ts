@@ -8,6 +8,8 @@ import { AuthService } from "./auth/auth.service";
 import { ClientAuthController } from "./client-auth/client-auth.controller";
 import { ClientAuthService } from "./client-auth/client-auth.service";
 import { AdminKeyGuard } from "./common/admin-key.guard";
+import { NextcloudController } from "./nextcloud/nextcloud.controller";
+import { NextcloudService } from "./nextcloud/nextcloud.service";
 import { PrismaService } from "./prisma.service";
 import { PublicController } from "./public/public.controller";
 import { PublicService } from "./public/public.service";
@@ -18,6 +20,7 @@ import { PublicService } from "./public/public.service";
     AuthController,
     ClientAuthController,
     AdminController,
+    NextcloudController,
     PublicController
   ],
   providers: [
@@ -25,6 +28,7 @@ import { PublicService } from "./public/public.service";
     AuthService,
     ClientAuthService,
     AdminService,
+    NextcloudService,
     PublicService,
     {
       provide: APP_GUARD,

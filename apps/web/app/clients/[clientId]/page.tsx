@@ -33,6 +33,9 @@ export default async function ClientPage({
 
   const designers =
     designer.role === "DESIGNER" ? [] : await getDesigners();
+  const activeCalendars = client.calendars.filter(
+    (calendar) => !calendar.archivedAt
+  );
 
   return (
     <AppShell designer={designer} activeSection="clients">
@@ -99,7 +102,7 @@ export default async function ClientPage({
           <FiCalendar aria-hidden="true" />
           <span>
             Calendários
-            <strong>{client.calendars.length}</strong>
+            <strong>{activeCalendars.length}</strong>
           </span>
         </article>
       </section>
@@ -148,7 +151,10 @@ export default async function ClientPage({
             <span className="micro-label">PLANEJAMENTOS</span>
             <h2>Calendários</h2>
           </div>
-          <span>{client.calendars.length} no total</span>
+          <span>
+            {activeCalendars.length} ativo(s) ·{" "}
+            {client.calendars.length - activeCalendars.length} arquivado(s)
+          </span>
         </div>
 
         {client.calendars.length === 0 ? (
@@ -175,7 +181,11 @@ export default async function ClientPage({
               return (
                 <Link
                   href={`/calendars/${calendar.id}`}
-                  className="calendar-row"
+                  className={
+                    calendar.archivedAt
+                      ? "calendar-row calendar-row-archived"
+                      : "calendar-row"
+                  }
                   key={calendar.id}
                 >
                   <div className="calendar-month-block">
@@ -194,7 +204,12 @@ export default async function ClientPage({
                   </div>
 
                   <div className="calendar-row-main">
-                    <h3>{calendar.title}</h3>
+                    <h3>
+                      {calendar.title}
+                      {calendar.archivedAt ? (
+                        <span className="archive-chip">Arquivado</span>
+                      ) : null}
+                    </h3>
                     <p>
                       {calendar.contentItems.length} peça(s) · {approved} aprovada(s)
                     </p>

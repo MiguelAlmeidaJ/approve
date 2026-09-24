@@ -14,7 +14,7 @@ import {
   FiX,
   FiZap
 } from "react-icons/fi";
-import { createCalendar } from "../app/actions";
+import { createCalendar, updateCalendar } from "../app/actions";
 
 const monthNames = [
   "Janeiro",
@@ -112,12 +112,18 @@ export function NewCalendarForm({
   clients,
   initialClientId,
   cancelHref,
-  initialMonth
+  initialMonth,
+  calendarId,
+  initialTitle = "",
+  initialPostingDays = []
 }: {
   clients: CalendarClientOption[];
   initialClientId?: string;
   cancelHref: string;
   initialMonth: string;
+  calendarId?: string;
+  initialTitle?: string;
+  initialPostingDays?: string[];
 }) {
   const [clientId, setClientId] = useState(
     initialClientId && clients.some((client) => client.id === initialClientId)
@@ -129,8 +135,15 @@ export function NewCalendarForm({
     Number(initialMonth.slice(0, 4))
   );
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [title, setTitle] = useState("");
+  const [selectedDays, setSelectedDays] = useState<number[]>(
+    initialPostingDays
+      .filter((value) => value.startsWith(`${initialMonth}-`))
+      .map((value) => Number(value.slice(8, 10)))
+      .filter((value) => Number.isFinite(value))
+      .sort((first, second) => first - second)
+  );
+  const [title, setTitle] = useState(initialTitle);
+  const isEditing = Boolean(calendarId);
 
   const selectedMonthIndex = Number(selectedMonth.slice(5, 7)) - 1;
   const selectedYear = Number(selectedMonth.slice(0, 4));
@@ -186,8 +199,14 @@ export function NewCalendarForm({
   }
 
   return (
-    <form action={createCalendar} className="calendar-creator planner-creator">
+    <form
+      action={isEditing ? updateCalendar : createCalendar}
+      className="calendar-creator planner-creator"
+    >
       <input type="hidden" name="clientId" value={clientId} />
+      {calendarId ? (
+        <input type="hidden" name="calendarId" value={calendarId} />
+      ) : null}
       <input type="hidden" name="month" value={selectedMonth} />
       <input
         type="hidden"
@@ -211,6 +230,7 @@ export function NewCalendarForm({
               value={clientId}
               onChange={(event) => setClientId(event.target.value)}
               required
+              disabled={isEditing}
             >
               {clients.map((client) => (
                 <option value={client.id} key={client.id}>
@@ -427,7 +447,7 @@ export function NewCalendarForm({
             className="button button-primary"
             disabled={!clientId || selectedDays.length === 0}
           >
-            Criar calendário
+            {isEditing ? "Salvar alterações" : "Criar calendário"}
             <FiArrowRight aria-hidden="true" />
           </button>
         </div>
