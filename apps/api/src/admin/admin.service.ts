@@ -340,6 +340,12 @@ export class AdminService {
 
     const password = dto.password?.trim();
 
+    if (!current.credential && !password) {
+      throw new BadRequestException(
+        "Defina uma senha para ativar o acesso deste cliente."
+      );
+    }
+
     const updated = await this.prisma.client.update({
       where: { id },
       data: {
@@ -358,7 +364,7 @@ export class AdminService {
           : {
               create: {
                 email: loginEmail,
-                passwordHash: hashPassword(password || randomBytes(16).toString("hex"))
+                passwordHash: hashPassword(password!)
               }
             }
       },
