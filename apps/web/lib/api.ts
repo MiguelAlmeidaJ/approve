@@ -71,6 +71,7 @@ export type Designer = {
   email: string;
   role: UserRole;
   active: boolean;
+  mustChangePassword: boolean;
 };
 
 export type DesignerListItem = Designer & {

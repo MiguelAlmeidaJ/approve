@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "../../components/brand";
 import { getDesigner } from "../../lib/auth";
@@ -11,7 +12,7 @@ export default async function LoginPage({
   const designer = await getDesigner();
 
   if (designer) {
-    redirect("/");
+    redirect(designer.mustChangePassword ? "/nova-senha" : "/");
   }
 
   const { error } = await searchParams;
@@ -77,6 +78,10 @@ export default async function LoginPage({
               required
             />
           </label>
+
+          <div className="login-form-help">
+            <Link href="/esqueci-senha">Esqueci minha senha</Link>
+          </div>
 
           <button type="submit" className="button button-primary button-wide">
             Entrar no painel

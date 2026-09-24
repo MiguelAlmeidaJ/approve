@@ -27,12 +27,16 @@ async function upsertUser(input: {
     update: {
       name: input.name.trim(),
       role: input.role,
+      active: true,
+      mustChangePassword: false,
       passwordHash: hashPassword(input.password)
     },
     create: {
       name: input.name.trim(),
       email: input.email.trim().toLowerCase(),
       role: input.role,
+      active: true,
+      mustChangePassword: false,
       passwordHash: hashPassword(input.password)
     }
   });

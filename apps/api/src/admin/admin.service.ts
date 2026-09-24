@@ -334,7 +334,8 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         passwordHash: hashPassword(dto.password),
-        role: targetRole
+        role: targetRole,
+        mustChangePassword: true
       },
       select: {
         id: true,
@@ -415,7 +416,12 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         role: dto.role,
-        ...(password ? { passwordHash: hashPassword(password) } : {})
+        ...(password
+          ? {
+              passwordHash: hashPassword(password),
+              mustChangePassword: true
+            }
+          : {})
       },
       select: {
         id: true,

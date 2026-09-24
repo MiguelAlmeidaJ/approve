@@ -212,7 +212,7 @@ export default async function TeamPage({
                   type="password"
                   name="password"
                   minLength={6}
-                  placeholder="Mínimo de 6 caracteres"
+                  placeholder="Senha inicial"
                   required
                 />
               </label>
@@ -221,8 +221,8 @@ export default async function TeamPage({
                 <FiShield aria-hidden="true" />
                 <span>
                   {isDev
-                    ? "Contas dev têm acesso total. Administradores gerenciam designers."
-                    : "A criação de administradores e devs é exclusiva de usuários dev."}
+                    ? "A senha inicial será trocada obrigatoriamente no primeiro acesso. Contas dev têm acesso total."
+                    : "A senha inicial será trocada obrigatoriamente no primeiro acesso. Administradores criam apenas designers."}
                 </span>
               </div>
 

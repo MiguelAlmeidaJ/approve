@@ -53,6 +53,10 @@ export async function requireDesigner() {
     redirect("/login");
   }
 
+  if (designer.mustChangePassword) {
+    redirect("/nova-senha");
+  }
+
   return designer;
 }
 

@@ -8,6 +8,9 @@ import { getApiUrl } from "../../lib/api";
 type LoginPayload = {
   token: string;
   expiresAt: string;
+  designer: {
+    mustChangePassword: boolean;
+  };
 };
 
 export async function loginDesigner(formData: FormData) {
@@ -76,6 +79,84 @@ export async function loginDesigner(formData: FormData) {
     path: "/",
     expires: new Date(payload.expiresAt)
   });
+
+  redirect(payload.designer?.mustChangePassword ? "/nova-senha" : "/");
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    redirect("/esqueci-senha?error=email");
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiUrl()}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json"
+      },
+      body: JSON.stringify({ email }),
+      cache: "no-store"
+    });
+  } catch (error) {
+    console.error("[auth] Falha ao solicitar recuperação de senha.", error);
+    redirect("/esqueci-senha?error=api");
+  }
+
+  if (!response.ok) {
+    console.error(
+      "[auth] Falha no envio da recuperação de senha.",
+      response.status,
+      await response.text()
+    );
+    redirect("/esqueci-senha?error=mail");
+  }
+
+  redirect("/esqueci-senha?sent=1");
+}
+
+export async function changeDesignerPassword(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (!token) {
+    redirect("/login");
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiUrl()}/api/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ password, confirmPassword }),
+      cache: "no-store"
+    });
+  } catch (error) {
+    console.error("[auth] Falha ao alterar senha.", error);
+    redirect("/nova-senha?error=api");
+  }
+
+  if (!response.ok) {
+    console.error(
+      "[auth] A API rejeitou a nova senha.",
+      response.status,
+      await response.text()
+    );
+    redirect(
+      `/nova-senha?error=${response.status === 400 ? "password" : "api"}`
+    );
+  }
 
   redirect("/");
 }

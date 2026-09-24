@@ -5,9 +5,13 @@ const CLIENT_SESSION_COOKIE = "ta_client_session";
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const isPublicAsset =
+    /\.(?:svg|png|jpe?g|webp|gif|ico|avif|woff2?)$/i.test(pathname);
 
   if (
+    isPublicAsset ||
     pathname === "/login" ||
+    pathname === "/esqueci-senha" ||
     pathname === "/cliente/login" ||
     pathname.startsWith("/p/") ||
     pathname.startsWith("/api/media/") ||

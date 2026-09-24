@@ -21,12 +21,16 @@ async function main() {
     update: {
       name,
       role: UserRole.DEV,
+      active: true,
+      mustChangePassword: false,
       passwordHash: hashPassword(password)
     },
     create: {
       name,
       email,
       role: UserRole.DEV,
+      active: true,
+      mustChangePassword: false,
       passwordHash: hashPassword(password)
     }
   });

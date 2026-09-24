@@ -68,7 +68,8 @@ export class AdminKeyGuard implements CanActivate {
     if (
       !session ||
       session.expiresAt <= new Date() ||
-      !session.designer.active
+      !session.designer.active ||
+      session.designer.mustChangePassword
     ) {
       throw new UnauthorizedException("Sessão expirada.");
     }

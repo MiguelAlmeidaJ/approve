@@ -7,7 +7,11 @@ import {
   UnauthorizedException
 } from "@nestjs/common";
 import { Public } from "../common/public.decorator";
-import { LoginDto } from "./auth.dto";
+import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto
+} from "./auth.dto";
 import { AuthService } from "./auth.service";
 
 @Public()
@@ -18,6 +22,22 @@ export class AuthController {
   @Post("login")
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post("forgot-password")
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post("change-password")
+  changePassword(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() dto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(
+      this.getBearerToken(authorization),
+      dto
+    );
   }
 
   @Get("me")

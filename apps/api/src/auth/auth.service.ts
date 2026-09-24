@@ -1,17 +1,57 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  ServiceUnavailableException,
+  UnauthorizedException
+} from "@nestjs/common";
 import {
   createHash,
   randomBytes,
+  randomInt,
   scryptSync,
   timingSafeEqual
 } from "node:crypto";
 import { PrismaService } from "../prisma.service";
-import { LoginDto } from "./auth.dto";
+import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto
+} from "./auth.dto";
+import { sendTemporaryPasswordEmail } from "./smtp-mailer";
 
 const SESSION_DAYS = 7;
 
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+
+  return `scrypt:${salt}:${hash}`;
+}
+
+function generateTemporaryPassword() {
+  const required = [
+    "ABCDEFGHJKLMNPQRSTUVWXYZ"[randomInt(24)],
+    "abcdefghijkmnopqrstuvwxyz"[randomInt(25)],
+    "23456789"[randomInt(8)],
+    "!@#$%&*?"[randomInt(8)]
+  ];
+  const alphabet =
+    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?";
+
+  while (required.length < 12) {
+    required.push(alphabet[randomInt(alphabet.length)]);
+  }
+
+  for (let index = required.length - 1; index > 0; index -= 1) {
+    const target = randomInt(index + 1);
+    [required[index], required[target]] = [required[target], required[index]];
+  }
+
+  return required.join("");
 }
 
 function verifyPassword(password: string, stored: string) {
@@ -40,7 +80,11 @@ export class AuthService {
       where: { email }
     });
 
-    if (!designer || !verifyPassword(dto.password, designer.passwordHash)) {
+    if (
+      !designer ||
+      !designer.active ||
+      !verifyPassword(dto.password, designer.passwordHash)
+    ) {
       throw new UnauthorizedException("E-mail ou senha inválidos.");
     }
 
@@ -74,7 +118,8 @@ export class AuthService {
         name: designer.name,
         email: designer.email,
         role: designer.role,
-        active: designer.active
+        active: designer.active,
+        mustChangePassword: designer.mustChangePassword
       }
     };
   }
@@ -89,7 +134,11 @@ export class AuthService {
       }
     });
 
-    if (!session || session.expiresAt <= new Date()) {
+    if (
+      !session ||
+      session.expiresAt <= new Date() ||
+      !session.designer.active
+    ) {
       throw new UnauthorizedException("Sessão expirada.");
     }
 
@@ -98,8 +147,96 @@ export class AuthService {
       name: session.designer.name,
       email: session.designer.email,
       role: session.designer.role,
-      active: session.designer.active
+      active: session.designer.active,
+      mustChangePassword: session.designer.mustChangePassword
     };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const email = dto.email.trim().toLowerCase();
+    const designer = await this.prisma.designer.findUnique({
+      where: { email }
+    });
+
+    if (!designer || !designer.active) {
+      return { ok: true };
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+
+    try {
+      await sendTemporaryPasswordEmail({
+        to: designer.email,
+        name: designer.name,
+        temporaryPassword
+      });
+    } catch (error) {
+      console.error("[auth] Falha ao enviar senha temporária.", error);
+      throw new ServiceUnavailableException(
+        "Não foi possível enviar o e-mail de recuperação agora."
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.designer.update({
+        where: { id: designer.id },
+        data: {
+          passwordHash: hashPassword(temporaryPassword),
+          mustChangePassword: true
+        }
+      }),
+      this.prisma.designerSession.deleteMany({
+        where: { designerId: designer.id }
+      })
+    ]);
+
+    return { ok: true };
+  }
+
+  async changePassword(token: string, dto: ChangePasswordDto) {
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException("As senhas informadas não coincidem.");
+    }
+
+    const tokenHash = hashToken(token);
+    const session = await this.prisma.designerSession.findUnique({
+      where: { tokenHash },
+      include: { designer: true }
+    });
+
+    if (
+      !session ||
+      session.expiresAt <= new Date() ||
+      !session.designer.active
+    ) {
+      throw new UnauthorizedException("Sessão expirada.");
+    }
+
+    if (verifyPassword(dto.password, session.designer.passwordHash)) {
+      throw new BadRequestException(
+        "Escolha uma senha diferente da senha atual."
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.designer.update({
+        where: { id: session.designerId },
+        data: {
+          passwordHash: hashPassword(dto.password),
+          mustChangePassword: false
+        }
+      }),
+      this.prisma.designerSession.deleteMany({
+        where: {
+          designerId: session.designerId,
+          tokenHash: {
+            not: tokenHash
+          }
+        }
+      })
+    ]);
+
+    return { ok: true };
   }
 
   async logout(token: string) {

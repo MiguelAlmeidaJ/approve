@@ -8051,3 +8051,157 @@ body::-webkit-scrollbar,
     width: 100%;
   }
 }
+
+
+/* Compact brand + password recovery */
+
+.sidebar-brand .brand {
+  width: 132px !important;
+}
+
+.login-visual .brand,
+.client-login-visual .brand {
+  width: 172px !important;
+  max-width: 172px;
+}
+
+.login-visual-content > .brand,
+.client-login-copy > .brand {
+  margin-bottom: 70px;
+}
+
+.login-form-help {
+  margin-top: -6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-form-help a {
+  color: var(--pink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.login-form-help a:hover {
+  text-decoration: underline;
+}
+
+.login-form-help-center {
+  justify-content: center;
+  margin-top: 0;
+}
+
+.auth-success {
+  padding: 13px 14px;
+  border: 1px solid #cfe9db;
+  border-radius: 10px;
+  background: #eff9f4;
+  color: #246546;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.password-change-form {
+  width: min(460px, 100%);
+}
+
+.password-strength {
+  margin-top: -5px;
+  padding: 13px 14px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fafaf8;
+}
+
+.password-strength-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.password-strength-head strong {
+  color: var(--ink);
+  font-size: 9px;
+}
+
+.password-strength-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.password-strength-bar span {
+  height: 5px;
+  border-radius: 999px;
+  background: #e6e6e2;
+}
+
+.password-strength-bar span.active {
+  background: var(--pink);
+}
+
+.password-rule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 10px;
+}
+
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #77797d;
+  font-size: 8px;
+}
+
+.password-rule svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+}
+
+.password-rule.valid {
+  color: #20714f;
+}
+
+.password-match {
+  margin-top: -7px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.password-match.valid {
+  color: #20714f;
+}
+
+.password-match.invalid {
+  color: #a3153e;
+}
+
+.password-change-form .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+@media (max-width: 820px) {
+  .sidebar-brand .brand {
+    width: 116px !important;
+  }
+
+  .login-visual .brand,
+  .client-login-visual .brand {
+    width: 150px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .password-rule-grid {
+    grid-template-columns: 1fr;
+  }
+}
