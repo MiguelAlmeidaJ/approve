@@ -195,6 +195,14 @@ export class AdminService {
     this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
 
     return this.prisma.designer.findMany({
+      where:
+        actor.role === UserRole.ADMIN
+          ? {
+              role: {
+                not: UserRole.DEV
+              }
+            }
+          : undefined,
       orderBy: [{ role: "asc" }, { name: "asc" }],
       select: {
         id: true,
@@ -298,12 +306,15 @@ export class AdminService {
   }
 
   async createDesigner(actor: InternalActor, dto: CreateDesignerDto) {
-    this.requireRoles(actor, UserRole.ADMIN);
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     return this.createUser(actor, { ...dto, role: UserRole.DESIGNER });
   }
 
   async createUser(actor: InternalActor, dto: CreateDesignerDto) {
-    this.requireRoles(actor, UserRole.ADMIN);
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const targetRole = dto.role ?? UserRole.DESIGNER;
+    this.assertCanManageRole(actor, targetRole);
 
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.designer.findUnique({
@@ -319,7 +330,7 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         passwordHash: hashPassword(dto.password),
-        role: dto.role ?? UserRole.DESIGNER
+        role: targetRole
       },
       select: {
         id: true,
@@ -336,7 +347,7 @@ export class AdminService {
     id: string,
     dto: UpdateUserDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN);
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
 
     const current = await this.prisma.designer.findUnique({
       where: { id },
@@ -351,6 +362,9 @@ export class AdminService {
       throw new NotFoundException("Usuário não encontrado.");
     }
 
+    this.assertCanEditUser(actor, current.role);
+    this.assertCanManageRole(actor, dto.role);
+
     if (
       current.role === UserRole.DESIGNER &&
       dto.role !== UserRole.DESIGNER &&
@@ -359,6 +373,20 @@ export class AdminService {
       throw new BadRequestException(
         "Reatribua os clientes deste designer antes de alterar o perfil."
       );
+    }
+
+    if (current.role === UserRole.DEV && dto.role !== UserRole.DEV) {
+      const devCount = await this.prisma.designer.count({
+        where: {
+          role: UserRole.DEV
+        }
+      });
+
+      if (devCount <= 1) {
+        throw new BadRequestException(
+          "O sistema precisa manter pelo menos um usuário dev."
+        );
+      }
     }
 
     const email = dto.email.trim().toLowerCase();
@@ -1056,6 +1084,34 @@ export class AdminService {
         "O formato precisa ser compatível com Feed, Stories ou ambos."
       );
     }
+  }
+
+  private assertCanManageRole(actor: InternalActor, role: UserRole) {
+    if (actor.role === UserRole.DEV) {
+      return;
+    }
+
+    if (actor.role === UserRole.ADMIN && role === UserRole.DESIGNER) {
+      return;
+    }
+
+    throw new ForbiddenException(
+      "Você não tem permissão para criar ou atribuir este perfil."
+    );
+  }
+
+  private assertCanEditUser(actor: InternalActor, role: UserRole) {
+    if (actor.role === UserRole.DEV) {
+      return;
+    }
+
+    if (actor.role === UserRole.ADMIN && role === UserRole.DESIGNER) {
+      return;
+    }
+
+    throw new ForbiddenException(
+      "Você não tem permissão para editar este usuário."
+    );
   }
 
   private requireRoles(actor: InternalActor, ...roles: UserRole[]) {

@@ -126,7 +126,7 @@ function parsePostingDays(formData: FormData, month: string) {
 }
 
 export async function createDesigner(formData: FormData) {
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "DEV");
 
   await adminPost("/api/admin/designers", {
     name: required(formData, "name"),
@@ -138,27 +138,37 @@ export async function createDesigner(formData: FormData) {
 }
 
 export async function createUser(formData: FormData) {
-  await requireRole("ADMIN");
+  const actor = await requireRole("ADMIN", "DEV");
+  const role = required(formData, "role");
+
+  if (actor.role === "ADMIN" && role !== "DESIGNER") {
+    throw new Error("Administradores só podem criar usuários designers.");
+  }
 
   await adminPost("/api/admin/users", {
     name: required(formData, "name"),
     email: required(formData, "email"),
     password: required(formData, "password"),
-    role: required(formData, "role"),
+    role,
   });
 
   revalidatePath("/equipe");
 }
 
 export async function updateUser(formData: FormData) {
-  await requireRole("ADMIN");
+  const actor = await requireRole("ADMIN", "DEV");
   const userId = required(formData, "userId");
   const password = String(formData.get("password") ?? "").trim();
+  const role = required(formData, "role");
+
+  if (actor.role === "ADMIN" && role !== "DESIGNER") {
+    throw new Error("Administradores só podem editar usuários designers.");
+  }
 
   await adminPatch(`/api/admin/users/${encodeURIComponent(userId)}`, {
     name: required(formData, "name"),
     email: required(formData, "email"),
-    role: required(formData, "role"),
+    role,
     ...(password ? { password } : {}),
   });
 

@@ -12,7 +12,14 @@ import { AppShell } from "../../components/app-shell";
 import { UsersList } from "../../components/users-list";
 import { createUser, updateUser } from "../actions";
 import { requireRole } from "../../lib/auth";
-import { getUsers } from "../../lib/api";
+import { getUsers, type UserListItem } from "../../lib/api";
+
+function canEditUser(
+  currentRole: "DEV" | "ADMIN",
+  user: UserListItem,
+) {
+  return currentRole === "DEV" || user.role === "DESIGNER";
+}
 
 export default async function TeamPage({
   searchParams,
@@ -22,12 +29,13 @@ export default async function TeamPage({
   const currentUser = await requireRole("ADMIN", "DEV");
   const users = await getUsers();
   const { edit } = await searchParams;
-  const canManage = currentUser.role === "ADMIN";
-  const selectedUser = canManage
-    ? users.find((user) => user.id === edit)
-    : undefined;
+  const currentRole = currentUser.role as "DEV" | "ADMIN";
+  const isDev = currentRole === "DEV";
+  const selectedUser = users.find(
+    (user) => user.id === edit && canEditUser(currentRole, user),
+  );
   const designers = users.filter((user) => user.role === "DESIGNER").length;
-  const leadership = users.length - designers;
+  const leadership = users.filter((user) => user.role !== "DESIGNER").length;
   const assignedClients = users.reduce(
     (total, user) => total + user._count.clients,
     0,
@@ -44,21 +52,23 @@ export default async function TeamPage({
           </p>
         </div>
 
-        {canManage ? (
-          <a href="#adicionar-equipe" className="button button-primary">
-            <FiPlus aria-hidden="true" />
-            Adicionar à equipe
-          </a>
-        ) : (
-          <div className="team-view-badge">
-            <FiShield aria-hidden="true" />
-            <div>
-              <span>Modo de consulta</span>
-              <strong>Visão completa da equipe</strong>
-            </div>
-          </div>
-        )}
+        <a href="#adicionar-equipe" className="button button-primary">
+          <FiPlus aria-hidden="true" />
+          Adicionar à equipe
+        </a>
       </header>
+
+      <section className="team-permission-banner">
+        <FiShield aria-hidden="true" />
+        <div>
+          <span>{isDev ? "GESTÃO COMPLETA" : "GESTÃO DE DESIGNERS"}</span>
+          <strong>
+            {isDev
+              ? "Você pode gerenciar devs, admins e designers."
+              : "Você pode criar e editar designers. Contas dev ficam ocultas."}
+          </strong>
+        </div>
+      </section>
 
       <section className="team-overview" aria-label="Resumo da equipe">
         <article>
@@ -66,10 +76,10 @@ export default async function TeamPage({
             <FiUsers aria-hidden="true" />
           </div>
           <div>
-            <span>Pessoas na equipe</span>
+            <span>Pessoas visíveis</span>
             <strong>{users.length}</strong>
           </div>
-          <small>Acessos ativos</small>
+          <small>Acessos disponíveis para seu perfil</small>
         </article>
         <article>
           <div className="team-stat-icon">
@@ -89,7 +99,7 @@ export default async function TeamPage({
             <span>Gestão & tecnologia</span>
             <strong>{leadership}</strong>
           </div>
-          <small>Admin e desenvolvimento</small>
+          <small>{isDev ? "Admins e desenvolvimento" : "Administradores"}</small>
         </article>
         <article>
           <div className="team-stat-icon">
@@ -103,13 +113,7 @@ export default async function TeamPage({
         </article>
       </section>
 
-      <section
-        className={
-          canManage
-            ? "team-management-layout"
-            : "team-management-layout is-readonly"
-        }
-      >
+      <section className="team-management-layout">
         <div className="team-directory">
           <div className="team-section-heading">
             <div>
@@ -120,68 +124,82 @@ export default async function TeamPage({
             <span className="team-total-pill">{users.length} pessoas</span>
           </div>
 
-          <UsersList users={users} canManage={canManage} />
+          <UsersList users={users} currentRole={currentRole} />
         </div>
 
-        {canManage ? (
-          <aside
-            className="form-surface team-create-panel"
-            id="adicionar-equipe"
-          >
-            <div className="panel-icon">
-              <FiUserPlus aria-hidden="true" />
-            </div>
-            <span className="micro-label">NOVO ACESSO</span>
-            <h2>Adicionar à equipe</h2>
-            <p>Defina os dados de entrada e o nível de acesso inicial.</p>
+        <aside
+          className="form-surface team-create-panel"
+          id="adicionar-equipe"
+        >
+          <div className="panel-icon">
+            <FiUserPlus aria-hidden="true" />
+          </div>
+          <span className="micro-label">NOVO ACESSO</span>
+          <h2>Adicionar à equipe</h2>
+          <p>
+            {isDev
+              ? "Crie designers, administradores ou outra conta dev."
+              : "Administradores podem criar apenas novos designers."}
+          </p>
 
-            <form action={createUser} className="stack-form">
-              <label className="field">
-                <span>Nome completo</span>
-                <input
-                  name="name"
-                  placeholder="Nome da pessoa"
-                  minLength={2}
-                  required
-                />
-              </label>
-              <label className="field">
-                <span>E-mail</span>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="nome@empresa.com"
-                  required
-                />
-              </label>
-              <label className="field">
-                <span>Perfil de acesso</span>
-                <select name="role" defaultValue="DESIGNER" required>
-                  <option value="DESIGNER">Designer</option>
-                  <option value="ADMIN">Administrador</option>
-                  <option value="DEV">Desenvolvedor</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Senha inicial</span>
-                <input
-                  type="password"
-                  name="password"
-                  minLength={6}
-                  placeholder="Mínimo de 6 caracteres"
-                  required
-                />
-              </label>
-              <button
-                type="submit"
-                className="button button-primary button-wide"
-              >
-                <FiUserPlus aria-hidden="true" />
-                Adicionar à equipe
-              </button>
-            </form>
-          </aside>
-        ) : null}
+          <form action={createUser} className="stack-form">
+            <label className="field">
+              <span>Nome completo</span>
+              <input
+                name="name"
+                placeholder="Nome da pessoa"
+                minLength={2}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>E-mail</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="nome@empresa.com"
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Perfil de acesso</span>
+              <select name="role" defaultValue="DESIGNER" required>
+                <option value="DESIGNER">Designer</option>
+                {isDev ? (
+                  <>
+                    <option value="ADMIN">Administrador</option>
+                    <option value="DEV">Desenvolvedor</option>
+                  </>
+                ) : null}
+              </select>
+            </label>
+            <label className="field">
+              <span>Senha inicial</span>
+              <input
+                type="password"
+                name="password"
+                minLength={6}
+                placeholder="Mínimo de 6 caracteres"
+                required
+              />
+            </label>
+            <div className="team-access-note">
+              <FiShield aria-hidden="true" />
+              <span>
+                {isDev
+                  ? "Contas dev têm acesso total. Administradores gerenciam designers."
+                  : "A criação de administradores e devs é exclusiva de usuários dev."}
+              </span>
+            </div>
+            <button
+              type="submit"
+              className="button button-primary button-wide"
+            >
+              <FiUserPlus aria-hidden="true" />
+              Adicionar à equipe
+            </button>
+          </form>
+        </aside>
       </section>
 
       {selectedUser ? (
@@ -202,7 +220,7 @@ export default async function TeamPage({
               <div>
                 <span className="micro-label">EDITAR MEMBRO</span>
                 <h2 id="edit-team-member-title">{selectedUser.name}</h2>
-                <p>Atualize o perfil ou redefina a senha de acesso.</p>
+                <p>Atualize dados, perfil ou redefina a senha de acesso.</p>
               </div>
               <Link
                 href="/equipe"
@@ -239,8 +257,12 @@ export default async function TeamPage({
                 <span>Perfil de acesso</span>
                 <select name="role" defaultValue={selectedUser.role} required>
                   <option value="DESIGNER">Designer</option>
-                  <option value="ADMIN">Administrador</option>
-                  <option value="DEV">Desenvolvedor</option>
+                  {isDev ? (
+                    <>
+                      <option value="ADMIN">Administrador</option>
+                      <option value="DEV">Desenvolvedor</option>
+                    </>
+                  ) : null}
                 </select>
               </label>
               <label className="field">

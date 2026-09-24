@@ -7381,3 +7381,363 @@ body::-webkit-scrollbar,
     right: 9px;
   }
 }
+
+
+/* Team management permissions and directory refresh */
+
+.team-permission-banner {
+  margin: -10px 0 22px;
+  padding: 11px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #eadfe2;
+  border-radius: 12px;
+  background: #fffafb;
+}
+
+.team-permission-banner > svg {
+  width: 30px;
+  height: 30px;
+  padding: 8px;
+  flex: 0 0 30px;
+  border-radius: 9px;
+  background: var(--pink-soft);
+  color: var(--pink);
+}
+
+.team-permission-banner > div {
+  display: grid;
+  gap: 2px;
+}
+
+.team-permission-banner span {
+  color: var(--pink);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.team-permission-banner strong {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.team-management-layout {
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+  align-items: start;
+}
+
+.team-user-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.team-management-layout .team-user-row {
+  min-height: 92px;
+  padding: 13px 14px;
+  display: grid;
+  grid-template-columns:
+    auto minmax(180px, 1.5fr) 92px minmax(110px, 0.75fr)
+    minmax(105px, 0.7fr) auto;
+  grid-template-rows: 1fr;
+  gap: 13px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.team-management-layout .team-user-row:hover {
+  border-color: #c9c9c4;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.045);
+}
+
+.team-user-row .user-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.team-user-row .user-card-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.team-user-row .user-card-copy h3 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-user-row .user-card-copy p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-user-row .user-card-copy p svg {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+}
+
+.user-role-description {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #939599;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-user-role {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+}
+
+.team-user-role small {
+  position: relative;
+  padding-left: 10px;
+  color: var(--muted);
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.team-user-role small::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  border-radius: 50%;
+  background: #20a36a;
+  box-shadow: 0 0 0 3px rgba(32, 163, 106, 0.1);
+  transform: translateY(-50%);
+}
+
+.team-user-metric,
+.team-user-created {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.team-user-metric > svg,
+.team-user-created > svg {
+  width: 28px;
+  height: 28px;
+  padding: 7px;
+  flex: 0 0 28px;
+  border-radius: 8px;
+  background: #f3f3f0;
+  color: #77797d;
+}
+
+.team-user-metric > span,
+.team-user-created > span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.team-user-metric strong,
+.team-user-created strong {
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-user-metric small,
+.team-user-created small {
+  color: var(--muted);
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.team-user-edit,
+.team-user-locked {
+  min-height: 34px;
+  padding: 7px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 9px;
+  font-size: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.team-user-edit {
+  border: 1px solid var(--line);
+  background: #fafaf8;
+  color: var(--ink);
+}
+
+.team-user-edit:hover {
+  border-color: var(--black);
+  background: var(--black);
+  color: var(--white);
+}
+
+.team-user-locked {
+  color: #9b9ca0;
+  background: #f3f3f0;
+}
+
+.team-user-edit svg,
+.team-user-locked svg {
+  width: 11px;
+  height: 11px;
+}
+
+.team-access-note {
+  padding: 10px 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 10px;
+  background: #f6f6f3;
+  color: #6f7175;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.team-access-note svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  margin-top: 1px;
+  color: var(--pink);
+}
+
+.team-create-panel h2,
+.user-edit-heading h2 {
+  font-family: "Poppins", Arial, sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.team-create-panel h2 {
+  font-size: 28px;
+}
+
+.user-edit-heading h2 {
+  font-size: 30px;
+}
+
+@media (max-width: 1280px) {
+  .team-management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .team-create-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 1040px) {
+  .team-management-layout .team-user-row {
+    grid-template-columns: auto minmax(0, 1fr) 90px auto;
+    grid-template-rows: auto auto;
+  }
+
+  .team-user-row .user-card-avatar {
+    grid-row: 1 / 3;
+  }
+
+  .team-user-row .user-card-copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .team-user-role {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .team-user-metric {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .team-user-created {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .team-user-edit,
+  .team-user-locked {
+    grid-column: 4;
+    grid-row: 1 / 3;
+  }
+}
+
+@media (max-width: 700px) {
+  .team-permission-banner {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .team-management-layout .team-user-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+  }
+
+  .team-user-row .user-card-avatar {
+    grid-row: 1 / 3;
+  }
+
+  .team-user-row .user-card-copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .team-user-role {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .team-user-metric {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .team-user-created {
+    display: none;
+  }
+
+  .team-user-edit,
+  .team-user-locked {
+    width: 100%;
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .user-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .user-edit-form .field,
+  .user-edit-form .form-actions,
+  .user-edit-form .edit-warning {
+    grid-column: 1;
+  }
+}

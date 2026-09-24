@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  FiBriefcase,
   FiChevronLeft,
   FiChevronRight,
   FiEdit3,
+  FiLock,
+  FiMail,
   FiSearch,
+  FiShield,
+  FiUser,
 } from "react-icons/fi";
 import type { UserListItem, UserRole } from "../lib/api";
 
@@ -18,12 +23,11 @@ const roleLabel: Record<UserRole, string> = {
   DESIGNER: "Designer",
 };
 
-const roleOptions: Array<{ value: UserRole | "ALL"; label: string }> = [
-  { value: "ALL", label: "Todos" },
-  { value: "DESIGNER", label: "Designers" },
-  { value: "ADMIN", label: "Admins" },
-  { value: "DEV", label: "Dev" },
-];
+const roleDescription: Record<UserRole, string> = {
+  DEV: "Acesso total e configurações",
+  ADMIN: "Gestão da operação",
+  DESIGNER: "Clientes e calendários atribuídos",
+};
 
 function initials(name: string) {
   return name
@@ -34,16 +38,33 @@ function initials(name: string) {
     .join("");
 }
 
+function formatCreatedAt(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "numeric",
+  })
+    .format(new Date(value))
+    .replace(".", "");
+}
+
 export function UsersList({
   users,
-  canManage,
+  currentRole,
 }: {
   users: UserListItem[];
-  canManage: boolean;
+  currentRole: "DEV" | "ADMIN";
 }) {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<UserRole | "ALL">("ALL");
   const [page, setPage] = useState(1);
+  const roleOptions: Array<{ value: UserRole | "ALL"; label: string }> = [
+    { value: "ALL", label: "Todos" },
+    { value: "DESIGNER", label: "Designers" },
+    { value: "ADMIN", label: "Admins" },
+    ...(currentRole === "DEV"
+      ? [{ value: "DEV" as const, label: "Dev" }]
+      : []),
+  ];
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -77,7 +98,7 @@ export function UsersList({
               setQuery(event.target.value);
               setPage(1);
             }}
-            placeholder="Buscar na equipe..."
+            placeholder="Buscar por nome ou e-mail..."
             aria-label="Buscar pessoas na equipe"
           />
         </label>
@@ -113,55 +134,92 @@ export function UsersList({
           Ninguém da equipe foi encontrado com esses filtros.
         </div>
       ) : (
-        <div className="user-grid">
-          {visible.map((user) => (
-            <article
-              className={canManage ? "user-card can-manage" : "user-card"}
-              key={user.id}
-            >
-              <div
-                className={`user-card-avatar role-bg-${user.role.toLowerCase()}`}
-              >
-                {initials(user.name) || "TA"}
-              </div>
-              <div className="user-card-copy">
-                <h3>{user.name}</h3>
-                <p>{user.email}</p>
-              </div>
-              <span
-                className={`role-chip role-chip-${user.role.toLowerCase()}`}
-              >
-                {roleLabel[user.role]}
-              </span>
-              <div className="user-card-access">
-                <span />
-                Acesso ativo
-              </div>
-              <div className="user-card-context">
-                <strong>
-                  {user.role === "DESIGNER"
-                    ? user._count.clients
-                    : user.role === "ADMIN"
-                      ? "Gestão"
-                      : "Tech"}
-                </strong>
-                <small>
-                  {user.role === "DESIGNER" ? "clientes" : "acesso geral"}
-                </small>
-              </div>
-              {canManage ? (
-                <Link
-                  href={`/equipe?edit=${user.id}`}
-                  className="icon-button"
-                  aria-label={`Editar membro ${user.name}`}
-                  title="Editar membro"
-                  scroll={false}
+        <div className="user-grid team-user-list">
+          {visible.map((user) => {
+            const editable =
+              currentRole === "DEV" || user.role === "DESIGNER";
+
+            return (
+              <article className="user-card team-user-row" key={user.id}>
+                <div
+                  className={`user-card-avatar role-bg-${user.role.toLowerCase()}`}
                 >
-                  <FiEdit3 aria-hidden="true" />
-                </Link>
-              ) : null}
-            </article>
-          ))}
+                  {initials(user.name) || "TA"}
+                </div>
+
+                <div className="user-card-copy">
+                  <h3>{user.name}</h3>
+                  <p>
+                    <FiMail aria-hidden="true" />
+                    {user.email}
+                  </p>
+                  <span className="user-role-description">
+                    {roleDescription[user.role]}
+                  </span>
+                </div>
+
+                <div className="team-user-role">
+                  <span
+                    className={`role-chip role-chip-${user.role.toLowerCase()}`}
+                  >
+                    {roleLabel[user.role]}
+                  </span>
+                  <small>Acesso ativo</small>
+                </div>
+
+                <div className="team-user-metric">
+                  {user.role === "DESIGNER" ? (
+                    <FiBriefcase aria-hidden="true" />
+                  ) : (
+                    <FiShield aria-hidden="true" />
+                  )}
+                  <span>
+                    <strong>
+                      {user.role === "DESIGNER"
+                        ? user._count.clients
+                        : user.role === "ADMIN"
+                          ? "Gestão"
+                          : "Total"}
+                    </strong>
+                    <small>
+                      {user.role === "DESIGNER"
+                        ? "cliente(s)"
+                        : "nível de acesso"}
+                    </small>
+                  </span>
+                </div>
+
+                <div className="team-user-created">
+                  <FiUser aria-hidden="true" />
+                  <span>
+                    <small>Na equipe desde</small>
+                    <strong>{formatCreatedAt(user.createdAt)}</strong>
+                  </span>
+                </div>
+
+                {editable ? (
+                  <Link
+                    href={`/equipe?edit=${user.id}`}
+                    className="team-user-edit"
+                    aria-label={`Editar membro ${user.name}`}
+                    title="Editar membro"
+                    scroll={false}
+                  >
+                    <FiEdit3 aria-hidden="true" />
+                    Editar
+                  </Link>
+                ) : (
+                  <span
+                    className="team-user-locked"
+                    title="Este perfil só pode ser gerenciado por um usuário dev"
+                  >
+                    <FiLock aria-hidden="true" />
+                    Somente dev
+                  </span>
+                )}
+              </article>
+            );
+          })}
         </div>
       )}
 
