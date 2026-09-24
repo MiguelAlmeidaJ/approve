@@ -141,6 +141,10 @@ export async function createClient(formData: FormData) {
 
   const client = await adminPost<{ id: string }>("/api/admin/clients", {
     name: required(formData, "name"),
+    niche: required(formData, "niche"),
+    phone: required(formData, "phone"),
+    email: required(formData, "email"),
+    password: required(formData, "password"),
     assignedDesignerId:
       designer.role === "DESIGNER"
         ? designer.id
@@ -150,6 +154,45 @@ export async function createClient(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/clients");
   redirect(`/clients/${client.id}`);
+}
+
+
+export async function updateClient(formData: FormData) {
+  const designer = await requireDesigner();
+  const clientId = required(formData, "clientId");
+  const client = await getClient(clientId);
+
+  if (!client || !canAccessClient(designer, client)) {
+    throw new Error("Você não tem acesso a este cliente.");
+  }
+
+  const password = String(formData.get("password") ?? "").trim();
+
+  await adminPatch(`/api/admin/clients/${encodeURIComponent(clientId)}`, {
+    name: required(formData, "name"),
+    niche: required(formData, "niche"),
+    phone: required(formData, "phone"),
+    email: required(formData, "email"),
+    ...(password ? { password } : {}),
+  });
+
+  if (designer.role !== "DESIGNER") {
+    const assignedDesignerId = String(
+      formData.get("assignedDesignerId") ?? "",
+    ).trim();
+
+    await adminPost(
+      `/api/admin/clients/${encodeURIComponent(clientId)}/assign`,
+      {
+        designerId: assignedDesignerId || null,
+      },
+    );
+  }
+
+  revalidatePath("/");
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${clientId}`);
+  redirect(`/clients/${clientId}`);
 }
 
 export async function assignClient(formData: FormData) {

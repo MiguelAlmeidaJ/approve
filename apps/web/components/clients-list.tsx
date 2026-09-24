@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  FiArrowRight,
+  FiArrowUpRight,
+  FiBriefcase,
   FiChevronLeft,
   FiChevronRight,
-  FiSearch
+  FiMail,
+  FiPhone,
+  FiSearch,
+  FiUser
 } from "react-icons/fi";
 import type { Client } from "../lib/api";
 
@@ -15,7 +19,18 @@ const PAGE_SIZE = 6;
 export function ClientsList({ clients }: { clients: Client[] }) {
   const [query, setQuery] = useState("");
   const [assignment, setAssignment] = useState("all");
+  const [niche, setNiche] = useState("all");
   const [page, setPage] = useState(1);
+
+  const niches = useMemo(
+    () =>
+      [...new Set(
+        clients
+          .map((client) => client.niche?.trim())
+          .filter((value): value is string => Boolean(value))
+      )].sort((first, second) => first.localeCompare(second, "pt-BR")),
+    [clients]
+  );
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -24,21 +39,22 @@ export function ClientsList({ clients }: { clients: Client[] }) {
       const matchesQuery =
         !normalizedQuery ||
         client.name.toLowerCase().includes(normalizedQuery) ||
-        client.assignedDesigner?.name
-          .toLowerCase()
-          .includes(normalizedQuery) ||
-        client.assignedDesigner?.email
-          .toLowerCase()
-          .includes(normalizedQuery);
+        client.niche?.toLowerCase().includes(normalizedQuery) ||
+        client.phone?.toLowerCase().includes(normalizedQuery) ||
+        client.credential?.email.toLowerCase().includes(normalizedQuery) ||
+        client.assignedDesigner?.name.toLowerCase().includes(normalizedQuery);
 
       const matchesAssignment =
         assignment === "all" ||
         (assignment === "assigned" && Boolean(client.assignedDesignerId)) ||
         (assignment === "unassigned" && !client.assignedDesignerId);
 
-      return matchesQuery && matchesAssignment;
+      const matchesNiche =
+        niche === "all" || client.niche === niche;
+
+      return matchesQuery && matchesAssignment && matchesNiche;
     });
-  }, [assignment, clients, query]);
+  }, [assignment, clients, niche, query]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -53,8 +69,8 @@ export function ClientsList({ clients }: { clients: Client[] }) {
 
   return (
     <>
-      <div className="list-toolbar">
-        <label className="search-control">
+      <div className="client-list-toolbar">
+        <label className="search-control client-search">
           <FiSearch aria-hidden="true" />
           <input
             type="search"
@@ -63,10 +79,27 @@ export function ClientsList({ clients }: { clients: Client[] }) {
               setQuery(event.target.value);
               resetPage();
             }}
-            placeholder="Buscar cliente ou designer..."
+            placeholder="Buscar por cliente, nicho, contato ou designer..."
             aria-label="Buscar clientes"
           />
         </label>
+
+        <select
+          className="filter-select"
+          value={niche}
+          onChange={(event) => {
+            setNiche(event.target.value);
+            resetPage();
+          }}
+          aria-label="Filtrar por nicho"
+        >
+          <option value="all">Todos os nichos</option>
+          {niches.map((item) => (
+            <option value={item} key={item}>
+              {item}
+            </option>
+          ))}
+        </select>
 
         <select
           className="filter-select"
@@ -92,33 +125,55 @@ export function ClientsList({ clients }: { clients: Client[] }) {
           Nenhum cliente encontrado com esses filtros.
         </div>
       ) : (
-        <div className="client-card-grid">
+        <div className="client-directory-grid">
           {visible.map((client) => (
             <Link
               href={`/clients/${client.id}`}
-              className="client-card"
+              className="client-directory-card"
               key={client.id}
             >
-              <div className="client-card-top">
+              <div className="client-directory-head">
                 <div className="client-card-avatar">
                   {client.name.slice(0, 2).toUpperCase()}
                 </div>
-                <FiArrowRight className="arrow-link" aria-hidden="true" />
+                <div className="client-card-heading">
+                  <span className="client-niche-chip">
+                    <FiBriefcase aria-hidden="true" />
+                    {client.niche || "Nicho não informado"}
+                  </span>
+                  <h3>{client.name}</h3>
+                </div>
+                <span className="client-open-icon">
+                  <FiArrowUpRight aria-hidden="true" />
+                </span>
               </div>
 
-              <div>
-                <h3>{client.name}</h3>
-                <p>
-                  {client.calendars.length} calendário(s) ·{" "}
-                  {client.assignedDesigner?.name ?? "sem responsável"}
-                </p>
+              <div className="client-contact-list">
+                <span>
+                  <FiMail aria-hidden="true" />
+                  {client.credential?.email || "Acesso ainda não configurado"}
+                </span>
+                <span>
+                  <FiPhone aria-hidden="true" />
+                  {client.phone || "Telefone não informado"}
+                </span>
               </div>
 
-              <span className="latest-calendar">
-                {client.assignedDesigner
-                  ? client.assignedDesigner.email
-                  : "Atribua um designer responsável"}
-              </span>
+              <div className="client-directory-footer">
+                <div>
+                  <FiUser aria-hidden="true" />
+                  <span>
+                    <small>Responsável</small>
+                    <strong>
+                      {client.assignedDesigner?.name ?? "Sem responsável"}
+                    </strong>
+                  </span>
+                </div>
+                <div className="client-calendar-count">
+                  <strong>{client.calendars.length}</strong>
+                  <span>calendário(s)</span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

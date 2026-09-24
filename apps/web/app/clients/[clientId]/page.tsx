@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  FiAtSign,
+  FiBriefcase,
+  FiCalendar,
+  FiEdit3,
+  FiPhone,
+  FiPlus,
+  FiUserCheck
+} from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { assignClient } from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
@@ -27,32 +36,89 @@ export default async function ClientPage({
 
   return (
     <AppShell designer={designer} activeSection="clients">
-      <header className="page-header">
+      <header className="client-detail-header">
         <div>
           <span className="micro-label">CLIENTE</span>
           <h1>{client.name}</h1>
           <p>
-            Calendários, peças e links de aprovação deste cliente.
+            Dados da conta, responsável e calendários de aprovação.
           </p>
         </div>
-        <Link
-          href={`/clients/${client.id}/calendars/new`}
-          className="button button-primary"
-        >
-          + Novo calendário
-        </Link>
+        <div className="client-detail-actions">
+          <Link
+            href={`/clients/${client.id}/edit`}
+            className="button button-ghost"
+          >
+            <FiEdit3 aria-hidden="true" />
+            Editar cliente
+          </Link>
+          <Link
+            href={`/clients/${client.id}/calendars/new`}
+            className="button button-primary"
+          >
+            <FiPlus aria-hidden="true" />
+            Novo calendário
+          </Link>
+        </div>
       </header>
+
+      <section className="client-profile-grid">
+        <article className="client-profile-main">
+          <div className="client-profile-avatar">
+            {client.name.slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <span className="client-niche-chip">
+              <FiBriefcase aria-hidden="true" />
+              {client.niche || "Nicho não informado"}
+            </span>
+            <h2>{client.name}</h2>
+            <p>/{client.slug}</p>
+          </div>
+        </article>
+
+        <article className="client-profile-stat">
+          <FiAtSign aria-hidden="true" />
+          <span>
+            Login do cliente
+            <strong>
+              {client.credential?.email || "Acesso não configurado"}
+            </strong>
+          </span>
+        </article>
+
+        <article className="client-profile-stat">
+          <FiPhone aria-hidden="true" />
+          <span>
+            Telefone
+            <strong>{client.phone || "Não informado"}</strong>
+          </span>
+        </article>
+
+        <article className="client-profile-stat">
+          <FiCalendar aria-hidden="true" />
+          <span>
+            Calendários
+            <strong>{client.calendars.length}</strong>
+          </span>
+        </article>
+      </section>
 
       <section className="client-responsibility">
         <div>
-          <span className="micro-label">RESPONSÁVEL</span>
-          <strong>
-            {client.assignedDesigner?.name ?? "Sem designer atribuído"}
-          </strong>
-          <small>
-            {client.assignedDesigner?.email ??
-              "Admin ou dev pode definir um responsável."}
-          </small>
+          <span className="client-form-icon">
+            <FiUserCheck aria-hidden="true" />
+          </span>
+          <span className="client-responsibility-copy">
+            <small>Designer responsável</small>
+            <strong>
+              {client.assignedDesigner?.name ?? "Sem designer atribuído"}
+            </strong>
+            <em>
+              {client.assignedDesigner?.email ??
+                "Admin ou dev pode definir um responsável."}
+            </em>
+          </span>
         </div>
 
         {designer.role !== "DESIGNER" ? (
@@ -78,13 +144,18 @@ export default async function ClientPage({
 
       <section className="section">
         <div className="section-title-row">
-          <h2>Calendários</h2>
+          <div>
+            <span className="micro-label">PLANEJAMENTOS</span>
+            <h2>Calendários</h2>
+          </div>
           <span>{client.calendars.length} no total</span>
         </div>
 
         {client.calendars.length === 0 ? (
           <div className="empty-card">
-            <div className="empty-icon">□</div>
+            <div className="empty-icon">
+              <FiCalendar aria-hidden="true" />
+            </div>
             <h3>Sem calendário ainda</h3>
             <p>Crie o mês e depois adicione as peças para aprovação.</p>
             <Link
