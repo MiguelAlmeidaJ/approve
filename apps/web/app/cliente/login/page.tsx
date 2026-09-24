@@ -6,7 +6,7 @@ import { loginClient } from "./actions";
 export default async function ClientLoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const current = await getClientAccount();
 
@@ -14,7 +14,7 @@ export default async function ClientLoginPage({
     redirect("/cliente");
   }
 
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
 
   return (
     <main className="client-login-page">
@@ -34,6 +34,7 @@ export default async function ClientLoginPage({
 
       <section className="client-login-panel">
         <form action={loginClient} className="client-login-form">
+          <input type="hidden" name="next" value={next ?? "/cliente"} />
           <div>
             <span className="micro-label">ACESSO DO CLIENTE</span>
             <h2>Entrar</h2>
