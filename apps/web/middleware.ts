@@ -21,7 +21,12 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/p/")
   ) {
     if (!request.cookies.get(CLIENT_SESSION_COOKIE)?.value) {
-      return NextResponse.redirect(new URL("/cliente/login", request.url));
+      const loginUrl = new URL("/cliente/login", request.url);
+      loginUrl.searchParams.set(
+        "next",
+        `${request.nextUrl.pathname}${request.nextUrl.search}`
+      );
+      return NextResponse.redirect(loginUrl);
     }
 
     return NextResponse.next();
