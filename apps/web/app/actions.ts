@@ -387,6 +387,7 @@ export async function createContentItem(formData: FormData) {
 
   revalidatePath("/calendars");
   revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
 }
 
 export async function createContentFormat(formData: FormData) {

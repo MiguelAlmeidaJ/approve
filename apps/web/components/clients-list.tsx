@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  FiArrowUpRight,
   FiBriefcase,
+  FiCalendar,
   FiChevronLeft,
   FiChevronRight,
+  FiEdit3,
+  FiEye,
   FiMail,
   FiPhone,
   FiSearch,
@@ -49,8 +51,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
         (assignment === "assigned" && Boolean(client.assignedDesignerId)) ||
         (assignment === "unassigned" && !client.assignedDesignerId);
 
-      const matchesNiche =
-        niche === "all" || client.niche === niche;
+      const matchesNiche = niche === "all" || client.niche === niche;
 
       return matchesQuery && matchesAssignment && matchesNiche;
     });
@@ -126,58 +127,87 @@ export function ClientsList({ clients }: { clients: Client[] }) {
         </div>
       ) : (
         <div className="client-directory-grid">
-          {visible.map((client) => (
-            <Link
-              href={`/clients/${client.id}`}
-              className="client-directory-card"
-              key={client.id}
-            >
-              <div className="client-directory-head">
-                <div className="client-card-avatar">
-                  {client.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="client-card-heading">
-                  <span className="client-niche-chip">
-                    <FiBriefcase aria-hidden="true" />
-                    {client.niche || "Nicho não informado"}
-                  </span>
-                  <h3>{client.name}</h3>
-                </div>
-                <span className="client-open-icon">
-                  <FiArrowUpRight aria-hidden="true" />
-                </span>
-              </div>
+          {visible.map((client) => {
+            const activeCalendars = client.calendars.filter(
+              (calendar) => !calendar.archivedAt
+            ).length;
 
-              <div className="client-contact-list">
-                <span>
-                  <FiMail aria-hidden="true" />
-                  {client.credential?.email || "Acesso ainda não configurado"}
-                </span>
-                <span>
-                  <FiPhone aria-hidden="true" />
-                  {client.phone || "Telefone não informado"}
-                </span>
-              </div>
+            return (
+              <article className="client-directory-card" key={client.id}>
+                <div className="client-directory-head">
+                  <div className="client-card-avatar">
+                    {client.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="client-card-heading">
+                    <span className="client-niche-chip">
+                      <FiBriefcase aria-hidden="true" />
+                      {client.niche || "Nicho não informado"}
+                    </span>
+                    <h3>{client.name}</h3>
+                  </div>
+                  <Link
+                    href={`/clients/${client.id}`}
+                    className="client-open-icon"
+                    aria-label={`Abrir ${client.name}`}
+                    title="Abrir cliente"
+                  >
+                    <FiEye aria-hidden="true" />
+                  </Link>
+                </div>
 
-              <div className="client-directory-footer">
-                <div>
-                  <FiUser aria-hidden="true" />
+                <div className="client-contact-list">
                   <span>
-                    <small>Responsável</small>
-                    <strong>
-                      {client.assignedDesigner?.name ?? "Sem responsável"}
-                    </strong>
+                    <FiMail aria-hidden="true" />
+                    {client.credential?.email || "Acesso ainda não configurado"}
+                  </span>
+                  <span>
+                    <FiPhone aria-hidden="true" />
+                    {client.phone || "Telefone não informado"}
                   </span>
                 </div>
-                <div className="client-calendar-count">
-                  <strong>
-                    {client.calendars.filter((calendar) => !calendar.archivedAt).length}
-                  </strong>
-                  <span>calendário(s)</span>
+
+                <div className="client-directory-footer">
+                  <div>
+                    <FiUser aria-hidden="true" />
+                    <span>
+                      <small>Responsável</small>
+                      <strong>
+                        {client.assignedDesigner?.name ?? "Sem responsável"}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="client-calendar-count">
+                    <strong>{activeCalendars}</strong>
+                    <span>calendário(s)</span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+
+                <div className="client-directory-actions">
+                  <Link
+                    href={`/clients/${client.id}`}
+                    className="client-action-button primary"
+                  >
+                    <FiEye aria-hidden="true" />
+                    Abrir
+                  </Link>
+                  <Link
+                    href={`/clients/${client.id}/edit`}
+                    className="client-action-button"
+                  >
+                    <FiEdit3 aria-hidden="true" />
+                    Editar
+                  </Link>
+                  <Link
+                    href={`/calendars/new?client=${client.id}`}
+                    className="client-action-button"
+                  >
+                    <FiCalendar aria-hidden="true" />
+                    Calendário
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 

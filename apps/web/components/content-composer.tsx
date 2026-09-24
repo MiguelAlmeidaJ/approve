@@ -73,12 +73,14 @@ export function ContentComposer({
   calendarId,
   clientId,
   postingDays,
-  formats
+  formats,
+  showHeader = true
 }: {
   calendarId: string;
   clientId: string;
   postingDays: CalendarPostingDay[];
   formats: ContentFormat[];
+  showHeader?: boolean;
 }) {
   const [contentType, setContentType] = useState<ContentType>("POST");
   const [publishToFeed, setPublishToFeed] = useState(true);
@@ -139,21 +141,30 @@ export function ContentComposer({
   }
 
   return (
-    <section className="content-composer" id="novo-conteudo">
-      <div className="content-composer-heading">
-        <div>
-          <span className="micro-label">NOVA PEÇA</span>
-          <h2>Adicionar conteúdo</h2>
-          <p>
-            Use um dos dias já planejados no calendário e escolha como a peça
-            será publicada.
-          </p>
+    <section
+      className={
+        showHeader
+          ? "content-composer"
+          : "content-composer content-composer-standalone"
+      }
+      id="novo-conteudo"
+    >
+      {showHeader ? (
+        <div className="content-composer-heading">
+          <div>
+            <span className="micro-label">NOVA PEÇA</span>
+            <h2>Adicionar conteúdo</h2>
+            <p>
+              Use um dos dias já planejados no calendário e escolha como a peça
+              será publicada.
+            </p>
+          </div>
+          <div className="content-composer-badge">
+            <FiGrid aria-hidden="true" />
+            {postingDays.length} dia(s) planejado(s)
+          </div>
         </div>
-        <div className="content-composer-badge">
-          <FiGrid aria-hidden="true" />
-          {postingDays.length} dia(s) planejado(s)
-        </div>
-      </div>
+      ) : null}
 
       <form action={createContentItem} className="content-composer-form">
         <input type="hidden" name="calendarId" value={calendarId} />

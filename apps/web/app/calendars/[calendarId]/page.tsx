@@ -8,7 +8,6 @@ import {
   FiSmartphone
 } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
-import { ContentComposer } from "../../../components/content-composer";
 import {
   archiveCalendar,
   restoreCalendar,
@@ -18,8 +17,7 @@ import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
   ContentItem,
-  getCalendar,
-  getFormats
+  getCalendar
 } from "../../../lib/api";
 
 const statusLabel = {
@@ -110,10 +108,7 @@ export default async function CalendarPage({
   const { calendarId } = await params;
   const { item: selectedId } = await searchParams;
   const designer = await requireDesigner();
-  const [calendar, formats] = await Promise.all([
-    getCalendar(calendarId),
-    getFormats()
-  ]);
+  const calendar = await getCalendar(calendarId);
 
   if (!calendar || !canAccessClient(designer, calendar.client)) {
     notFound();
@@ -167,9 +162,12 @@ export default async function CalendarPage({
               >
                 Visão do cliente ↗
               </a>
-              <a href="#novo-conteudo" className="button button-primary">
+              <Link
+                href={`/calendars/${calendar.id}/content/new`}
+                className="button button-primary"
+              >
                 + Adicionar conteúdo
-              </a>
+              </Link>
             </>
           )}
         </div>
@@ -226,9 +224,12 @@ export default async function CalendarPage({
               Os dias já estão planejados. Agora adicione a primeira peça.
             </p>
             {calendar.archivedAt ? null : (
-              <a href="#novo-conteudo" className="button button-primary">
+              <Link
+                href={`/calendars/${calendar.id}/content/new`}
+                className="button button-primary"
+              >
                 Adicionar conteúdo
-              </a>
+              </Link>
             )}
           </div>
         ) : (
@@ -266,15 +267,6 @@ export default async function CalendarPage({
           </div>
         )}
       </section>
-
-      {calendar.archivedAt ? null : (
-        <ContentComposer
-          calendarId={calendar.id}
-          clientId={calendar.client.id}
-          postingDays={calendar.postingDays}
-          formats={formats}
-        />
-      )}
 
       {calendar.archivedAt ? null : (
         <section className="calendar-danger-zone">
