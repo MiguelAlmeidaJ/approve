@@ -6,15 +6,26 @@ import { redirect } from "next/navigation";
 import { requireDesigner, requireRole, SESSION_COOKIE } from "../lib/auth";
 import { canAccessClient, getApiUrl, getCalendar, getClient } from "../lib/api";
 
-async function adminPost<T>(path: string, body?: unknown): Promise<T> {
+async function internalHeaders() {
   await requireDesigner();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
 
+  if (!token) {
+    throw new Error("Sessão não encontrada.");
+  }
+
+  return {
+    "content-type": "application/json",
+    "x-admin-key": process.env.API_ADMIN_KEY ?? "",
+    authorization: `Bearer ${token}`,
+  };
+}
+
+async function adminPost<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`${getApiUrl()}${path}`, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-admin-key": process.env.API_ADMIN_KEY ?? "",
-    },
+    headers: await internalHeaders(),
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
   });
@@ -28,14 +39,9 @@ async function adminPost<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function adminPatch<T>(path: string, body: unknown): Promise<T> {
-  await requireDesigner();
-
   const response = await fetch(`${getApiUrl()}${path}`, {
     method: "PATCH",
-    headers: {
-      "content-type": "application/json",
-      "x-admin-key": process.env.API_ADMIN_KEY ?? "",
-    },
+    headers: await internalHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
   });
