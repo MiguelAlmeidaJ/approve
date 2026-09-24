@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  FiCalendar,
+  FiClock,
   FiImage,
   FiLayers,
+  FiLink,
   FiMonitor,
   FiPlay,
   FiSmartphone
@@ -10,6 +13,7 @@ import {
 import { AppShell } from "../../../components/app-shell";
 import {
   archiveCalendar,
+  moveContentItem,
   restoreCalendar,
   rotateCalendarToken
 } from "../../actions";
@@ -40,6 +44,44 @@ const typeIcon = {
   REEL: FiPlay,
   STORY: FiSmartphone
 } as const;
+
+function saoPauloDateKey(value: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Sao_Paulo"
+  }).formatToParts(new Date(value));
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  return `${year}-${month}-${day}`;
+}
+
+function saoPauloTime(value: string) {
+  const parts = new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "America/Sao_Paulo"
+  }).formatToParts(new Date(value));
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "12";
+  const minute = parts.find((part) => part.type === "minute")?.value ?? "00";
+
+  return `${hour}:${minute}`;
+}
+
+function formatPostingDay(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC"
+  })
+    .format(new Date(value))
+    .replaceAll(".", "");
+}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -122,8 +164,17 @@ export default async function CalendarPage({
   const approved = calendar.contentItems.filter(
     (item) => item.status === "APPROVED"
   ).length;
-  const appUrl = process.env.APP_URL ?? "http://localhost:5005";
-  const shareUrl = `${appUrl}/p/${calendar.shareToken}`;
+  const appUrl = process.env.APP_URL ?? "http://localhost:4334";
+  const shareUrl = `${appUrl.replace(/\/$/, "")}/p/${calendar.shareToken}`;
+  const occupiedByDate = new Map(
+    calendar.contentItems.map((contentItem) => [
+      saoPauloDateKey(contentItem.scheduledAt),
+      contentItem
+    ])
+  );
+  const freeDays = calendar.postingDays.filter(
+    (day) => !occupiedByDate.has(day.scheduledDate.slice(0, 10))
+  ).length;
 
   return (
     <AppShell designer={designer} activeSection="calendars">
@@ -153,22 +204,12 @@ export default async function CalendarPage({
             </Link>
           )}
           {calendar.archivedAt ? null : (
-            <>
-              <a
-                href={shareUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="button button-ghost"
-              >
-                Visão do cliente ↗
-              </a>
-              <Link
-                href={`/calendars/${calendar.id}/content/new`}
-                className="button button-primary"
-              >
-                + Adicionar conteúdo
-              </Link>
-            </>
+            <Link
+              href={`/calendars/${calendar.id}/content/new`}
+              className="button button-primary"
+            >
+              + Adicionar conteúdo
+            </Link>
           )}
         </div>
       </header>
@@ -189,33 +230,105 @@ export default async function CalendarPage({
         </section>
       ) : null}
 
-      <section className="calendar-meta-bar">
-        <div>
-          <span>Peças</span>
-          <strong>{calendar.contentItems.length}</strong>
+      <section className="calendar-overview-panel">
+        <div className="calendar-kpi-grid">
+          <article>
+            <span>Peças</span>
+            <strong>{calendar.contentItems.length}</strong>
+          </article>
+          <article>
+            <span>Aprovadas</span>
+            <strong>{approved}</strong>
+          </article>
+          <article>
+            <span>Dias livres</span>
+            <strong>{freeDays}</strong>
+          </article>
+          <article>
+            <span>Dias planejados</span>
+            <strong>{calendar.postingDays.length}</strong>
+          </article>
         </div>
-        <div>
-          <span>Aprovadas</span>
-          <strong>{approved}</strong>
+
+        <div className="calendar-public-access">
+          <div>
+            <span className="micro-label">LINK PÚBLICO</span>
+            <strong>Visualização e aprovação sem login</strong>
+            <code>{shareUrl}</code>
+          </div>
+          <div className="calendar-public-actions">
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="button button-dark"
+            >
+              <FiLink aria-hidden="true" />
+              Abrir link público
+            </a>
+            {calendar.archivedAt ? null : (
+              <form action={rotateCalendarToken.bind(null, calendar.id)}>
+                <button type="submit" className="button button-ghost">
+                  Renovar link
+                </button>
+              </form>
+            )}
+          </div>
         </div>
-        <div>
-          <span>Dias planejados</span>
-          <strong>{calendar.postingDays.length}</strong>
+      </section>
+
+      <section className="calendar-schedule-section">
+        <div className="calendar-section-heading">
+          <div>
+            <span className="micro-label">AGENDA</span>
+            <h2>Dias de publicação</h2>
+          </div>
+          <span>{freeDays} dia(s) disponível(is)</span>
         </div>
-        <div className="share-inline">
-          <span>Acesso do cliente</span>
-          <code>/cliente</code>
+
+        <div className="calendar-schedule-grid">
+          {calendar.postingDays.map((day) => {
+            const dayKey = day.scheduledDate.slice(0, 10);
+            const content = occupiedByDate.get(dayKey);
+
+            return (
+              <article
+                className={
+                  content
+                    ? "calendar-schedule-day occupied"
+                    : "calendar-schedule-day"
+                }
+                key={day.id}
+              >
+                <span className="calendar-schedule-icon">
+                  <FiCalendar aria-hidden="true" />
+                </span>
+                <div>
+                  <strong>{formatPostingDay(day.scheduledDate)}</strong>
+                  <small>
+                    {content ? content.title : "Disponível para conteúdo"}
+                  </small>
+                </div>
+                <span className="calendar-day-state">
+                  {content ? "Ocupado" : "Livre"}
+                </span>
+              </article>
+            );
+          })}
         </div>
-        {calendar.archivedAt ? null : (
-          <form action={rotateCalendarToken.bind(null, calendar.id)}>
-            <button type="submit" className="text-button">
-              Renovar link
-            </button>
-          </form>
-        )}
       </section>
 
       <section className="feed-board">
+        <div className="calendar-section-heading">
+          <div>
+            <span className="micro-label">CONTEÚDO</span>
+            <h2>Peças do calendário</h2>
+          </div>
+          <span>
+            {calendar.contentItems.length} peça(s) · {approved} aprovada(s)
+          </span>
+        </div>
+
         {calendar.contentItems.length === 0 ? (
           <div className="feed-empty">
             <span>+</span>
@@ -338,6 +451,85 @@ export default async function CalendarPage({
                   <span className="micro-label">LEGENDA</span>
                   <p>{selectedItem.caption}</p>
                 </div>
+
+                {calendar.archivedAt ? null : (
+                  <div className="content-reschedule-panel">
+                    <div>
+                      <span className="micro-label">REMANEJAR</span>
+                      <strong>Alterar dia de publicação</strong>
+                      <p>
+                        Só aparecem os dias livres do planejamento. O conteúdo,
+                        a arte e o status de aprovação são preservados.
+                      </p>
+                    </div>
+                    <form action={moveContentItem}>
+                      <input
+                        type="hidden"
+                        name="calendarId"
+                        value={calendar.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="itemId"
+                        value={selectedItem.id}
+                      />
+                      <label className="field">
+                        <span>Novo dia</span>
+                        <select
+                          name="postingDate"
+                          defaultValue={saoPauloDateKey(
+                            selectedItem.scheduledAt
+                          )}
+                          required
+                        >
+                          {calendar.postingDays.map((day) => {
+                            const dayKey = day.scheduledDate.slice(0, 10);
+                            const occupyingItem = occupiedByDate.get(dayKey);
+                            const isCurrent =
+                              occupyingItem?.id === selectedItem.id;
+                            const unavailable =
+                              Boolean(occupyingItem) && !isCurrent;
+
+                            return (
+                              <option
+                                value={dayKey}
+                                disabled={unavailable}
+                                key={day.id}
+                              >
+                                {formatPostingDay(day.scheduledDate)}
+                                {isCurrent
+                                  ? " · atual"
+                                  : unavailable
+                                    ? " · ocupado"
+                                    : " · livre"}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </label>
+                      <label className="field">
+                        <span>Horário</span>
+                        <div className="input-with-icon">
+                          <FiClock aria-hidden="true" />
+                          <input
+                            type="time"
+                            name="postingTime"
+                            defaultValue={saoPauloTime(
+                              selectedItem.scheduledAt
+                            )}
+                            required
+                          />
+                        </div>
+                      </label>
+                      <button
+                        type="submit"
+                        className="button button-ghost button-wide"
+                      >
+                        Remanejar publicação
+                      </button>
+                    </form>
+                  </div>
+                )}
 
                 <div className="status-line">
                   <span

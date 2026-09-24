@@ -1,32 +1,23 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
-  UnauthorizedException
+  NotFoundException
 } from "@nestjs/common";
 import {
   ContentStatus,
   ReviewAction
 } from "@approve/database";
-import { createHash } from "node:crypto";
 import { PrismaService } from "../prisma.service";
 import { ReviewContentDto } from "./public.dto";
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
 
 @Injectable()
 export class PublicService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getCalendar(clientToken: string, token: string) {
-    const clientId = await this.getClientId(clientToken);
-
+  async getCalendar(token: string) {
     const calendar = await this.prisma.calendar.findFirst({
       where: {
         shareToken: token,
-        clientId,
         archivedAt: null
       },
       include: {
@@ -50,6 +41,11 @@ export class PublicService {
             assets: {
               orderBy: {
                 sortOrder: "asc"
+              },
+              select: {
+                id: true,
+                mimeType: true,
+                sortOrder: true
               }
             },
             reviews: {
@@ -62,36 +58,36 @@ export class PublicService {
     });
 
     if (!calendar) {
-      throw new NotFoundException("Calendário não encontrado para esta conta.");
+      throw new NotFoundException("Calendário público não encontrado.");
     }
 
     return calendar;
   }
 
   async review(
-    clientToken: string,
     token: string,
     contentItemId: string,
     dto: ReviewContentDto
   ) {
-    const clientId = await this.getClientId(clientToken);
     const calendar = await this.prisma.calendar.findFirst({
       where: {
         shareToken: token,
-        clientId,
         archivedAt: null
       },
       select: { id: true }
     });
 
     if (!calendar) {
-      throw new NotFoundException("Calendário não encontrado para esta conta.");
+      throw new NotFoundException("Calendário público não encontrado.");
     }
 
     const item = await this.prisma.contentItem.findFirst({
       where: {
         id: contentItemId,
-        calendarId: calendar.id
+        calendarId: calendar.id,
+        status: {
+          not: ContentStatus.DRAFT
+        }
       }
     });
 
@@ -133,25 +129,4 @@ export class PublicService {
     return review;
   }
 
-  private async getClientId(token: string) {
-    if (!token) {
-      throw new UnauthorizedException("Sessão do cliente não informada.");
-    }
-
-    const session = await this.prisma.clientSession.findUnique({
-      where: {
-        tokenHash: hashToken(token)
-      },
-      select: {
-        clientId: true,
-        expiresAt: true
-      }
-    });
-
-    if (!session || session.expiresAt <= new Date()) {
-      throw new UnauthorizedException("Sessão do cliente expirada.");
-    }
-
-    return session.clientId;
-  }
 }

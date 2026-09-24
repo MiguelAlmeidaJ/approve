@@ -187,6 +187,14 @@ export class CreateContentFormatDto {
 
 export class UpdateContentFormatDto extends CreateContentFormatDto {}
 
+export class MoveContentItemDto {
+  @IsDateString()
+  scheduledAt!: string;
+
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  postingDate!: string;
+}
+
 export class CreateContentItemDto {
   @IsString()
   calendarId!: string;

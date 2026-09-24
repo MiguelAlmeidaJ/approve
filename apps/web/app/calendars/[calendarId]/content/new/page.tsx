@@ -10,6 +10,20 @@ import {
   getFormats
 } from "../../../../../lib/api";
 
+function saoPauloDateKey(value: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Sao_Paulo"
+  }).formatToParts(new Date(value));
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  return `${year}-${month}-${day}`;
+}
+
 export default async function NewCalendarContentPage({
   params
 }: {
@@ -52,6 +66,9 @@ export default async function NewCalendarContentPage({
         clientId={calendar.client.id}
         postingDays={calendar.postingDays}
         formats={formats}
+        occupiedDates={calendar.contentItems.map((item) =>
+          saoPauloDateKey(item.scheduledAt)
+        )}
         showHeader={false}
       />
     </AppShell>

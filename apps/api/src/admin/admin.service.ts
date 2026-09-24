@@ -21,6 +21,7 @@ import {
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  MoveContentItemDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
@@ -755,6 +756,16 @@ export class AdminService {
       );
     }
 
+    const occupiedItem = calendar.contentItems.find(
+      (item) => saoPauloDateKey(item.scheduledAt) === dto.postingDate
+    );
+
+    if (occupiedItem) {
+      throw new BadRequestException(
+        "Este dia já possui conteúdo. Escolha outro dia planejado."
+      );
+    }
+
     const scheduledAt = new Date(dto.scheduledAt);
 
     if (
@@ -851,6 +862,78 @@ export class AdminService {
           }))
         }
       },
+      include: {
+        formatPreset: true,
+        assets: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        }
+      }
+    });
+  }
+
+  async moveContentItem(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: MoveContentItemDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        calendarId: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+
+    if (calendar.archivedAt) {
+      throw new BadRequestException(
+        "Restaure o calendário antes de remanejar conteúdos."
+      );
+    }
+
+    const postingDay = calendar.postingDays.find(
+      (day) => dateKey(day.scheduledDate) === dto.postingDate
+    );
+
+    if (!postingDay) {
+      throw new BadRequestException(
+        "Escolha um dos dias de publicação definidos para este calendário."
+      );
+    }
+
+    const occupiedItem = calendar.contentItems.find(
+      (calendarItem) =>
+        calendarItem.id !== contentItemId &&
+        saoPauloDateKey(calendarItem.scheduledAt) === dto.postingDate
+    );
+
+    if (occupiedItem) {
+      throw new BadRequestException(
+        "Este dia já possui conteúdo. Escolha outro dia planejado."
+      );
+    }
+
+    const scheduledAt = new Date(dto.scheduledAt);
+
+    if (
+      Number.isNaN(scheduledAt.getTime()) ||
+      saoPauloDateKey(scheduledAt) !== dto.postingDate
+    ) {
+      throw new BadRequestException(
+        "A data e o horário precisam corresponder ao dia de publicação selecionado."
+      );
+    }
+
+    return this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: { scheduledAt },
       include: {
         formatPreset: true,
         assets: {

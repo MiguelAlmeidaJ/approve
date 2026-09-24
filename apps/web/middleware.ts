@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   if (
     pathname === "/login" ||
     pathname === "/cliente/login" ||
+    pathname.startsWith("/p/") ||
     pathname.startsWith("/api/media/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico"
@@ -18,8 +19,7 @@ export function middleware(request: NextRequest) {
 
   if (
     pathname === "/cliente" ||
-    pathname.startsWith("/cliente/") ||
-    pathname.startsWith("/p/")
+    pathname.startsWith("/cliente/")
   ) {
     if (!request.cookies.get(CLIENT_SESSION_COOKIE)?.value) {
       const loginUrl = new URL("/cliente/login", request.url);

@@ -11,12 +11,25 @@ import {
   FiSmartphone
 } from "react-icons/fi";
 import { Brand } from "../../../components/brand";
-import { requireClientAccount } from "../../../lib/client-auth";
+import {
+  ProtectedPublicImage,
+  ProtectedPublicVideo
+} from "../../../components/protected-public-media";
+import { getClientAccount } from "../../../lib/client-auth";
 import {
   ContentItem,
   getPublicCalendar
 } from "../../../lib/api";
 import { submitReview } from "./actions";
+
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true
+  },
+  referrer: "no-referrer"
+};
 
 const statusText = {
   DRAFT: "Rascunho",
@@ -25,26 +38,32 @@ const statusText = {
   CHANGES_REQUESTED: "Alteração solicitada"
 } as const;
 
+function publicMediaUrl(assetId: string, token: string) {
+  return `/api/media/${assetId}?share=${encodeURIComponent(token)}`;
+}
+
 function PublicArt({
   item,
   index,
+  token,
   className = ""
 }: {
   item: ContentItem;
   index: number;
+  token: string;
   className?: string;
 }) {
   const primaryAsset = item.assets?.[0];
 
   if (primaryAsset) {
-    const src = `/api/media/${primaryAsset.id}`;
+    const src = publicMediaUrl(primaryAsset.id, token);
 
     return (
       <div className={`ig-art has-image ${className}`}>
         {primaryAsset.mimeType?.startsWith("video/") ? (
-          <video src={src} muted playsInline preload="metadata" />
+          <ProtectedPublicVideo src={src} />
         ) : (
-          <img src={src} alt={item.title} />
+          <ProtectedPublicImage src={src} alt={item.title} />
         )}
       </div>
     );
@@ -53,7 +72,7 @@ function PublicArt({
   if (item.assetUrl) {
     return (
       <div className={`ig-art has-image ${className}`}>
-        <img src={item.assetUrl} alt={item.title} />
+        <ProtectedPublicImage src={item.assetUrl} alt={item.title} />
       </div>
     );
   }
@@ -73,12 +92,12 @@ export default async function ApprovalPage({
   params: Promise<{ token: string }>;
   searchParams: Promise<{ item?: string }>;
 }) {
-  const account = await requireClientAccount();
+  const account = await getClientAccount();
   const { token } = await params;
   const { item: selectedId } = await searchParams;
   const calendar = await getPublicCalendar(token);
 
-  if (!calendar || calendar.client.id !== account.id) {
+  if (!calendar) {
     notFound();
   }
 
@@ -103,8 +122,14 @@ export default async function ApprovalPage({
       <header className="instagram-preview-topbar">
         <Brand />
         <div>
-          <span>Prévia do perfil</span>
-          <Link href="/cliente">Voltar aos calendários</Link>
+          <span>Calendário público de aprovação</span>
+          {account ? (
+            <Link href="/cliente">Meus calendários</Link>
+          ) : (
+            <Link href={`/cliente/login?next=${encodeURIComponent("/cliente")}`}>
+              Entrar para ver históricos
+            </Link>
+          )}
         </div>
       </header>
 
@@ -150,13 +175,13 @@ export default async function ApprovalPage({
                     item.assets[0].mimeType?.startsWith("video/") ? (
                       <FiPlay aria-hidden="true" />
                     ) : (
-                      <img
-                        src={`/api/media/${item.assets[0].id}`}
+                      <ProtectedPublicImage
+                        src={publicMediaUrl(item.assets[0].id, token)}
                         alt=""
                       />
                     )
                   ) : item.assetUrl ? (
-                    <img src={item.assetUrl} alt="" />
+                    <ProtectedPublicImage src={item.assetUrl} alt="" />
                   ) : (
                     <FiSmartphone aria-hidden="true" />
                   )}
@@ -185,7 +210,7 @@ export default async function ApprovalPage({
               className="instagram-feed-tile"
               key={item.id}
             >
-              <PublicArt item={item} index={index} />
+              <PublicArt item={item} index={index} token={token} />
               {item.contentType === "REEL" ? (
                 <FiPlay className="instagram-tile-type" aria-hidden="true" />
               ) : null}
@@ -220,15 +245,13 @@ export default async function ApprovalPage({
                   {selectedItem.assets.map((asset) => (
                     <div className="instagram-carousel-slide" key={asset.id}>
                       {asset.mimeType?.startsWith("video/") ? (
-                        <video
-                          src={`/api/media/${asset.id}`}
+                        <ProtectedPublicVideo
+                          src={publicMediaUrl(asset.id, token)}
                           controls
-                          playsInline
-                          preload="metadata"
                         />
                       ) : (
-                        <img
-                          src={`/api/media/${asset.id}`}
+                        <ProtectedPublicImage
+                          src={publicMediaUrl(asset.id, token)}
                           alt={selectedItem.title}
                         />
                       )}
@@ -239,6 +262,7 @@ export default async function ApprovalPage({
                 <PublicArt
                   item={selectedItem}
                   index={Math.max(selectedIndex, 0)}
+                  token={token}
                   className="instagram-post-art"
                 />
               )}
@@ -293,7 +317,15 @@ export default async function ApprovalPage({
                   <input type="hidden" name="token" value={token} />
                   <input type="hidden" name="itemId" value={selectedItem.id} />
                   <input type="hidden" name="action" value="APPROVED" />
-                  <input type="hidden" name="reviewerName" value={account.name} />
+                  <label className="field public-reviewer-field">
+                    <span>Seu nome</span>
+                    <input
+                      name="reviewerName"
+                      defaultValue={account?.name ?? ""}
+                      placeholder="Quem está aprovando?"
+                      required
+                    />
+                  </label>
                   <button
                     className="button button-dark button-wide"
                     type="submit"
@@ -310,7 +342,15 @@ export default async function ApprovalPage({
                   <input type="hidden" name="token" value={token} />
                   <input type="hidden" name="itemId" value={selectedItem.id} />
                   <input type="hidden" name="action" value="CHANGES_REQUESTED" />
-                  <input type="hidden" name="reviewerName" value={account.name} />
+                  <label className="field public-reviewer-field">
+                    <span>Seu nome</span>
+                    <input
+                      name="reviewerName"
+                      defaultValue={account?.name ?? ""}
+                      placeholder="Quem está solicitando?"
+                      required
+                    />
+                  </label>
                   <label className="field">
                     <span>Solicitar alteração</span>
                     <textarea

@@ -15,6 +15,7 @@ import {
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  MoveContentItemDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
@@ -163,6 +164,15 @@ export class AdminController {
     @Body() dto: CreateContentItemDto
   ) {
     return this.adminService.createContentItem(request.actor, dto);
+  }
+
+  @Patch("items/:id/schedule")
+  moveContentItem(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: MoveContentItemDto
+  ) {
+    return this.adminService.moveContentItem(request.actor, id, dto);
   }
 
   @Post("calendars/:id/rotate-token")

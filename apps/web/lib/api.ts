@@ -230,26 +230,14 @@ export function canAccessClient(
 export async function getPublicCalendar(
   token: string
 ): Promise<PublicCalendar | null> {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(CLIENT_SESSION_COOKIE)?.value;
-
   const response = await fetch(
     `${API_URL}/api/public/calendars/${encodeURIComponent(token)}`,
     {
-      headers: session
-        ? {
-            authorization: `Bearer ${session}`
-          }
-        : {},
       cache: "no-store"
     }
   );
 
   if (response.status === 404) {
-    return null;
-  }
-
-  if (response.status === 401) {
     return null;
   }
 

@@ -10,15 +10,20 @@ export async function GET(
   const { assetId } = await params;
   const designerToken = request.cookies.get(SESSION_COOKIE)?.value;
   const clientToken = request.cookies.get(CLIENT_SESSION_COOKIE)?.value;
+  const shareToken = request.nextUrl.searchParams.get("share")?.trim();
 
-  if (!designerToken && !clientToken) {
-    return new Response("Sessão não encontrada.", { status: 401 });
+  if (!designerToken && !clientToken && !shareToken) {
+    return new Response("Acesso à mídia não autorizado.", { status: 401 });
   }
 
   const internal = Boolean(designerToken);
   const endpoint = internal
     ? `${getApiUrl()}/api/admin/assets/${encodeURIComponent(assetId)}/file`
-    : `${getApiUrl()}/api/public/assets/${encodeURIComponent(assetId)}/file`;
+    : `${getApiUrl()}/api/public/assets/${encodeURIComponent(assetId)}/file${
+        shareToken
+          ? `?shareToken=${encodeURIComponent(shareToken)}`
+          : ""
+      }`;
   const range = request.headers.get("range");
 
   const response = await fetch(endpoint, {
@@ -28,9 +33,11 @@ export async function GET(
             "x-admin-key": process.env.API_ADMIN_KEY ?? "",
             authorization: `Bearer ${designerToken}`
           }
-        : {
-            authorization: `Bearer ${clientToken}`
-          }),
+        : clientToken && !shareToken
+          ? {
+              authorization: `Bearer ${clientToken}`
+            }
+          : {}),
       ...(range ? { range } : {})
     },
     cache: "no-store"
@@ -53,6 +60,12 @@ export async function GET(
       headers.set(name, value);
     }
   }
+
+  headers.set("cache-control", "private, no-store, max-age=0");
+  headers.set("pragma", "no-cache");
+  headers.set("x-content-type-options", "nosniff");
+  headers.set("x-robots-tag", "noindex, noarchive");
+  headers.set("cross-origin-resource-policy", "same-origin");
 
   return new Response(response.body, {
     status: response.status,

@@ -74,19 +74,34 @@ export function ContentComposer({
   clientId,
   postingDays,
   formats,
+  occupiedDates = [],
   showHeader = true
 }: {
   calendarId: string;
   clientId: string;
   postingDays: CalendarPostingDay[];
   formats: ContentFormat[];
+  occupiedDates?: string[];
   showHeader?: boolean;
 }) {
   const [contentType, setContentType] = useState<ContentType>("POST");
   const [publishToFeed, setPublishToFeed] = useState(true);
   const [publishToStories, setPublishToStories] = useState(false);
+  const occupiedDateSet = useMemo(
+    () => new Set(occupiedDates),
+    [occupiedDates]
+  );
+  const availablePostingDays = useMemo(
+    () =>
+      postingDays.filter(
+        (day) => !occupiedDateSet.has(dateKey(day.scheduledDate))
+      ),
+    [occupiedDateSet, postingDays]
+  );
   const [postingDate, setPostingDate] = useState(
-    postingDays[0] ? dateKey(postingDays[0].scheduledDate) : ""
+    availablePostingDays[0]
+      ? dateKey(availablePostingDays[0].scheduledDate)
+      : ""
   );
   const [formatId, setFormatId] = useState("");
   const [selectedAssets, setSelectedAssets] = useState<
@@ -110,6 +125,25 @@ export function ContentComposer({
       setFormatId(availableFormats[0]?.id ?? "");
     }
   }, [availableFormats, formatId]);
+
+  useEffect(() => {
+    if (
+      !postingDate ||
+      occupiedDateSet.has(postingDate) ||
+      !postingDays.some((day) => dateKey(day.scheduledDate) === postingDate)
+    ) {
+      setPostingDate(
+        availablePostingDays[0]
+          ? dateKey(availablePostingDays[0].scheduledDate)
+          : ""
+      );
+    }
+  }, [
+    availablePostingDays,
+    occupiedDateSet,
+    postingDate,
+    postingDays
+  ]);
 
   function selectType(nextType: ContentType) {
     setContentType(nextType);
@@ -161,7 +195,7 @@ export function ContentComposer({
           </div>
           <div className="content-composer-badge">
             <FiGrid aria-hidden="true" />
-            {postingDays.length} dia(s) planejado(s)
+            {availablePostingDays.length} de {postingDays.length} dia(s) livres
           </div>
         </div>
       ) : null}
@@ -269,25 +303,42 @@ export function ContentComposer({
             <div className="composer-warning">
               Este calendário não possui dias de publicação configurados.
             </div>
+          ) : availablePostingDays.length === 0 ? (
+            <div className="composer-warning">
+              Todos os dias planejados já possuem conteúdo. Remaneje uma peça
+              existente para liberar outra data.
+            </div>
           ) : (
             <div className="posting-date-grid">
               {postingDays.map((day) => {
                 const value = dateKey(day.scheduledDate);
+                const occupied = occupiedDateSet.has(value);
                 const selected = postingDate === value;
 
                 return (
-                  <label className={selected ? "selected" : ""} key={day.id}>
+                  <label
+                    className={[
+                      selected ? "selected" : "",
+                      occupied ? "occupied" : ""
+                    ].filter(Boolean).join(" ")}
+                    key={day.id}
+                  >
                     <input
                       type="radio"
                       name="postingDate"
                       value={value}
                       checked={selected}
                       onChange={() => setPostingDate(value)}
+                      disabled={occupied}
                     />
                     <strong>
                       {new Date(day.scheduledDate).getUTCDate().toString().padStart(2, "0")}
                     </strong>
-                    <span>{formatPostingDate(day.scheduledDate)}</span>
+                    <span>
+                      {occupied
+                        ? "Conteúdo já cadastrado"
+                        : formatPostingDate(day.scheduledDate)}
+                    </span>
                     {selected ? <FiCheck aria-hidden="true" /> : null}
                   </label>
                 );

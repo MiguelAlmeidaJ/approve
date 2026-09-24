@@ -7,7 +7,7 @@ import {
   ServiceUnavailableException,
   UnauthorizedException
 } from "@nestjs/common";
-import { UserRole } from "@approve/database";
+import { ContentStatus, UserRole } from "@approve/database";
 import { createHash } from "node:crypto";
 import type { InternalActor } from "../common/internal-actor";
 import { PrismaService } from "../prisma.service";
@@ -164,6 +164,33 @@ export class NextcloudService {
     }
 
     return response;
+  }
+
+  async getAssetForPublicShare(shareToken: string, assetId: string) {
+    if (!shareToken) {
+      throw new UnauthorizedException("Link público não informado.");
+    }
+
+    const asset = await this.prisma.contentAsset.findFirst({
+      where: {
+        id: assetId,
+        contentItem: {
+          status: {
+            not: ContentStatus.DRAFT
+          },
+          calendar: {
+            shareToken,
+            archivedAt: null
+          }
+        }
+      }
+    });
+
+    if (!asset) {
+      throw new NotFoundException("Arte não encontrada neste calendário público.");
+    }
+
+    return asset;
   }
 
   async getAssetForClientSession(clientToken: string, assetId: string) {

@@ -390,6 +390,35 @@ export async function createContentItem(formData: FormData) {
   redirect(`/calendars/${calendarId}`);
 }
 
+export async function moveContentItem(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  const postingDate = required(formData, "postingDate");
+  const postingTime = required(formData, "postingTime");
+  const scheduledAt = new Date(
+    `${postingDate}T${postingTime}:00-03:00`
+  ).toISOString();
+
+  await adminPatch(
+    `/api/admin/items/${encodeURIComponent(itemId)}/schedule`,
+    {
+      postingDate,
+      scheduledAt
+    }
+  );
+
+  revalidatePath("/calendars");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}?item=${encodeURIComponent(itemId)}`);
+}
+
 export async function createContentFormat(formData: FormData) {
   await requireRole("ADMIN", "DEV");
 

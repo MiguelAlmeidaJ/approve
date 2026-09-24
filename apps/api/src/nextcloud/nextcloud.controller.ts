@@ -77,6 +77,7 @@ export class NextcloudController {
   async clientAsset(
     @Headers("authorization") authorization: string | undefined,
     @Param("assetId") assetId: string,
+    @Query("shareToken") shareToken: string | undefined,
     @Headers("range") range: string | undefined,
     @Res() response: HttpResponse
   ) {
@@ -84,14 +85,22 @@ export class NextcloudController {
       ? authorization.slice(7).trim()
       : "";
 
-    const asset =
-      await this.nextcloudService.getAssetForClientSession(token, assetId);
+    const asset = shareToken
+      ? await this.nextcloudService.getAssetForPublicShare(
+          shareToken,
+          assetId
+        )
+      : await this.nextcloudService.getAssetForClientSession(token, assetId);
     const upstream = await this.nextcloudService.downloadStoredPath(
       asset.filePath,
       range
     );
 
-    await this.pipeResponse(upstream, response, asset.fileName);
+    await this.pipeResponse(
+      upstream,
+      response,
+      shareToken ? undefined : asset.fileName
+    );
   }
 
   private async pipeResponse(
@@ -115,6 +124,12 @@ export class NextcloudController {
         response.setHeader(header, value);
       }
     }
+
+    response.setHeader("cache-control", "private, no-store, max-age=0");
+    response.setHeader("pragma", "no-cache");
+    response.setHeader("x-content-type-options", "nosniff");
+    response.setHeader("x-robots-tag", "noindex, noarchive");
+    response.setHeader("cross-origin-resource-policy", "same-origin");
 
     if (fileName) {
       response.setHeader(
