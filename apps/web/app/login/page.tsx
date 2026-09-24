@@ -26,7 +26,7 @@ export default async function LoginPage({
     <main className="login-page">
       <section className="login-visual">
         <div className="login-visual-content">
-          <Brand />
+          <Brand tone="dark" />
           <span className="micro-label micro-label-light">
             TERCEIRO ANDAR · APROVAÇÃO
           </span>

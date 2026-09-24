@@ -20,7 +20,7 @@ export default async function ClientLoginPage({
     <main className="client-login-page">
       <section className="client-login-visual">
         <div className="client-login-copy">
-          <Brand />
+          <Brand tone="dark" />
           <span className="micro-label micro-label-light">
             ÁREA DO CLIENTE
           </span>
