@@ -159,10 +159,7 @@ export class CreateContentFormatDto {
   active?: boolean;
 }
 
-export class UpdateContentFormatDto extends CreateContentFormatDto {
-  @IsBoolean()
-  active!: boolean;
-}
+export class UpdateContentFormatDto extends CreateContentFormatDto {}
 
 export class CreateContentItemDto {
   @IsString()
