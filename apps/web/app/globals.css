@@ -7805,3 +7805,249 @@ body::-webkit-scrollbar,
     width: 100%;
   }
 }
+
+
+/* Account inactivity + custom public video controls */
+
+.team-user-row.is-inactive,
+.client-directory-card.is-inactive {
+  opacity: 0.68;
+  background: #f7f7f5;
+}
+
+.team-user-row.is-inactive:hover,
+.client-directory-card.is-inactive:hover {
+  opacity: 0.88;
+}
+
+.team-user-row.is-inactive .team-user-role small::before {
+  background: #9a9a96;
+  box-shadow: none;
+}
+
+.inline-inactive-chip,
+.account-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.inline-inactive-chip {
+  margin-left: 7px;
+  padding: 3px 6px;
+  vertical-align: middle;
+  background: #ececea;
+  color: #77797d;
+}
+
+.client-title-with-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.client-title-with-status h1 {
+  margin: 0;
+}
+
+.account-status-chip {
+  padding: 5px 8px;
+}
+
+.account-status-chip.active {
+  background: #eaf8f1;
+  color: #18724e;
+}
+
+.account-status-chip.inactive {
+  background: #f0f0ed;
+  color: #737579;
+}
+
+.client-action-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.account-status-zone {
+  margin: 0 20px 20px;
+  padding: 14px 15px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid #ece2e5;
+  border-radius: 12px;
+  background: #fffafb;
+}
+
+.account-status-zone > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.account-status-zone .micro-label {
+  margin: 0;
+}
+
+.account-status-zone strong {
+  font-size: 10px;
+}
+
+.account-status-zone p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.button-danger-outline {
+  border: 1px solid #eab8c7;
+  background: #fff;
+  color: #ad214a;
+}
+
+.button-danger-outline:hover {
+  border-color: #ad214a;
+  background: #fff1f5;
+  color: #8f1538;
+}
+
+.team-status-filter {
+  min-width: 126px;
+}
+
+.protected-public-video-interactive {
+  cursor: pointer;
+}
+
+.public-video-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.68);
+  box-shadow: 0 7px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  transform: translateX(-50%);
+}
+
+.public-video-controls button {
+  width: 38px;
+  height: 38px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+}
+
+.public-video-controls button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.public-video-controls button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.public-video-controls button small {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  font-size: 6px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.public-video-controls .public-video-play {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  color: #111;
+}
+
+.public-video-controls .public-video-play:hover {
+  background: #f4f4f1;
+}
+
+.public-video-controls .public-video-play svg {
+  width: 19px;
+  height: 19px;
+}
+
+@media (max-width: 640px) {
+  .account-status-zone {
+    grid-template-columns: 1fr;
+  }
+
+  .account-status-zone form,
+  .account-status-zone .button {
+    width: 100%;
+  }
+
+  .public-video-controls {
+    bottom: 12px;
+  }
+}
+
+
+/* Status filter layout adjustments */
+
+.team-list-toolbar {
+  grid-template-columns: minmax(220px, 1fr) auto 145px auto;
+}
+
+.client-list-toolbar {
+  grid-template-columns: minmax(250px, 1fr) 175px 190px 155px auto;
+}
+
+.client-detail-actions > form {
+  display: flex;
+}
+
+@media (max-width: 1180px) {
+  .client-list-toolbar {
+    grid-template-columns: minmax(230px, 1fr) 170px 180px;
+  }
+
+  .client-list-toolbar .filter-select:nth-of-type(3) {
+    grid-column: 1 / 2;
+  }
+
+  .client-list-toolbar .list-result-count {
+    grid-column: 2 / -1;
+    text-align: right;
+  }
+}
+
+@media (max-width: 920px) {
+  .team-list-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .team-status-filter {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .client-detail-actions > form,
+  .client-detail-actions > form .button {
+    width: 100%;
+  }
+}

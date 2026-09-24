@@ -73,7 +73,8 @@ export class AuthService {
         id: designer.id,
         name: designer.name,
         email: designer.email,
-        role: designer.role
+        role: designer.role,
+        active: designer.active
       }
     };
   }
@@ -96,7 +97,8 @@ export class AuthService {
       id: session.designer.id,
       name: session.designer.name,
       email: session.designer.email,
-      role: session.designer.role
+      role: session.designer.role,
+      active: session.designer.active
     };
   }
 

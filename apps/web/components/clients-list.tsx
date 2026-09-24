@@ -22,6 +22,7 @@ export function ClientsList({ clients }: { clients: Client[] }) {
   const [query, setQuery] = useState("");
   const [assignment, setAssignment] = useState("all");
   const [niche, setNiche] = useState("all");
+  const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
   const niches = useMemo(
@@ -52,10 +53,19 @@ export function ClientsList({ clients }: { clients: Client[] }) {
         (assignment === "unassigned" && !client.assignedDesignerId);
 
       const matchesNiche = niche === "all" || client.niche === niche;
+      const matchesStatus =
+        status === "all" ||
+        (status === "active" && client.active) ||
+        (status === "inactive" && !client.active);
 
-      return matchesQuery && matchesAssignment && matchesNiche;
+      return (
+        matchesQuery &&
+        matchesAssignment &&
+        matchesNiche &&
+        matchesStatus
+      );
     });
-  }, [assignment, clients, niche, query]);
+  }, [assignment, clients, niche, query, status]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -116,6 +126,20 @@ export function ClientsList({ clients }: { clients: Client[] }) {
           <option value="unassigned">Sem designer</option>
         </select>
 
+        <select
+          className="filter-select"
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value);
+            resetPage();
+          }}
+          aria-label="Filtrar por status"
+        >
+          <option value="all">Todos os status</option>
+          <option value="active">Ativos</option>
+          <option value="inactive">Inativos</option>
+        </select>
+
         <span className="list-result-count">
           {filtered.length} resultado(s)
         </span>
@@ -133,7 +157,14 @@ export function ClientsList({ clients }: { clients: Client[] }) {
             ).length;
 
             return (
-              <article className="client-directory-card" key={client.id}>
+              <article
+                className={
+                  client.active
+                    ? "client-directory-card"
+                    : "client-directory-card is-inactive"
+                }
+                key={client.id}
+              >
                 <div className="client-directory-head">
                   <div className="client-card-avatar">
                     {client.name.slice(0, 2).toUpperCase()}
@@ -143,7 +174,12 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                       <FiBriefcase aria-hidden="true" />
                       {client.niche || "Nicho não informado"}
                     </span>
-                    <h3>{client.name}</h3>
+                    <h3>
+                      {client.name}
+                      {!client.active ? (
+                        <span className="inline-inactive-chip">Inativo</span>
+                      ) : null}
+                    </h3>
                   </div>
                   <Link
                     href={`/clients/${client.id}`}
@@ -197,13 +233,20 @@ export function ClientsList({ clients }: { clients: Client[] }) {
                     <FiEdit3 aria-hidden="true" />
                     Editar
                   </Link>
-                  <Link
-                    href={`/calendars/new?client=${client.id}`}
-                    className="client-action-button"
-                  >
-                    <FiCalendar aria-hidden="true" />
-                    Calendário
-                  </Link>
+                  {client.active ? (
+                    <Link
+                      href={`/calendars/new?client=${client.id}`}
+                      className="client-action-button"
+                    >
+                      <FiCalendar aria-hidden="true" />
+                      Calendário
+                    </Link>
+                  ) : (
+                    <span className="client-action-button disabled">
+                      <FiCalendar aria-hidden="true" />
+                      Inativo
+                    </span>
+                  )}
                 </div>
               </article>
             );

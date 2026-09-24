@@ -43,7 +43,7 @@ export function PublicMediaCarousel({
     <div className="instagram-carousel-media">
       <div className="instagram-carousel-slide">
         {current.mimeType?.startsWith("video/") ? (
-          <ProtectedPublicVideo src={src} controls />
+          <ProtectedPublicVideo key={current.id} src={src} controls />
         ) : (
           <ProtectedPublicImage src={src} alt={title} />
         )}

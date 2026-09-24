@@ -56,6 +56,7 @@ export function UsersList({
 }) {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<UserRole | "ALL">("ALL");
+  const [status, setStatus] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
   const [page, setPage] = useState(1);
   const roleOptions: Array<{ value: UserRole | "ALL"; label: string }> = [
     { value: "ALL", label: "Todos" },
@@ -75,9 +76,18 @@ export function UsersList({
         user.name.toLowerCase().includes(normalizedQuery) ||
         user.email.toLowerCase().includes(normalizedQuery);
 
-      return matchesQuery && (role === "ALL" || user.role === role);
+      const matchesStatus =
+        status === "ALL" ||
+        (status === "ACTIVE" && user.active) ||
+        (status === "INACTIVE" && !user.active);
+
+      return (
+        matchesQuery &&
+        matchesStatus &&
+        (role === "ALL" || user.role === role)
+      );
     });
-  }, [query, role, users]);
+  }, [query, role, status, users]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -124,6 +134,20 @@ export function UsersList({
           ))}
         </div>
 
+        <select
+          className="filter-select team-status-filter"
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value as "ALL" | "ACTIVE" | "INACTIVE");
+            setPage(1);
+          }}
+          aria-label="Filtrar por status"
+        >
+          <option value="ALL">Todos os status</option>
+          <option value="ACTIVE">Ativos</option>
+          <option value="INACTIVE">Inativos</option>
+        </select>
+
         <span className="team-result-count" aria-live="polite">
           {filtered.length} {filtered.length === 1 ? "pessoa" : "pessoas"}
         </span>
@@ -140,7 +164,14 @@ export function UsersList({
               currentRole === "DEV" || user.role === "DESIGNER";
 
             return (
-              <article className="user-card team-user-row" key={user.id}>
+              <article
+                className={
+                  user.active
+                    ? "user-card team-user-row"
+                    : "user-card team-user-row is-inactive"
+                }
+                key={user.id}
+              >
                 <div
                   className={`user-card-avatar role-bg-${user.role.toLowerCase()}`}
                 >
@@ -164,7 +195,7 @@ export function UsersList({
                   >
                     {roleLabel[user.role]}
                   </span>
-                  <small>Acesso ativo</small>
+                  <small>{user.active ? "Acesso ativo" : "Acesso inativo"}</small>
                 </div>
 
                 <div className="team-user-metric">

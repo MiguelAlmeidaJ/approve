@@ -177,6 +177,43 @@ export async function updateUser(formData: FormData) {
   redirect("/equipe");
 }
 
+export async function setUserActive(formData: FormData) {
+  const actor = await requireRole("ADMIN", "DEV");
+  const userId = required(formData, "userId");
+  const role = required(formData, "role");
+  const active = required(formData, "active") === "true";
+
+  if (actor.role === "ADMIN" && role !== "DESIGNER") {
+    throw new Error("Administradores só podem alterar o acesso de designers.");
+  }
+
+  await adminPatch(
+    `/api/admin/users/${encodeURIComponent(userId)}/active`,
+    { active },
+  );
+
+  revalidatePath("/equipe");
+  revalidatePath("/");
+  redirect("/equipe");
+}
+
+export async function setClientActive(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const clientId = required(formData, "clientId");
+  const active = required(formData, "active") === "true";
+
+  await adminPatch(
+    `/api/admin/clients/${encodeURIComponent(clientId)}/active`,
+    { active },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/calendars");
+  redirect(`/clients/${clientId}`);
+}
+
 export async function createClient(formData: FormData) {
   const designer = await requireDesigner();
   const selectedDesignerId = String(

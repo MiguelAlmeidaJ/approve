@@ -46,12 +46,14 @@ function PublicArt({
   item,
   index,
   token,
-  className = ""
+  className = "",
+  videoControls = false
 }: {
   item: ContentItem;
   index: number;
   token: string;
   className?: string;
+  videoControls?: boolean;
 }) {
   const primaryAsset = item.assets?.[0];
 
@@ -61,7 +63,7 @@ function PublicArt({
     return (
       <div className={`ig-art has-image ${className}`}>
         {primaryAsset.mimeType?.startsWith("video/") ? (
-          <ProtectedPublicVideo src={src} />
+          <ProtectedPublicVideo src={src} controls={videoControls} />
         ) : (
           <ProtectedPublicImage src={src} alt={item.title} />
         )}
@@ -252,6 +254,7 @@ export default async function ApprovalPage({
                   index={Math.max(selectedIndex, 0)}
                   token={token}
                   className="instagram-post-art"
+                  videoControls
                 />
               )}
             </div>

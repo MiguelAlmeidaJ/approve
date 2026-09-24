@@ -7,10 +7,11 @@ import {
   FiEdit3,
   FiPhone,
   FiPlus,
+  FiPower,
   FiUserCheck
 } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
-import { assignClient } from "../../actions";
+import { assignClient, setClientActive } from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
@@ -42,12 +43,44 @@ export default async function ClientPage({
       <header className="client-detail-header">
         <div>
           <span className="micro-label">CLIENTE</span>
-          <h1>{client.name}</h1>
+          <div className="client-title-with-status">
+            <h1>{client.name}</h1>
+            <span
+              className={
+                client.active
+                  ? "account-status-chip active"
+                  : "account-status-chip inactive"
+              }
+            >
+              {client.active ? "Ativo" : "Inativo"}
+            </span>
+          </div>
           <p>
             Dados da conta, responsável e calendários de aprovação.
           </p>
         </div>
         <div className="client-detail-actions">
+          {designer.role !== "DESIGNER" ? (
+            <form action={setClientActive}>
+              <input type="hidden" name="clientId" value={client.id} />
+              <input
+                type="hidden"
+                name="active"
+                value={client.active ? "false" : "true"}
+              />
+              <button
+                type="submit"
+                className={
+                  client.active
+                    ? "button button-danger-outline"
+                    : "button button-dark"
+                }
+              >
+                <FiPower aria-hidden="true" />
+                {client.active ? "Inativar cliente" : "Reativar cliente"}
+              </button>
+            </form>
+          ) : null}
           <Link
             href={`/clients/${client.id}/edit`}
             className="button button-ghost"
@@ -55,13 +88,15 @@ export default async function ClientPage({
             <FiEdit3 aria-hidden="true" />
             Editar cliente
           </Link>
-          <Link
-            href={`/clients/${client.id}/calendars/new`}
-            className="button button-primary"
-          >
-            <FiPlus aria-hidden="true" />
-            Novo calendário
-          </Link>
+          {client.active ? (
+            <Link
+              href={`/clients/${client.id}/calendars/new`}
+              className="button button-primary"
+            >
+              <FiPlus aria-hidden="true" />
+              Novo calendário
+            </Link>
+          ) : null}
         </div>
       </header>
 

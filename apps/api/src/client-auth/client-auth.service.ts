@@ -45,6 +45,7 @@ export class ClientAuthService {
 
     if (
       !credential ||
+      !credential.client.active ||
       !verifyPassword(dto.password, credential.passwordHash)
     ) {
       throw new UnauthorizedException("E-mail ou senha inválidos.");
@@ -118,7 +119,11 @@ export class ClientAuthService {
       }
     });
 
-    if (!session || session.expiresAt <= new Date()) {
+    if (
+      !session ||
+      session.expiresAt <= new Date() ||
+      !session.client.active
+    ) {
       throw new UnauthorizedException("Sessão expirada.");
     }
 

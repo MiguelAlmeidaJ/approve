@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
 import { UsersList } from "../../components/users-list";
-import { createUser, updateUser } from "../actions";
+import { createUser, setUserActive, updateUser } from "../actions";
 import { requireRole } from "../../lib/auth";
 import { getUsers, type UserListItem } from "../../lib/api";
 
@@ -35,8 +35,12 @@ export default async function TeamPage({
     (user) => user.id === edit && canEditUser(currentRole, user),
   );
   const showCreateModal = create === "1" && !selectedUser;
-  const designers = users.filter((user) => user.role === "DESIGNER").length;
-  const leadership = users.filter((user) => user.role !== "DESIGNER").length;
+  const designers = users.filter(
+    (user) => user.role === "DESIGNER" && user.active,
+  ).length;
+  const leadership = users.filter(
+    (user) => user.role !== "DESIGNER" && user.active,
+  ).length;
   const assignedClients = users.reduce(
     (total, user) => total + user._count.clients,
     0,
@@ -333,6 +337,43 @@ export default async function TeamPage({
                 </button>
               </div>
             </form>
+
+            <div className="account-status-zone">
+              <div>
+                <span className="micro-label">
+                  {selectedUser.active ? "INATIVAR ACESSO" : "REATIVAR ACESSO"}
+                </span>
+                <strong>
+                  {selectedUser.active
+                    ? "Bloquear este usuário sem apagar o cadastro"
+                    : "Liberar novamente o acesso ao sistema"}
+                </strong>
+                <p>
+                  {selectedUser.active
+                    ? "A sessão atual será encerrada imediatamente e um novo login ficará bloqueado."
+                    : "O usuário poderá entrar novamente usando as credenciais cadastradas."}
+                </p>
+              </div>
+              <form action={setUserActive}>
+                <input type="hidden" name="userId" value={selectedUser.id} />
+                <input type="hidden" name="role" value={selectedUser.role} />
+                <input
+                  type="hidden"
+                  name="active"
+                  value={selectedUser.active ? "false" : "true"}
+                />
+                <button
+                  type="submit"
+                  className={
+                    selectedUser.active
+                      ? "button button-danger-outline"
+                      : "button button-dark"
+                  }
+                >
+                  {selectedUser.active ? "Inativar usuário" : "Reativar usuário"}
+                </button>
+              </form>
+            </div>
           </section>
         </div>
       ) : null}

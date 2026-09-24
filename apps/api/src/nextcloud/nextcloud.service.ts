@@ -180,7 +180,10 @@ export class NextcloudService {
           },
           calendar: {
             shareToken,
-            archivedAt: null
+            archivedAt: null,
+            client: {
+              active: true
+            }
           }
         }
       }
@@ -204,11 +207,20 @@ export class NextcloudService {
       },
       select: {
         clientId: true,
-        expiresAt: true
+        expiresAt: true,
+        client: {
+          select: {
+            active: true
+          }
+        }
       }
     });
 
-    if (!session || session.expiresAt <= new Date()) {
+    if (
+      !session ||
+      session.expiresAt <= new Date() ||
+      !session.client.active
+    ) {
       throw new UnauthorizedException("Sessão do cliente expirada.");
     }
 
@@ -338,6 +350,7 @@ export class NextcloudService {
     const client = await this.prisma.client.findFirst({
       where: {
         id: clientId,
+        active: true,
         ...(actor.role === UserRole.DESIGNER
           ? { assignedDesignerId: actor.id }
           : {})

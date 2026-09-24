@@ -79,6 +79,11 @@ export class UpdateClientDto {
   nextcloudPath?: string;
 }
 
+export class SetActiveDto {
+  @IsBoolean()
+  active!: boolean;
+}
+
 export class AssignClientDto {
   @IsOptional()
   @IsString()

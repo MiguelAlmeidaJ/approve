@@ -119,7 +119,8 @@ const clientInclude = {
       id: true,
       name: true,
       email: true,
-      role: true
+      role: true,
+      active: true
     }
   },
   calendars: {
@@ -173,7 +174,8 @@ export class AdminService {
 
     return this.prisma.designer.findMany({
       where: {
-        role: UserRole.DESIGNER
+        role: UserRole.DESIGNER,
+        active: true
       },
       orderBy: { name: "asc" },
       select: {
@@ -181,6 +183,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        active: true,
         createdAt: true,
         _count: {
           select: {
@@ -209,6 +212,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        active: true,
         createdAt: true,
         _count: {
           select: {
@@ -337,6 +341,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        active: true,
         createdAt: true
       }
     });
@@ -378,7 +383,8 @@ export class AdminService {
     if (current.role === UserRole.DEV && dto.role !== UserRole.DEV) {
       const devCount = await this.prisma.designer.count({
         where: {
-          role: UserRole.DEV
+          role: UserRole.DEV,
+          active: true
         }
       });
 
@@ -392,7 +398,10 @@ export class AdminService {
     const email = dto.email.trim().toLowerCase();
     const emailOwner = await this.prisma.designer.findUnique({
       where: { email },
-      select: { id: true }
+      select: {
+        id: true,
+        active: true
+      }
     });
 
     if (emailOwner && emailOwner.id !== id) {
@@ -413,6 +422,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        active: true,
         createdAt: true
       }
     });
@@ -420,6 +430,105 @@ export class AdminService {
     if (password) {
       await this.prisma.designerSession.deleteMany({
         where: { designerId: id }
+      });
+    }
+
+    return updated;
+  }
+
+  async setUserActive(
+    actor: InternalActor,
+    id: string,
+    active: boolean
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const current = await this.prisma.designer.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        role: true,
+        active: true
+      }
+    });
+
+    if (!current) {
+      throw new NotFoundException("Usuário não encontrado.");
+    }
+
+    this.assertCanEditUser(actor, current.role);
+
+    if (!active && current.id === actor.id) {
+      throw new BadRequestException(
+        "Você não pode inativar o próprio usuário."
+      );
+    }
+
+    if (!active && current.role === UserRole.DEV) {
+      const activeDevCount = await this.prisma.designer.count({
+        where: {
+          role: UserRole.DEV,
+          active: true
+        }
+      });
+
+      if (activeDevCount <= 1) {
+        throw new BadRequestException(
+          "O sistema precisa manter pelo menos um usuário dev ativo."
+        );
+      }
+    }
+
+    const updated = await this.prisma.designer.update({
+      where: { id },
+      data: { active },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        active: true,
+        createdAt: true
+      }
+    });
+
+    if (!active) {
+      await this.prisma.designerSession.deleteMany({
+        where: { designerId: id }
+      });
+    }
+
+    return updated;
+  }
+
+  async setClientActive(
+    actor: InternalActor,
+    id: string,
+    active: boolean
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        active: true
+      }
+    });
+
+    if (!client) {
+      throw new NotFoundException("Cliente não encontrado.");
+    }
+
+    const updated = await this.prisma.client.update({
+      where: { id },
+      data: { active },
+      include: clientInclude
+    });
+
+    if (!active) {
+      await this.prisma.clientSession.deleteMany({
+        where: { clientId: id }
       });
     }
 
@@ -651,7 +760,13 @@ export class AdminService {
   }
 
   async createCalendar(actor: InternalActor, dto: CreateCalendarDto) {
-    await this.assertClientAccess(actor, dto.clientId);
+    const client = await this.assertClientAccess(actor, dto.clientId);
+
+    if (!client.active) {
+      throw new BadRequestException(
+        "Reative o cliente antes de criar um calendário."
+      );
+    }
     const dates = parseCalendarDates(
       dto.periodStart,
       dto.periodEnd,
@@ -685,6 +800,12 @@ export class AdminService {
     dto: UpdateCalendarDto
   ) {
     const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (!calendar.client.active) {
+      throw new BadRequestException(
+        "Reative o cliente antes de editar o calendário."
+      );
+    }
 
     if (calendar.archivedAt) {
       throw new BadRequestException(
@@ -767,6 +888,12 @@ export class AdminService {
     dto: CreateContentItemDto
   ) {
     const calendar = await this.assertCalendarAccess(actor, dto.calendarId);
+
+    if (!calendar.client.active) {
+      throw new BadRequestException(
+        "Reative o cliente antes de adicionar conteúdos."
+      );
+    }
 
     if (calendar.archivedAt) {
       throw new BadRequestException(
@@ -920,6 +1047,12 @@ export class AdminService {
 
     const calendar = await this.assertCalendarAccess(actor, item.calendarId);
 
+    if (!calendar.client.active) {
+      throw new BadRequestException(
+        "Reative o cliente antes de remanejar conteúdos."
+      );
+    }
+
     if (calendar.archivedAt) {
       throw new BadRequestException(
         "Restaure o calendário antes de remanejar conteúdos."
@@ -976,6 +1109,12 @@ export class AdminService {
   async rotateCalendarToken(actor: InternalActor, calendarId: string) {
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
+    if (!calendar.client.active) {
+      throw new BadRequestException(
+        "Reative o cliente antes de renovar o link."
+      );
+    }
+
     if (calendar.archivedAt) {
       throw new BadRequestException(
         "Restaure o calendário antes de renovar o link."
@@ -998,7 +1137,10 @@ export class AdminService {
           ? { assignedDesignerId: actor.id }
           : {})
       },
-      select: { id: true }
+      select: {
+        id: true,
+        active: true
+      }
     });
 
     if (!client) {
@@ -1028,7 +1170,8 @@ export class AdminService {
           select: {
             id: true,
             slug: true,
-            nextcloudPath: true
+            nextcloudPath: true,
+            active: true
           }
         },
         postingDays: true,
@@ -1052,7 +1195,8 @@ export class AdminService {
     const designer = await this.prisma.designer.findFirst({
       where: {
         id,
-        role: UserRole.DESIGNER
+        role: UserRole.DESIGNER,
+        active: true
       },
       select: { id: true }
     });

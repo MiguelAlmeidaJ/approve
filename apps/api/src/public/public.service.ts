@@ -18,7 +18,10 @@ export class PublicService {
     const calendar = await this.prisma.calendar.findFirst({
       where: {
         shareToken: token,
-        archivedAt: null
+        archivedAt: null,
+        client: {
+          active: true
+        }
       },
       include: {
         client: {
@@ -72,7 +75,10 @@ export class PublicService {
     const calendar = await this.prisma.calendar.findFirst({
       where: {
         shareToken: token,
-        archivedAt: null
+        archivedAt: null,
+        client: {
+          active: true
+        }
       },
       select: { id: true }
     });

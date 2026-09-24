@@ -70,6 +70,7 @@ export type Designer = {
   name: string;
   email: string;
   role: UserRole;
+  active: boolean;
 };
 
 export type DesignerListItem = Designer & {
@@ -106,6 +107,7 @@ export type Client = {
   phone: string | null;
   nextcloudPath: string | null;
   assignedDesignerId: string | null;
+  active: boolean;
   credential?: {
     email: string;
   } | null;
@@ -122,6 +124,7 @@ export type CalendarWithClient = Calendar & {
     phone: string | null;
     nextcloudPath: string | null;
     assignedDesignerId: string | null;
+    active: boolean;
     credential?: {
       email: string;
     } | null;
@@ -137,6 +140,7 @@ export type ClientPortal = {
   slug: string;
   niche: string | null;
   phone: string | null;
+  active: boolean;
   credential: {
     email: string;
   } | null;

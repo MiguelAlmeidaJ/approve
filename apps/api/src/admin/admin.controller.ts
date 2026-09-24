@@ -16,6 +16,7 @@ import {
   CreateContentItemDto,
   CreateDesignerDto,
   MoveContentItemDto,
+  SetActiveDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
@@ -82,6 +83,15 @@ export class AdminController {
     return this.adminService.updateUser(request.actor, id, dto);
   }
 
+  @Patch("users/:id/active")
+  setUserActive(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: SetActiveDto
+  ) {
+    return this.adminService.setUserActive(request.actor, id, dto.active);
+  }
+
   @Post("formats")
   createFormat(
     @Req() request: InternalActorRequest,
@@ -114,6 +124,15 @@ export class AdminController {
     @Body() dto: UpdateClientDto
   ) {
     return this.adminService.updateClient(request.actor, id, dto);
+  }
+
+  @Patch("clients/:id/active")
+  setClientActive(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: SetActiveDto
+  ) {
+    return this.adminService.setClientActive(request.actor, id, dto.active);
   }
 
   @Post("clients/:id/assign")
