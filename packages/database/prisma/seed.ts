@@ -1,6 +1,7 @@
 import {
   Channel,
   ContentStatus,
+  ContentType,
   PrismaClient,
   UserRole
 } from "@prisma/client";
@@ -71,7 +72,7 @@ async function main() {
   const formatSeeds = [
     {
       name: "Post vertical",
-      contentType: "POST" as const,
+      contentType: ContentType.POST,
       width: 1080,
       height: 1350,
       supportsFeed: true,
@@ -79,7 +80,7 @@ async function main() {
     },
     {
       name: "Post quadrado",
-      contentType: "POST" as const,
+      contentType: ContentType.POST,
       width: 1080,
       height: 1080,
       supportsFeed: true,
@@ -87,15 +88,15 @@ async function main() {
     },
     {
       name: "Carrossel vertical",
-      contentType: "CAROUSEL" as const,
+      contentType: ContentType.CAROUSEL,
       width: 1080,
       height: 1350,
       supportsFeed: true,
-      supportsStories: false
+      supportsStories: true
     },
     {
       name: "Reels / vídeo vertical",
-      contentType: "REEL" as const,
+      contentType: ContentType.REEL,
       width: 1080,
       height: 1920,
       supportsFeed: true,
@@ -103,7 +104,7 @@ async function main() {
     },
     {
       name: "Stories",
-      contentType: "STORY" as const,
+      contentType: ContentType.STORY,
       width: 1080,
       height: 1920,
       supportsFeed: false,
@@ -181,6 +182,34 @@ async function main() {
     }
   });
 
+  await prisma.calendarPostingDay.deleteMany({
+    where: { calendarId: calendar.id }
+  });
+
+  await prisma.calendarPostingDay.createMany({
+    data: [
+      "2026-10-05",
+      "2026-10-09",
+      "2026-10-14",
+      "2026-10-19",
+      "2026-10-23",
+      "2026-10-28"
+    ].map((value) => ({
+      calendarId: calendar.id,
+      scheduledDate: new Date(`${value}T12:00:00.000Z`)
+    }))
+  });
+
+  const postFormat = await prisma.contentFormat.findFirst({
+    where: { name: "Post vertical" }
+  });
+  const storyFormat = await prisma.contentFormat.findFirst({
+    where: { name: "Stories" }
+  });
+  const carouselFormat = await prisma.contentFormat.findFirst({
+    where: { name: "Carrossel vertical" }
+  });
+
   await prisma.reviewHistory.deleteMany({
     where: { contentItem: { calendarId: calendar.id } }
   });
@@ -195,7 +224,11 @@ async function main() {
         title: "Posicionamento da marca",
         scheduledAt: new Date("2026-10-05T15:00:00.000Z"),
         channel: Channel.INSTAGRAM,
-        format: "Feed 1080x1350",
+        contentType: ContentType.POST,
+        formatId: postFormat?.id,
+        format: "Post vertical · 1080x1350",
+        publishToFeed: true,
+        publishToStories: true,
         caption:
           "Uma legenda exemplo pronta para o cliente revisar e aprovar.",
         status: ContentStatus.PENDING_APPROVAL,
@@ -205,8 +238,12 @@ async function main() {
         calendarId: calendar.id,
         title: "Bastidores da equipe",
         scheduledAt: new Date("2026-10-09T18:00:00.000Z"),
-        channel: Channel.STORIES,
-        format: "Stories 1080x1920",
+        channel: Channel.INSTAGRAM,
+        contentType: ContentType.STORY,
+        formatId: storyFormat?.id,
+        format: "Stories · 1080x1920",
+        publishToFeed: false,
+        publishToStories: true,
         caption:
           "Sequência de stories mostrando os bastidores do projeto.",
         status: ContentStatus.PENDING_APPROVAL,
@@ -217,7 +254,11 @@ async function main() {
         title: "Manifesto",
         scheduledAt: new Date("2026-10-14T15:00:00.000Z"),
         channel: Channel.INSTAGRAM,
-        format: "Carrossel",
+        contentType: ContentType.CAROUSEL,
+        formatId: carouselFormat?.id,
+        format: "Carrossel vertical · 1080x1350",
+        publishToFeed: true,
+        publishToStories: false,
         caption:
           "Conteúdo de manifesto para reforçar os pilares da marca.",
         status: ContentStatus.PENDING_APPROVAL,
