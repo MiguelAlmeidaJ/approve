@@ -2,7 +2,7 @@
 
 Sistema simples para montar calendários de conteúdo e enviar aprovação para clientes da Terceiro Andar.
 
-A interface segue um fluxo direto: login do designer, clientes, calendários mensais, prévia das peças e link público para aprovação.
+A interface segue um fluxo direto: login da equipe, clientes, calendários mensais, formatos padronizados e uma prévia de aprovação inspirada no feed do Instagram.
 
 ## Stack
 
@@ -20,8 +20,8 @@ A interface segue um fluxo direto: login do designer, clientes, calendários men
 2. Cadastra um cliente.
 3. Cria um calendário mensal.
 4. Adiciona as peças ao calendário.
-5. Abre ou compartilha o link público.
-6. Cliente abre cada peça, aprova ou solicita alteração.
+5. Define Post, Carrossel, Reels ou Stories e escolhe Feed, Stories ou ambos.
+6. Cliente entra com seu próprio login e aprova as peças na prévia do perfil.
 
 ## Desenvolvimento
 
@@ -41,7 +41,7 @@ Por padrão no desenvolvimento:
 - Login: http://localhost:5005/login
 - Nest API: http://localhost:4334/api
 - Healthcheck: http://localhost:4334/api/health
-- Demo público: http://localhost:5005/p/demo-terceiro-andar
+- Área do cliente: http://localhost:5005/cliente/login
 
 As portas ficam separadas por `WEB_PORT` e `API_PORT`. Não use uma única variável `PORT` para os dois apps durante o desenvolvimento.
 
@@ -74,9 +74,9 @@ DESIGNER_PASSWORD="senha123"
 
 O login do designer usa uma sessão opaca de 7 dias salva no banco. A senha é armazenada com `scrypt`; o navegador recebe somente um cookie HttpOnly com o token da sessão.
 
-As rotas administrativas da API continuam protegidas também por `API_ADMIN_KEY`, usada apenas na comunicação server-to-server do Next com o Nest.
+As rotas administrativas exigem a `API_ADMIN_KEY` e também uma sessão interna válida. O Nest aplica o escopo do usuário: designers só consultam e alteram clientes/calendários atribuídos a eles.
 
-O link do cliente continua independente do login e usa o `shareToken` do calendário.
+Os links de aprovação usam `shareToken`, mas não são anônimos: também exigem a sessão do cliente e o calendário precisa pertencer à conta autenticada.
 
 ## Produção
 
@@ -141,3 +141,26 @@ senha123
 ~~~
 
 Ao entrar, o cliente visualiza somente os calendários da própria conta e pode abrir o fluxo de aprovação correspondente.
+
+
+## Formatos de conteúdo
+
+A migration `20260924114500_content_formats_and_placements` adiciona formatos padronizados e os destinos da peça.
+
+O seed cria formatos iniciais para Post vertical, Post quadrado, Carrossel, Reels e Stories. Admin e dev podem cadastrar/editar formatos em `/formats`.
+
+Cada conteúdo registra:
+
+- tipo: Post, Carrossel, Reels ou Stories;
+- formato/dimensões;
+- destino: Feed, Stories ou ambos;
+- um dos dias de publicação definidos previamente no calendário.
+
+## Permissões
+
+- `DEV`: visão geral, formatos e configurações técnicas;
+- `ADMIN`: visão geral, equipe, formatos e gestão de clientes;
+- `DESIGNER`: somente clientes atribuídos a ele e calendários desses clientes;
+- `CLIENTE`: somente os calendários da própria conta.
+
+O escopo é validado novamente na API; não depende apenas das telas do Next.
