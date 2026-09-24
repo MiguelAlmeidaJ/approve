@@ -10,6 +10,7 @@ import {
   FiSmartphone
 } from "react-icons/fi";
 import { Brand } from "../../../components/brand";
+import { PublicMediaCarousel } from "../../../components/public-media-carousel";
 import { PublicReviewActions } from "../../../components/public-review-actions";
 import {
   ProtectedPublicImage,
@@ -240,23 +241,11 @@ export default async function ApprovalPage({
           <article className="instagram-post-modal">
             <div className="instagram-post-media">
               {selectedItem.assets?.length > 1 ? (
-                <div className="instagram-carousel-media">
-                  {selectedItem.assets.map((asset) => (
-                    <div className="instagram-carousel-slide" key={asset.id}>
-                      {asset.mimeType?.startsWith("video/") ? (
-                        <ProtectedPublicVideo
-                          src={publicMediaUrl(asset.id, token)}
-                          controls
-                        />
-                      ) : (
-                        <ProtectedPublicImage
-                          src={publicMediaUrl(asset.id, token)}
-                          alt={selectedItem.title}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <PublicMediaCarousel
+                  assets={selectedItem.assets}
+                  token={token}
+                  title={selectedItem.title}
+                />
               ) : (
                 <PublicArt
                   item={selectedItem}
