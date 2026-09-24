@@ -24,16 +24,17 @@ function canEditUser(
 export default async function TeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string; create?: string }>;
 }) {
   const currentUser = await requireRole("ADMIN", "DEV");
   const users = await getUsers();
-  const { edit } = await searchParams;
+  const { edit, create } = await searchParams;
   const currentRole = currentUser.role as "DEV" | "ADMIN";
   const isDev = currentRole === "DEV";
   const selectedUser = users.find(
     (user) => user.id === edit && canEditUser(currentRole, user),
   );
+  const showCreateModal = create === "1" && !selectedUser;
   const designers = users.filter((user) => user.role === "DESIGNER").length;
   const leadership = users.filter((user) => user.role !== "DESIGNER").length;
   const assignedClients = users.reduce(
@@ -52,10 +53,14 @@ export default async function TeamPage({
           </p>
         </div>
 
-        <a href="#adicionar-equipe" className="button button-primary">
+        <Link
+          href="/equipe?create=1"
+          className="button button-primary"
+          scroll={false}
+        >
           <FiPlus aria-hidden="true" />
           Adicionar à equipe
-        </a>
+        </Link>
       </header>
 
       <section className="team-permission-banner">
@@ -113,7 +118,7 @@ export default async function TeamPage({
         </article>
       </section>
 
-      <section className="team-management-layout">
+      <section className="team-management-layout team-management-single">
         <div className="team-directory">
           <div className="team-section-heading">
             <div>
@@ -126,81 +131,114 @@ export default async function TeamPage({
 
           <UsersList users={users} currentRole={currentRole} />
         </div>
-
-        <aside
-          className="form-surface team-create-panel"
-          id="adicionar-equipe"
-        >
-          <div className="panel-icon">
-            <FiUserPlus aria-hidden="true" />
-          </div>
-          <span className="micro-label">NOVO ACESSO</span>
-          <h2>Adicionar à equipe</h2>
-          <p>
-            {isDev
-              ? "Crie designers, administradores ou outra conta dev."
-              : "Administradores podem criar apenas novos designers."}
-          </p>
-
-          <form action={createUser} className="stack-form">
-            <label className="field">
-              <span>Nome completo</span>
-              <input
-                name="name"
-                placeholder="Nome da pessoa"
-                minLength={2}
-                required
-              />
-            </label>
-            <label className="field">
-              <span>E-mail</span>
-              <input
-                type="email"
-                name="email"
-                placeholder="nome@empresa.com"
-                required
-              />
-            </label>
-            <label className="field">
-              <span>Perfil de acesso</span>
-              <select name="role" defaultValue="DESIGNER" required>
-                <option value="DESIGNER">Designer</option>
-                {isDev ? (
-                  <>
-                    <option value="ADMIN">Administrador</option>
-                    <option value="DEV">Desenvolvedor</option>
-                  </>
-                ) : null}
-              </select>
-            </label>
-            <label className="field">
-              <span>Senha inicial</span>
-              <input
-                type="password"
-                name="password"
-                minLength={6}
-                placeholder="Mínimo de 6 caracteres"
-                required
-              />
-            </label>
-            <div className="team-access-note">
-              <FiShield aria-hidden="true" />
-              <span>
-                {isDev
-                  ? "Contas dev têm acesso total. Administradores gerenciam designers."
-                  : "A criação de administradores e devs é exclusiva de usuários dev."}
-              </span>
-            </div>
-            <button
-              type="submit"
-              className="button button-primary button-wide"
-            >
-              <FiUserPlus aria-hidden="true" />
-              Adicionar à equipe
-            </button>
-          </form>
-        </aside>
       </section>
+
+      {showCreateModal ? (
+        <div className="modal-layer">
+          <Link
+            href="/equipe"
+            className="modal-backdrop"
+            aria-label="Fechar criação de usuário"
+            scroll={false}
+          />
+          <section
+            className="user-edit-modal team-create-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-team-member-title"
+          >
+            <div className="user-edit-heading">
+              <div>
+                <span className="micro-label">NOVO ACESSO</span>
+                <h2 id="create-team-member-title">Adicionar à equipe</h2>
+                <p>
+                  {isDev
+                    ? "Crie designers, administradores ou outra conta dev."
+                    : "Administradores podem criar apenas novos designers."}
+                </p>
+              </div>
+              <Link
+                href="/equipe"
+                className="modal-close"
+                aria-label="Fechar"
+                scroll={false}
+              >
+                <FiX aria-hidden="true" />
+              </Link>
+            </div>
+
+            <form action={createUser} className="user-edit-form team-create-form">
+              <label className="field">
+                <span>Nome completo</span>
+                <input
+                  name="name"
+                  placeholder="Nome da pessoa"
+                  minLength={2}
+                  required
+                  autoFocus
+                />
+              </label>
+
+              <label className="field">
+                <span>E-mail</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="nome@empresa.com"
+                  required
+                />
+              </label>
+
+              <label className="field">
+                <span>Perfil de acesso</span>
+                <select name="role" defaultValue="DESIGNER" required>
+                  <option value="DESIGNER">Designer</option>
+                  {isDev ? (
+                    <>
+                      <option value="ADMIN">Administrador</option>
+                      <option value="DEV">Desenvolvedor</option>
+                    </>
+                  ) : null}
+                </select>
+              </label>
+
+              <label className="field">
+                <span>Senha inicial</span>
+                <input
+                  type="password"
+                  name="password"
+                  minLength={6}
+                  placeholder="Mínimo de 6 caracteres"
+                  required
+                />
+              </label>
+
+              <div className="team-access-note team-create-note">
+                <FiShield aria-hidden="true" />
+                <span>
+                  {isDev
+                    ? "Contas dev têm acesso total. Administradores gerenciam designers."
+                    : "A criação de administradores e devs é exclusiva de usuários dev."}
+                </span>
+              </div>
+
+              <div className="form-actions">
+                <Link
+                  href="/equipe"
+                  className="button button-ghost"
+                  scroll={false}
+                >
+                  Cancelar
+                </Link>
+                <button type="submit" className="button button-primary">
+                  <FiUserPlus aria-hidden="true" />
+                  Adicionar à equipe
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
 
       {selectedUser ? (
         <div className="modal-layer">

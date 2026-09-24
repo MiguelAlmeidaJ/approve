@@ -7741,3 +7741,67 @@ body::-webkit-scrollbar,
     grid-column: 1;
   }
 }
+
+
+/* Team create form as modal */
+
+.team-management-single {
+  grid-template-columns: 1fr !important;
+}
+
+.team-management-single .team-directory {
+  min-width: 0;
+}
+
+.team-create-modal {
+  width: min(640px, calc(100vw - 36px));
+}
+
+.team-create-modal .user-edit-heading {
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 1, 74, 0.12), transparent 240px),
+    var(--white);
+}
+
+.team-create-form {
+  grid-template-columns: 1fr 1fr;
+}
+
+.team-create-form .team-create-note,
+.team-create-form .form-actions {
+  grid-column: 1 / -1;
+}
+
+.team-create-form .form-actions {
+  margin-top: 2px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.team-create-form .form-actions .button-primary {
+  min-width: 190px;
+}
+
+@media (max-width: 620px) {
+  .team-create-modal {
+    width: calc(100vw - 20px);
+  }
+
+  .team-create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .team-create-form .field,
+  .team-create-form .team-create-note,
+  .team-create-form .form-actions {
+    grid-column: 1;
+  }
+
+  .team-create-form .form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .team-create-form .form-actions .button {
+    width: 100%;
+  }
+}
