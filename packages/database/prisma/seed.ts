@@ -68,6 +68,72 @@ async function main() {
     role: UserRole.DESIGNER
   });
 
+  const formatSeeds = [
+    {
+      name: "Post vertical",
+      contentType: "POST" as const,
+      width: 1080,
+      height: 1350,
+      supportsFeed: true,
+      supportsStories: true
+    },
+    {
+      name: "Post quadrado",
+      contentType: "POST" as const,
+      width: 1080,
+      height: 1080,
+      supportsFeed: true,
+      supportsStories: true
+    },
+    {
+      name: "Carrossel vertical",
+      contentType: "CAROUSEL" as const,
+      width: 1080,
+      height: 1350,
+      supportsFeed: true,
+      supportsStories: false
+    },
+    {
+      name: "Reels / vídeo vertical",
+      contentType: "REEL" as const,
+      width: 1080,
+      height: 1920,
+      supportsFeed: true,
+      supportsStories: true
+    },
+    {
+      name: "Stories",
+      contentType: "STORY" as const,
+      width: 1080,
+      height: 1920,
+      supportsFeed: false,
+      supportsStories: true
+    }
+  ];
+
+  for (const format of formatSeeds) {
+    const existingFormat = await prisma.contentFormat.findFirst({
+      where: { name: format.name }
+    });
+
+    if (existingFormat) {
+      await prisma.contentFormat.update({
+        where: { id: existingFormat.id },
+        data: {
+          ...format,
+          active: true
+        }
+      });
+    } else {
+      await prisma.contentFormat.create({
+        data: {
+          ...format,
+          active: true
+        }
+      });
+    }
+  }
+
   const client = await prisma.client.upsert({
     where: { slug: "cliente-demo" },
     update: {
