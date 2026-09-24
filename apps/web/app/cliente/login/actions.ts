@@ -8,6 +8,11 @@ import { getApiUrl } from "../../../lib/api";
 export async function loginClient(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const requestedNext = String(formData.get("next") ?? "").trim();
+  const next =
+    requestedNext.startsWith("/p/") || requestedNext.startsWith("/cliente")
+      ? requestedNext
+      : "/cliente";
 
   const response = await fetch(`${getApiUrl()}/api/client-auth/login`, {
     method: "POST",
@@ -37,5 +42,5 @@ export async function loginClient(formData: FormData) {
     expires: new Date(payload.expiresAt)
   });
 
-  redirect("/cliente");
+  redirect(next);
 }
