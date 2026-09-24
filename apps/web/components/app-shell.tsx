@@ -4,6 +4,7 @@ import {
   FiHome,
   FiLogOut,
   FiSettings,
+  FiSliders,
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
@@ -11,7 +12,13 @@ import { logoutDesigner } from "../app/actions";
 import type { Designer } from "../lib/api";
 import { Brand } from "./brand";
 
-export type AppSection = "panel" | "calendars" | "clients" | "team" | "config";
+export type AppSection =
+  | "panel"
+  | "calendars"
+  | "clients"
+  | "team"
+  | "formats"
+  | "config";
 
 const roleLabel = {
   DEV: "dev",
@@ -38,6 +45,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
+  const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
 
   return (
@@ -88,6 +96,18 @@ export function AppShell({
             >
               <FiUserCheck className="nav-icon" aria-hidden="true" />
               Equipe
+            </Link>
+          ) : null}
+
+          {canSeeFormats ? (
+            <Link
+              href="/formats"
+              className={
+                activeSection === "formats" ? "nav-link active" : "nav-link"
+              }
+            >
+              <FiSliders className="nav-icon" aria-hidden="true" />
+              Formatos
             </Link>
           ) : null}
 

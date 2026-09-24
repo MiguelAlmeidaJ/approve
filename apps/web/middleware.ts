@@ -9,14 +9,17 @@ export function middleware(request: NextRequest) {
   if (
     pathname === "/login" ||
     pathname === "/cliente/login" ||
-    pathname.startsWith("/p/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
-  if (pathname === "/cliente" || pathname.startsWith("/cliente/")) {
+  if (
+    pathname === "/cliente" ||
+    pathname.startsWith("/cliente/") ||
+    pathname.startsWith("/p/")
+  ) {
     if (!request.cookies.get(CLIENT_SESSION_COOKIE)?.value) {
       return NextResponse.redirect(new URL("/cliente/login", request.url));
     }

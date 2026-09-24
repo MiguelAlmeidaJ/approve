@@ -1,6 +1,9 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { CLIENT_SESSION_COOKIE } from "../../../lib/client-auth";
 import { getApiUrl } from "../../../lib/api";
 
 export async function submitReview(formData: FormData) {
@@ -14,6 +17,13 @@ export async function submitReview(formData: FormData) {
     throw new Error("Link de aprovação inválido.");
   }
 
+  const cookieStore = await cookies();
+  const session = cookieStore.get(CLIENT_SESSION_COOKIE)?.value;
+
+  if (!session) {
+    redirect("/cliente/login");
+  }
+
   const response = await fetch(
     `${getApiUrl()}/api/public/calendars/${encodeURIComponent(
       token
@@ -21,7 +31,8 @@ export async function submitReview(formData: FormData) {
     {
       method: "POST",
       headers: {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        authorization: `Bearer ${session}`
       },
       body: JSON.stringify({
         action,
@@ -31,6 +42,10 @@ export async function submitReview(formData: FormData) {
       cache: "no-store"
     }
   );
+
+  if (response.status === 401) {
+    redirect("/cliente/login");
+  }
 
   if (!response.ok) {
     const text = await response.text();

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AppShell } from "../../../components/app-shell";
 import {
-  createContentItem,
-  rotateCalendarToken
-} from "../../actions";
+  FiImage,
+  FiLayers,
+  FiMonitor,
+  FiPlay,
+  FiSmartphone
+} from "react-icons/fi";
+import { AppShell } from "../../../components/app-shell";
+import { ContentComposer } from "../../../components/content-composer";
+import { rotateCalendarToken } from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
   ContentItem,
-  getCalendar
+  getCalendar,
+  getFormats
 } from "../../../lib/api";
 
 const statusLabel = {
@@ -17,6 +23,20 @@ const statusLabel = {
   PENDING_APPROVAL: "Aguardando",
   APPROVED: "Aprovado",
   CHANGES_REQUESTED: "Alteração"
+} as const;
+
+const typeLabel = {
+  POST: "Post",
+  CAROUSEL: "Carrossel",
+  REEL: "Reels",
+  STORY: "Stories"
+} as const;
+
+const typeIcon = {
+  POST: FiImage,
+  CAROUSEL: FiLayers,
+  REEL: FiPlay,
+  STORY: FiSmartphone
 } as const;
 
 function formatDate(value: string) {
@@ -46,9 +66,14 @@ function PreviewArt({
     );
   }
 
+  const Icon = typeIcon[item.contentType];
+
   return (
     <div className={`preview-art art-tone-${index % 3} ${className}`}>
-      <span className="art-kicker">TERCEIRO ANDAR</span>
+      <span className="art-kicker">
+        <Icon aria-hidden="true" />
+        {typeLabel[item.contentType]}
+      </span>
       <strong>{item.title}</strong>
       <i />
     </div>
@@ -65,7 +90,10 @@ export default async function CalendarPage({
   const { calendarId } = await params;
   const { item: selectedId } = await searchParams;
   const designer = await requireDesigner();
-  const calendar = await getCalendar(calendarId);
+  const [calendar, formats] = await Promise.all([
+    getCalendar(calendarId),
+    getFormats()
+  ]);
 
   if (!calendar || !canAccessClient(designer, calendar.client)) {
     notFound();
@@ -92,11 +120,11 @@ export default async function CalendarPage({
           >
             ← {calendar.client.name}
           </Link>
-          <span className="micro-label">PRÉVIA DO FEED · APROVAÇÃO</span>
+          <span className="micro-label">PLANEJAMENTO · INSTAGRAM</span>
           <h1>{calendar.title}</h1>
           <p>
-            Clique em qualquer peça para abrir os detalhes. O cliente vê a
-            mesma lógica pelo link de aprovação.
+            As datas de publicação já estão definidas. Adicione as peças usando
+            os formatos padronizados e escolha Feed, Stories ou ambos.
           </p>
         </div>
 
@@ -107,7 +135,7 @@ export default async function CalendarPage({
             rel="noreferrer"
             className="button button-ghost"
           >
-            Abrir link do cliente ↗
+            Visão do cliente ↗
           </a>
           <a href="#novo-conteudo" className="button button-primary">
             + Adicionar conteúdo
@@ -124,13 +152,17 @@ export default async function CalendarPage({
           <span>Aprovadas</span>
           <strong>{approved}</strong>
         </div>
+        <div>
+          <span>Dias planejados</span>
+          <strong>{calendar.postingDays.length}</strong>
+        </div>
         <div className="share-inline">
-          <span>Link de aprovação</span>
-          <code>{shareUrl}</code>
+          <span>Acesso do cliente</span>
+          <code>/cliente</code>
         </div>
         <form action={rotateCalendarToken.bind(null, calendar.id)}>
           <button type="submit" className="text-button">
-            Gerar novo link
+            Renovar link
           </button>
         </form>
       </section>
@@ -140,7 +172,9 @@ export default async function CalendarPage({
           <div className="feed-empty">
             <span>+</span>
             <h2>O calendário está vazio</h2>
-            <p>Adicione a primeira peça para começar a montar a prévia.</p>
+            <p>
+              Os dias já estão planejados. Agora adicione a primeira peça.
+            </p>
             <a href="#novo-conteudo" className="button button-primary">
               Adicionar conteúdo
             </a>
@@ -161,6 +195,14 @@ export default async function CalendarPage({
                   <div>
                     <strong>{item.title}</strong>
                     <span>{formatDate(item.scheduledAt)}</span>
+                    <span className="content-destination-inline">
+                      {item.publishToFeed ? (
+                        <i><FiMonitor /> Feed</i>
+                      ) : null}
+                      {item.publishToStories ? (
+                        <i><FiSmartphone /> Stories</i>
+                      ) : null}
+                    </span>
                   </div>
                   <span
                     className={`status-dot status-${item.status.toLowerCase()}`}
@@ -173,82 +215,11 @@ export default async function CalendarPage({
         )}
       </section>
 
-      <section className="composer-surface" id="novo-conteudo">
-        <div className="composer-heading">
-          <div>
-            <span className="micro-label">NOVA PEÇA</span>
-            <h2>Adicionar ao calendário</h2>
-          </div>
-          <p>
-            Para este MVP a arte pode ser uma URL pública. Depois podemos ligar
-            upload direto em R2/S3.
-          </p>
-        </div>
-
-        <form action={createContentItem} className="content-form">
-          <input type="hidden" name="calendarId" value={calendar.id} />
-
-          <label className="field field-span-2">
-            <span>Título da peça</span>
-            <input
-              name="title"
-              placeholder="Ex.: Posicionamento da marca"
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Data e hora</span>
-            <input type="datetime-local" name="scheduledAt" required />
-          </label>
-
-          <label className="field">
-            <span>Canal</span>
-            <select name="channel" defaultValue="INSTAGRAM" required>
-              <option value="INSTAGRAM">Instagram</option>
-              <option value="STORIES">Stories</option>
-              <option value="FACEBOOK">Facebook</option>
-              <option value="LINKEDIN">LinkedIn</option>
-              <option value="TIKTOK">TikTok</option>
-              <option value="OTHER">Outro</option>
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Formato</span>
-            <input
-              name="format"
-              placeholder="Feed 1080x1350"
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>URL da arte</span>
-            <input
-              type="url"
-              name="assetUrl"
-              placeholder="https://..."
-            />
-          </label>
-
-          <label className="field field-span-2">
-            <span>Legenda</span>
-            <textarea
-              name="caption"
-              rows={5}
-              placeholder="Texto que será apresentado ao cliente..."
-              required
-            />
-          </label>
-
-          <div className="form-actions field-span-2">
-            <button type="submit" className="button button-primary">
-              Adicionar ao calendário
-            </button>
-          </div>
-        </form>
-      </section>
+      <ContentComposer
+        calendarId={calendar.id}
+        postingDays={calendar.postingDays}
+        formats={formats}
+      />
 
       {selectedItem ? (
         <div className="modal-layer">
@@ -261,7 +232,8 @@ export default async function CalendarPage({
             <div className="content-modal-head">
               <div>
                 <span className="micro-label">
-                  PEÇA {String(selectedIndex + 1).padStart(2, "0")}
+                  {typeLabel[selectedItem.contentType]} · PEÇA{" "}
+                  {String(selectedIndex + 1).padStart(2, "0")}
                 </span>
                 <h2>{selectedItem.title}</h2>
               </div>
@@ -283,9 +255,18 @@ export default async function CalendarPage({
 
               <div className="modal-copy">
                 <div className="modal-meta">
-                  <span>{selectedItem.channel}</span>
+                  <span>{typeLabel[selectedItem.contentType]}</span>
                   <span>{selectedItem.format}</span>
                   <span>{formatDate(selectedItem.scheduledAt)}</span>
+                </div>
+
+                <div className="modal-destinations">
+                  {selectedItem.publishToFeed ? (
+                    <span><FiMonitor /> Feed</span>
+                  ) : null}
+                  {selectedItem.publishToStories ? (
+                    <span><FiSmartphone /> Stories</span>
+                  ) : null}
                 </div>
 
                 <div className="caption-panel">
