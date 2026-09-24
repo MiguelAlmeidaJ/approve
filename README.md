@@ -114,3 +114,30 @@ Para aplicar manualmente:
 ~~~bash
 pnpm db:migrate
 ~~~
+
+
+## Acesso do cliente
+
+Cada cliente possui dados de perfil e credenciais próprias:
+
+- nicho/segmento;
+- telefone;
+- e-mail de acesso;
+- senha armazenada somente como hash com `scrypt`.
+
+A migration `20260924101500_client_profile_access` cria as tabelas `ClientCredential` e `ClientSession` e adiciona os campos de perfil ao cliente.
+
+A área do cliente fica em:
+
+~~~text
+http://localhost:5005/cliente/login
+~~~
+
+O seed cria a conta de demonstração:
+
+~~~text
+cliente@dev.com
+senha123
+~~~
+
+Ao entrar, o cliente visualiza somente os calendários da própria conta e pode abrir o fluxo de aprovação correspondente.
