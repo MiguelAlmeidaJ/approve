@@ -1,14 +1,35 @@
+import { cookies } from "next/headers";
+
 export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
+export type ContentType = "POST" | "CAROUSEL" | "REEL" | "STORY";
 
 export type ContentStatus =
   "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "CHANGES_REQUESTED";
+
+export type ContentFormat = {
+  id: string;
+  name: string;
+  contentType: ContentType;
+  width: number;
+  height: number;
+  supportsFeed: boolean;
+  supportsStories: boolean;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type ContentItem = {
   id: string;
   title: string;
   scheduledAt: string;
   channel: string;
+  contentType: ContentType;
   format: string;
+  formatId: string | null;
+  formatPreset?: ContentFormat | null;
+  publishToFeed: boolean;
+  publishToStories: boolean;
   caption: string;
   assetUrl: string | null;
   status: ContentStatus;
@@ -108,12 +129,22 @@ export type ClientPortal = {
 };
 
 const API_URL = process.env.API_URL ?? "http://localhost:4334";
+const DESIGNER_SESSION_COOKIE = "ta_designer_session";
+const CLIENT_SESSION_COOKIE = "ta_client_session";
+
+async function adminHeaders() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(DESIGNER_SESSION_COOKIE)?.value;
+
+  return {
+    "x-admin-key": process.env.API_ADMIN_KEY ?? "",
+    ...(token ? { authorization: `Bearer ${token}` } : {})
+  };
+}
 
 async function adminGet<T>(path: string): Promise<T | null> {
   const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      "x-admin-key": process.env.API_ADMIN_KEY ?? ""
-    },
+    headers: await adminHeaders(),
     cache: "no-store"
   });
 
@@ -135,15 +166,9 @@ export async function getDashboard(): Promise<Client[]> {
 }
 
 export async function getAccessibleClients(
-  designer: Designer
+  _designer: Designer
 ): Promise<Client[]> {
-  const clients = await getDashboard();
-
-  if (designer.role !== "DESIGNER") {
-    return clients;
-  }
-
-  return clients.filter((client) => client.assignedDesignerId === designer.id);
+  return getDashboard();
 }
 
 export async function getDesigners(): Promise<DesignerListItem[]> {
@@ -152,6 +177,10 @@ export async function getDesigners(): Promise<DesignerListItem[]> {
 
 export async function getUsers(): Promise<UserListItem[]> {
   return (await adminGet<UserListItem[]>("/api/admin/users")) ?? [];
+}
+
+export async function getFormats(): Promise<ContentFormat[]> {
+  return (await adminGet<ContentFormat[]>("/api/admin/formats")) ?? [];
 }
 
 export function getClient(id: string) {
@@ -176,14 +205,26 @@ export function canAccessClient(
 export async function getPublicCalendar(
   token: string
 ): Promise<PublicCalendar | null> {
+  const cookieStore = await cookies();
+  const session = cookieStore.get(CLIENT_SESSION_COOKIE)?.value;
+
   const response = await fetch(
     `${API_URL}/api/public/calendars/${encodeURIComponent(token)}`,
     {
+      headers: session
+        ? {
+            authorization: `Bearer ${session}`
+          }
+        : {},
       cache: "no-store"
     }
   );
 
   if (response.status === 404) {
+    return null;
+  }
+
+  if (response.status === 401) {
     return null;
   }
 

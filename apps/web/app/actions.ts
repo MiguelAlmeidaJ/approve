@@ -270,21 +270,73 @@ export async function createContentItem(formData: FormData) {
     throw new Error("Você não tem acesso a este calendário.");
   }
 
-  const rawDate = required(formData, "scheduledAt");
+  const postingDate = required(formData, "postingDate");
+  const postingTime = required(formData, "postingTime");
   const assetUrl = String(formData.get("assetUrl") ?? "").trim();
+  const publishToFeed = formData.get("publishToFeed") === "on";
+  const publishToStories = formData.get("publishToStories") === "on";
+
+  if (!publishToFeed && !publishToStories) {
+    throw new Error("Selecione Feed, Stories ou ambos.");
+  }
+
+  const scheduledAt = new Date(
+    `${postingDate}T${postingTime}:00-03:00`
+  ).toISOString();
 
   await adminPost("/api/admin/items", {
     calendarId,
     title: required(formData, "title"),
-    scheduledAt: brazilLocalDateTimeToIso(rawDate),
-    channel: required(formData, "channel"),
-    format: required(formData, "format"),
+    postingDate,
+    scheduledAt,
+    contentType: required(formData, "contentType"),
+    formatId: required(formData, "formatId"),
+    publishToFeed,
+    publishToStories,
     caption: required(formData, "caption"),
     assetUrl: assetUrl || undefined,
+    channel: "INSTAGRAM"
   });
 
   revalidatePath("/calendars");
   revalidatePath(`/calendars/${calendarId}`);
+}
+
+export async function createContentFormat(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+
+  await adminPost("/api/admin/formats", {
+    name: required(formData, "name"),
+    contentType: required(formData, "contentType"),
+    width: Number(required(formData, "width")),
+    height: Number(required(formData, "height")),
+    supportsFeed: formData.get("supportsFeed") === "on",
+    supportsStories: formData.get("supportsStories") === "on",
+    active: true
+  });
+
+  revalidatePath("/formats");
+}
+
+export async function updateContentFormat(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const formatId = required(formData, "formatId");
+
+  await adminPatch(
+    `/api/admin/formats/${encodeURIComponent(formatId)}`,
+    {
+      name: required(formData, "name"),
+      contentType: required(formData, "contentType"),
+      width: Number(required(formData, "width")),
+      height: Number(required(formData, "height")),
+      supportsFeed: formData.get("supportsFeed") === "on",
+      supportsStories: formData.get("supportsStories") === "on",
+      active: formData.get("active") === "on"
+    }
+  );
+
+  revalidatePath("/formats");
+  redirect("/formats");
 }
 
 export async function rotateCalendarToken(calendarId: string) {

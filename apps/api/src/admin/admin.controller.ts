@@ -4,15 +4,19 @@ import {
   Get,
   Param,
   Patch,
-  Post
+  Post,
+  Req
 } from "@nestjs/common";
+import type { InternalActorRequest } from "../common/internal-actor";
 import {
   AssignClientDto,
   CreateCalendarDto,
   CreateClientDto,
+  CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
   UpdateClientDto,
+  UpdateContentFormatDto,
   UpdateUserDto
 } from "./admin.dto";
 import { AdminService } from "./admin.service";
@@ -22,78 +26,124 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get("dashboard")
-  dashboard() {
-    return this.adminService.dashboard();
+  dashboard(@Req() request: InternalActorRequest) {
+    return this.adminService.dashboard(request.actor);
   }
 
   @Get("designers")
-  listDesigners() {
-    return this.adminService.listDesigners();
+  listDesigners(@Req() request: InternalActorRequest) {
+    return this.adminService.listDesigners(request.actor);
   }
 
   @Get("users")
-  listUsers() {
-    return this.adminService.listUsers();
+  listUsers(@Req() request: InternalActorRequest) {
+    return this.adminService.listUsers(request.actor);
+  }
+
+  @Get("formats")
+  listFormats(@Req() request: InternalActorRequest) {
+    return this.adminService.listFormats(request.actor);
   }
 
   @Get("clients/:id")
-  getClient(@Param("id") id: string) {
-    return this.adminService.getClient(id);
+  getClient(@Req() request: InternalActorRequest, @Param("id") id: string) {
+    return this.adminService.getClient(request.actor, id);
   }
 
   @Get("calendars/:id")
-  getCalendar(@Param("id") id: string) {
-    return this.adminService.getCalendar(id);
+  getCalendar(@Req() request: InternalActorRequest, @Param("id") id: string) {
+    return this.adminService.getCalendar(request.actor, id);
   }
 
   @Post("designers")
-  createDesigner(@Body() dto: CreateDesignerDto) {
-    return this.adminService.createDesigner(dto);
+  createDesigner(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateDesignerDto
+  ) {
+    return this.adminService.createDesigner(request.actor, dto);
   }
 
   @Post("users")
-  createUser(@Body() dto: CreateDesignerDto) {
-    return this.adminService.createUser(dto);
+  createUser(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateDesignerDto
+  ) {
+    return this.adminService.createUser(request.actor, dto);
   }
 
   @Patch("users/:id")
-  updateUser(@Param("id") id: string, @Body() dto: UpdateUserDto) {
-    return this.adminService.updateUser(id, dto);
+  updateUser(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateUserDto
+  ) {
+    return this.adminService.updateUser(request.actor, id, dto);
+  }
+
+  @Post("formats")
+  createFormat(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateContentFormatDto
+  ) {
+    return this.adminService.createFormat(request.actor, dto);
+  }
+
+  @Patch("formats/:id")
+  updateFormat(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateContentFormatDto
+  ) {
+    return this.adminService.updateFormat(request.actor, id, dto);
   }
 
   @Post("clients")
-  createClient(@Body() dto: CreateClientDto) {
-    return this.adminService.createClient(dto);
+  createClient(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateClientDto
+  ) {
+    return this.adminService.createClient(request.actor, dto);
   }
 
   @Patch("clients/:id")
   updateClient(
+    @Req() request: InternalActorRequest,
     @Param("id") id: string,
     @Body() dto: UpdateClientDto
   ) {
-    return this.adminService.updateClient(id, dto);
+    return this.adminService.updateClient(request.actor, id, dto);
   }
 
   @Post("clients/:id/assign")
   assignClient(
+    @Req() request: InternalActorRequest,
     @Param("id") id: string,
     @Body() dto: AssignClientDto
   ) {
-    return this.adminService.assignClient(id, dto);
+    return this.adminService.assignClient(request.actor, id, dto);
   }
 
   @Post("calendars")
-  createCalendar(@Body() dto: CreateCalendarDto) {
-    return this.adminService.createCalendar(dto);
+  createCalendar(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateCalendarDto
+  ) {
+    return this.adminService.createCalendar(request.actor, dto);
   }
 
   @Post("items")
-  createContentItem(@Body() dto: CreateContentItemDto) {
-    return this.adminService.createContentItem(dto);
+  createContentItem(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateContentItemDto
+  ) {
+    return this.adminService.createContentItem(request.actor, dto);
   }
 
   @Post("calendars/:id/rotate-token")
-  rotateCalendarToken(@Param("id") id: string) {
-    return this.adminService.rotateCalendarToken(id);
+  rotateCalendarToken(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.rotateCalendarToken(request.actor, id);
   }
 }

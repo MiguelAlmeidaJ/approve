@@ -1,18 +1,26 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { ContentStatus, UserRole } from "@approve/database";
+import {
+  Channel,
+  ContentStatus,
+  UserRole
+} from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
+import type { InternalActor } from "../common/internal-actor";
 import { PrismaService } from "../prisma.service";
 import {
   AssignClientDto,
   CreateCalendarDto,
   CreateClientDto,
+  CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
   UpdateClientDto,
+  UpdateContentFormatDto,
   UpdateUserDto
 } from "./admin.dto";
 
@@ -21,6 +29,10 @@ function hashPassword(password: string) {
   const hash = scryptSync(password, salt, 64).toString("hex");
 
   return `scrypt:${salt}:${hash}`;
+}
+
+function dateKey(value: Date) {
+  return value.toISOString().slice(0, 10);
 }
 
 const clientInclude = {
@@ -51,7 +63,10 @@ const clientInclude = {
         orderBy: [
           { scheduledAt: "asc" as const },
           { sortOrder: "asc" as const }
-        ]
+        ],
+        include: {
+          formatPreset: true
+        }
       }
     }
   }
@@ -61,14 +76,20 @@ const clientInclude = {
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  dashboard() {
+  dashboard(actor: InternalActor) {
     return this.prisma.client.findMany({
+      where:
+        actor.role === UserRole.DESIGNER
+          ? { assignedDesignerId: actor.id }
+          : undefined,
       orderBy: { createdAt: "desc" },
       include: clientInclude
     });
   }
 
-  listDesigners() {
+  listDesigners(actor: InternalActor) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
     return this.prisma.designer.findMany({
       where: {
         role: UserRole.DESIGNER
@@ -89,7 +110,9 @@ export class AdminService {
     });
   }
 
-  listUsers() {
+  listUsers(actor: InternalActor) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
     return this.prisma.designer.findMany({
       orderBy: [{ role: "asc" }, { name: "asc" }],
       select: {
@@ -107,9 +130,24 @@ export class AdminService {
     });
   }
 
-  async getClient(id: string) {
-    const client = await this.prisma.client.findUnique({
-      where: { id },
+  listFormats(_actor: InternalActor) {
+    return this.prisma.contentFormat.findMany({
+      orderBy: [
+        { active: "desc" },
+        { contentType: "asc" },
+        { name: "asc" }
+      ]
+    });
+  }
+
+  async getClient(actor: InternalActor, id: string) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id,
+        ...(actor.role === UserRole.DESIGNER
+          ? { assignedDesignerId: actor.id }
+          : {})
+      },
       include: clientInclude
     });
 
@@ -120,9 +158,18 @@ export class AdminService {
     return client;
   }
 
-  async getCalendar(id: string) {
-    const calendar = await this.prisma.calendar.findUnique({
-      where: { id },
+  async getCalendar(actor: InternalActor, id: string) {
+    const calendar = await this.prisma.calendar.findFirst({
+      where: {
+        id,
+        ...(actor.role === UserRole.DESIGNER
+          ? {
+              client: {
+                assignedDesignerId: actor.id
+              }
+            }
+          : {})
+      },
       include: {
         client: {
           include: {
@@ -144,6 +191,7 @@ export class AdminService {
         contentItems: {
           orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
           include: {
+            formatPreset: true,
             reviews: {
               orderBy: { createdAt: "desc" },
               take: 1
@@ -163,11 +211,14 @@ export class AdminService {
     return calendar;
   }
 
-  async createDesigner(dto: CreateDesignerDto) {
-    return this.createUser({ ...dto, role: UserRole.DESIGNER });
+  async createDesigner(actor: InternalActor, dto: CreateDesignerDto) {
+    this.requireRoles(actor, UserRole.ADMIN);
+    return this.createUser(actor, { ...dto, role: UserRole.DESIGNER });
   }
 
-  async createUser(dto: CreateDesignerDto) {
+  async createUser(actor: InternalActor, dto: CreateDesignerDto) {
+    this.requireRoles(actor, UserRole.ADMIN);
+
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.designer.findUnique({
       where: { email }
@@ -194,7 +245,13 @@ export class AdminService {
     });
   }
 
-  async updateUser(id: string, dto: UpdateUserDto) {
+  async updateUser(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateUserDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN);
+
     const current = await this.prisma.designer.findUnique({
       where: { id },
       select: {
@@ -255,7 +312,61 @@ export class AdminService {
     return updated;
   }
 
-  async createClient(dto: CreateClientDto) {
+  async createFormat(
+    actor: InternalActor,
+    dto: CreateContentFormatDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.ensureFormatPlacement(dto.supportsFeed, dto.supportsStories);
+    await this.ensureFormatNameAvailable(dto.name);
+
+    return this.prisma.contentFormat.create({
+      data: {
+        name: dto.name.trim(),
+        contentType: dto.contentType,
+        width: dto.width,
+        height: dto.height,
+        supportsFeed: dto.supportsFeed,
+        supportsStories: dto.supportsStories,
+        active: dto.active ?? true
+      }
+    });
+  }
+
+  async updateFormat(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateContentFormatDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.ensureFormatPlacement(dto.supportsFeed, dto.supportsStories);
+
+    const existing = await this.prisma.contentFormat.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      throw new NotFoundException("Formato não encontrado.");
+    }
+
+    await this.ensureFormatNameAvailable(dto.name, id);
+
+    return this.prisma.contentFormat.update({
+      where: { id },
+      data: {
+        name: dto.name.trim(),
+        contentType: dto.contentType,
+        width: dto.width,
+        height: dto.height,
+        supportsFeed: dto.supportsFeed,
+        supportsStories: dto.supportsStories,
+        active: dto.active
+      }
+    });
+  }
+
+  async createClient(actor: InternalActor, dto: CreateClientDto) {
     const baseSlug = (dto.slug || dto.name)
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -270,8 +381,12 @@ export class AdminService {
       );
     }
 
-    if (dto.assignedDesignerId) {
-      await this.ensureDesigner(dto.assignedDesignerId);
+    let assignedDesignerId = dto.assignedDesignerId || null;
+
+    if (actor.role === UserRole.DESIGNER) {
+      assignedDesignerId = actor.id;
+    } else if (assignedDesignerId) {
+      await this.ensureDesigner(assignedDesignerId);
     }
 
     const loginEmail = dto.email.trim().toLowerCase();
@@ -300,7 +415,7 @@ export class AdminService {
         slug,
         niche: dto.niche.trim(),
         phone: dto.phone.trim(),
-        assignedDesignerId: dto.assignedDesignerId || null,
+        assignedDesignerId,
         credential: {
           create: {
             email: loginEmail,
@@ -312,7 +427,13 @@ export class AdminService {
     });
   }
 
-  async updateClient(id: string, dto: UpdateClientDto) {
+  async updateClient(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateClientDto
+  ) {
+    await this.assertClientAccess(actor, id);
+
     const current = await this.prisma.client.findUnique({
       where: { id },
       include: {
@@ -382,7 +503,13 @@ export class AdminService {
     return updated;
   }
 
-  async assignClient(clientId: string, dto: AssignClientDto) {
+  async assignClient(
+    actor: InternalActor,
+    clientId: string,
+    dto: AssignClientDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
       select: { id: true }
@@ -405,7 +532,9 @@ export class AdminService {
     });
   }
 
-  async createCalendar(dto: CreateCalendarDto) {
+  async createCalendar(actor: InternalActor, dto: CreateCalendarDto) {
+    await this.assertClientAccess(actor, dto.clientId);
+
     const periodStart = new Date(dto.periodStart);
     const periodEnd = new Date(dto.periodEnd);
     const postingDays = [
@@ -450,28 +579,129 @@ export class AdminService {
     });
   }
 
-  createContentItem(dto: CreateContentItemDto) {
+  async createContentItem(
+    actor: InternalActor,
+    dto: CreateContentItemDto
+  ) {
+    const calendar = await this.assertCalendarAccess(actor, dto.calendarId);
+
+    const postingDay = calendar.postingDays.find(
+      (day) => dateKey(day.scheduledDate) === dto.postingDate
+    );
+
+    if (!postingDay) {
+      throw new BadRequestException(
+        "Escolha um dos dias de publicação definidos para este calendário."
+      );
+    }
+
+    if (!dto.publishToFeed && !dto.publishToStories) {
+      throw new BadRequestException(
+        "Selecione Feed, Stories ou ambos para a publicação."
+      );
+    }
+
+    const format = await this.prisma.contentFormat.findFirst({
+      where: {
+        id: dto.formatId,
+        active: true
+      }
+    });
+
+    if (!format) {
+      throw new BadRequestException("Formato não encontrado ou inativo.");
+    }
+
+    if (format.contentType !== dto.contentType) {
+      throw new BadRequestException(
+        "O formato selecionado não corresponde ao tipo de conteúdo."
+      );
+    }
+
+    if (
+      (dto.publishToFeed && !format.supportsFeed) ||
+      (dto.publishToStories && !format.supportsStories)
+    ) {
+      throw new BadRequestException(
+        "O formato selecionado não suporta os destinos escolhidos."
+      );
+    }
+
     return this.prisma.contentItem.create({
       data: {
         calendarId: dto.calendarId,
+        formatId: format.id,
         title: dto.title.trim(),
         scheduledAt: new Date(dto.scheduledAt),
-        channel: dto.channel,
-        format: dto.format.trim(),
+        channel: dto.channel ?? Channel.INSTAGRAM,
+        contentType: dto.contentType,
+        format: `${format.name} · ${format.width}x${format.height}`,
+        publishToFeed: dto.publishToFeed,
+        publishToStories: dto.publishToStories,
         caption: dto.caption.trim(),
         assetUrl: dto.assetUrl?.trim() || null,
         status: ContentStatus.PENDING_APPROVAL
+      },
+      include: {
+        formatPreset: true
       }
     });
   }
 
-  rotateCalendarToken(calendarId: string) {
+  async rotateCalendarToken(actor: InternalActor, calendarId: string) {
+    await this.assertCalendarAccess(actor, calendarId);
+
     return this.prisma.calendar.update({
       where: { id: calendarId },
       data: {
         shareToken: randomBytes(24).toString("hex")
       }
     });
+  }
+
+  private async assertClientAccess(actor: InternalActor, clientId: string) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id: clientId,
+        ...(actor.role === UserRole.DESIGNER
+          ? { assignedDesignerId: actor.id }
+          : {})
+      },
+      select: { id: true }
+    });
+
+    if (!client) {
+      throw new ForbiddenException("Você não tem acesso a este cliente.");
+    }
+
+    return client;
+  }
+
+  private async assertCalendarAccess(
+    actor: InternalActor,
+    calendarId: string
+  ) {
+    const calendar = await this.prisma.calendar.findFirst({
+      where: {
+        id: calendarId,
+        ...(actor.role === UserRole.DESIGNER
+          ? {
+              client: {
+                assignedDesignerId: actor.id
+              }
+            }
+          : {})
+      },
+      include: {
+        postingDays: true
+      }
+    });
+
+    if (!calendar) {
+      throw new ForbiddenException("Você não tem acesso a este calendário.");
+    }
+
+    return calendar;
   }
 
   private async ensureDesigner(id: string) {
@@ -487,6 +717,34 @@ export class AdminService {
       throw new BadRequestException(
         "O responsável informado não é um designer válido."
       );
+    }
+  }
+
+  private async ensureFormatNameAvailable(name: string, ignoreId?: string) {
+    const existing = await this.prisma.contentFormat.findFirst({
+      where: {
+        name: name.trim(),
+        ...(ignoreId ? { id: { not: ignoreId } } : {})
+      },
+      select: { id: true }
+    });
+
+    if (existing) {
+      throw new BadRequestException("Já existe um formato com esse nome.");
+    }
+  }
+
+  private ensureFormatPlacement(feed: boolean, stories: boolean) {
+    if (!feed && !stories) {
+      throw new BadRequestException(
+        "O formato precisa ser compatível com Feed, Stories ou ambos."
+      );
+    }
+  }
+
+  private requireRoles(actor: InternalActor, ...roles: UserRole[]) {
+    if (!roles.includes(actor.role)) {
+      throw new ForbiddenException("Você não tem permissão para esta ação.");
     }
   }
 }

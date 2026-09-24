@@ -22,6 +22,13 @@ enum Channel {
   OTHER
 }
 
+enum ContentType {
+  POST
+  CAROUSEL
+  REEL
+  STORY
+}
+
 enum ContentStatus {
   DRAFT
   PENDING_APPROVAL
@@ -97,6 +104,22 @@ model ClientSession {
   @@index([expiresAt])
 }
 
+model ContentFormat {
+  id              String        @id @default(cuid())
+  name            String
+  contentType     ContentType
+  width           Int
+  height          Int
+  supportsFeed    Boolean       @default(true)
+  supportsStories Boolean       @default(false)
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  contentItems    ContentItem[]
+
+  @@index([contentType, active])
+}
+
 model Calendar {
   id           String               @id @default(cuid())
   clientId     String
@@ -126,23 +149,29 @@ model CalendarPostingDay {
 }
 
 model ContentItem {
-  id          String        @id @default(cuid())
-  calendarId  String
-  title       String
-  scheduledAt DateTime
-  channel     Channel
-  format      String
-  caption     String        @db.Text
-  assetUrl    String?       @db.Text
-  status      ContentStatus @default(DRAFT)
-  sortOrder   Int           @default(0)
-  reviewedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  calendar    Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
-  reviews     ReviewHistory[]
+  id               String        @id @default(cuid())
+  calendarId       String
+  formatId         String?
+  title            String
+  scheduledAt      DateTime
+  channel          Channel       @default(INSTAGRAM)
+  contentType      ContentType   @default(POST)
+  format           String
+  publishToFeed    Boolean       @default(true)
+  publishToStories Boolean       @default(false)
+  caption          String        @db.Text
+  assetUrl         String?       @db.Text
+  status           ContentStatus @default(DRAFT)
+  sortOrder        Int           @default(0)
+  reviewedAt       DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  calendar         Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  formatPreset     ContentFormat? @relation(fields: [formatId], references: [id], onDelete: SetNull)
+  reviews          ReviewHistory[]
 
   @@index([calendarId, scheduledAt])
+  @@index([formatId])
   @@index([status])
 }
 

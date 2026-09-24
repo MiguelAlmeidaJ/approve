@@ -3,6 +3,7 @@ export {
   Prisma,
   UserRole,
   Channel,
+  ContentType,
   ContentStatus,
   ReviewAction
 } from "@prisma/client";
@@ -13,6 +14,7 @@ export type {
   Client,
   ClientCredential,
   ClientSession,
+  ContentFormat,
   Calendar,
   CalendarPostingDay,
   ContentItem,

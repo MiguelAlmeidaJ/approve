@@ -1,14 +1,22 @@
-import { Channel, UserRole } from "@approve/database";
+import {
+  Channel,
+  ContentType,
+  UserRole
+} from "@approve/database";
 import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEmail,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
+  Min,
   MinLength
 } from "class-validator";
 
@@ -124,6 +132,38 @@ export class CreateCalendarDto {
   postingDays!: string[];
 }
 
+export class CreateContentFormatDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsEnum(ContentType)
+  contentType!: ContentType;
+
+  @IsInt()
+  @Min(1)
+  width!: number;
+
+  @IsInt()
+  @Min(1)
+  height!: number;
+
+  @IsBoolean()
+  supportsFeed!: boolean;
+
+  @IsBoolean()
+  supportsStories!: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
+}
+
+export class UpdateContentFormatDto extends CreateContentFormatDto {
+  @IsBoolean()
+  active!: boolean;
+}
+
 export class CreateContentItemDto {
   @IsString()
   calendarId!: string;
@@ -135,24 +175,32 @@ export class CreateContentItemDto {
   @IsDateString()
   scheduledAt!: string;
 
-  @IsEnum(Channel)
-  channel!: Channel;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  postingDate!: string;
+
+  @IsEnum(ContentType)
+  contentType!: ContentType;
 
   @IsString()
-  @MinLength(2)
-  format!: string;
+  formatId!: string;
+
+  @IsBoolean()
+  publishToFeed!: boolean;
+
+  @IsBoolean()
+  publishToStories!: boolean;
 
   @IsString()
   caption!: string;
 
   @IsOptional()
   @IsUrl(
-    {
-      require_protocol: true
-    },
-    {
-      message: "assetUrl precisa ser uma URL completa."
-    }
+    { require_protocol: true },
+    { message: "assetUrl precisa ser uma URL completa." }
   )
   assetUrl?: string;
+
+  @IsOptional()
+  @IsEnum(Channel)
+  channel?: Channel;
 }
