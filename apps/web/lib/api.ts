@@ -104,6 +104,7 @@ export type Client = {
   slug: string;
   niche: string | null;
   phone: string | null;
+  nextcloudPath: string | null;
   assignedDesignerId: string | null;
   credential?: {
     email: string;
@@ -119,6 +120,7 @@ export type CalendarWithClient = Calendar & {
     slug: string;
     niche: string | null;
     phone: string | null;
+    nextcloudPath: string | null;
     assignedDesignerId: string | null;
     credential?: {
       email: string;

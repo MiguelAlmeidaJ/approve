@@ -179,6 +179,8 @@ export async function createClient(formData: FormData) {
     phone: required(formData, "phone"),
     email: required(formData, "email"),
     password: required(formData, "password"),
+    nextcloudPath:
+      String(formData.get("nextcloudPath") ?? "").trim() || undefined,
     assignedDesignerId:
       designer.role === "DESIGNER"
         ? designer.id
@@ -207,6 +209,7 @@ export async function updateClient(formData: FormData) {
     niche: required(formData, "niche"),
     phone: required(formData, "phone"),
     email: required(formData, "email"),
+    nextcloudPath: String(formData.get("nextcloudPath") ?? "").trim(),
     ...(password ? { password } : {}),
   });
 

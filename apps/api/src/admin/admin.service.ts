@@ -34,6 +34,23 @@ function hashPassword(password: string) {
   return `scrypt:${salt}:${hash}`;
 }
 
+function normalizeNextcloudPath(value?: string) {
+  const raw = value?.trim();
+
+  if (!raw) {
+    return null;
+  }
+
+  const normalized = raw.replaceAll("\\", "/");
+  const segments = normalized.split("/").filter(Boolean);
+
+  if (segments.some((segment) => segment === "." || segment === "..")) {
+    throw new BadRequestException("A pasta do Nextcloud é inválida.");
+  }
+
+  return segments.length === 0 ? "/" : `/${segments.join("/")}`;
+}
+
 function dateKey(value: Date) {
   return value.toISOString().slice(0, 10);
 }
@@ -483,6 +500,7 @@ export class AdminService {
         slug,
         niche: dto.niche.trim(),
         phone: dto.phone.trim(),
+        nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath),
         assignedDesignerId,
         credential: {
           create: {
@@ -541,6 +559,9 @@ export class AdminService {
         name: dto.name.trim(),
         niche: dto.niche.trim(),
         phone: dto.phone.trim(),
+        ...(dto.nextcloudPath !== undefined
+          ? { nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath) }
+          : {}),
         credential: current.credential
           ? {
               update: {
@@ -785,7 +806,10 @@ export class AdminService {
 
     const assets = await Promise.all(
       dto.assetPaths.map((path) =>
-        this.nextcloud.getMetadata(calendar.client.slug, path)
+        this.nextcloud.getMetadata(
+          calendar.client.nextcloudPath || `/${calendar.client.slug}`,
+          path
+        )
       )
     );
 
@@ -892,7 +916,8 @@ export class AdminService {
         client: {
           select: {
             id: true,
-            slug: true
+            slug: true,
+            nextcloudPath: true
           }
         },
         postingDays: true,

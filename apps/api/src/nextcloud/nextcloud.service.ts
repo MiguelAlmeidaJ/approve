@@ -26,6 +26,11 @@ type NextcloudMetadata = NextcloudFileItem & {
   storedPath: string;
 };
 
+type ClientStorageScope = {
+  slug: string;
+  nextcloudPath: string | null;
+};
+
 function decodeXml(value: string) {
   return value
     .replaceAll("&amp;", "&")
@@ -76,7 +81,7 @@ export class NextcloudService {
     path = "/"
   ): Promise<NextcloudFileItem[]> {
     const client = await this.getAccessibleClient(actor, clientId);
-    return this.list(client.slug, path);
+    return this.list(this.clientDirectory(client), path);
   }
 
   async previewForActor(
@@ -86,7 +91,10 @@ export class NextcloudService {
     range?: string
   ) {
     const client = await this.getAccessibleClient(actor, clientId);
-    const metadata = await this.getMetadata(client.slug, path);
+    const metadata = await this.getMetadata(
+      this.clientDirectory(client),
+      path
+    );
 
     return {
       metadata,
@@ -95,16 +103,17 @@ export class NextcloudService {
   }
 
   async getMetadata(
-    clientSlug: string,
+    clientDirectory: string,
     relativePath: string
   ): Promise<NextcloudMetadata> {
+    const directory = this.normalizeRelativePath(clientDirectory);
     const path = this.normalizeRelativePath(relativePath);
 
     if (path === "/") {
       throw new BadRequestException("Selecione um arquivo do Nextcloud.");
     }
 
-    const storedPath = this.clientStoredPath(clientSlug, path);
+    const storedPath = this.clientStoredPath(directory, path);
     const response = await this.propfind(storedPath, "0");
     const xml = await response.text();
     const block = responseBlocks(xml)[0];
@@ -220,9 +229,13 @@ export class NextcloudService {
     return asset;
   }
 
-  private async list(clientSlug: string, relativePath: string) {
+  private async list(
+    clientDirectory: string,
+    relativePath: string
+  ): Promise<NextcloudFileItem[]> {
+    const directory = this.normalizeRelativePath(clientDirectory);
     const path = this.normalizeRelativePath(relativePath);
-    const storedPath = this.clientStoredPath(clientSlug, path);
+    const storedPath = this.clientStoredPath(directory, path);
     const response = await this.propfind(storedPath, "1");
     const xml = await response.text();
     const blocks = responseBlocks(xml);
@@ -281,7 +294,7 @@ export class NextcloudService {
 
     if (response.status === 404) {
       throw new NotFoundException(
-        "Pasta ou arquivo não encontrado no Nextcloud. Verifique a pasta do cliente."
+        `Pasta ou arquivo não encontrado no Nextcloud: ${storedPath}. Verifique a pasta configurada no cliente.`
       );
     }
 
@@ -304,7 +317,8 @@ export class NextcloudService {
       },
       select: {
         id: true,
-        slug: true
+        slug: true,
+        nextcloudPath: true
       }
     });
 
@@ -315,14 +329,24 @@ export class NextcloudService {
     return client;
   }
 
-  private clientStoredPath(clientSlug: string, relativePath: string) {
-    const cleanSlug = clientSlug
-      .replaceAll("\\", "/")
-      .split("/")
-      .filter(Boolean)
-      .join("/");
+  private clientDirectory(client: ClientStorageScope) {
+    if (client.nextcloudPath) {
+      return this.normalizeRelativePath(client.nextcloudPath);
+    }
 
-    return `/${cleanSlug}${relativePath === "/" ? "" : relativePath}`;
+    return this.normalizeRelativePath(`/${client.slug}`);
+  }
+
+  private clientStoredPath(
+    clientDirectory: string,
+    relativePath: string
+  ) {
+    const directory =
+      clientDirectory === "/" ? "" : clientDirectory;
+
+    return `${directory}${
+      relativePath === "/" ? "" : relativePath
+    }` || "/";
   }
 
   private normalizeRelativePath(value: string) {

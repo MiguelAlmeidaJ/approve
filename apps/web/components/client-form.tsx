@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   FiAtSign,
   FiBriefcase,
+  FiFolder,
   FiKey,
   FiLock,
   FiPhone,
@@ -84,6 +85,23 @@ export function ClientForm({
                   required
                 />
               </div>
+            </label>
+
+            <label className="field field-span-2">
+              <span>Pasta do cliente no Nextcloud</span>
+              <div className="input-with-icon">
+                <FiFolder aria-hidden="true" />
+                <input
+                  name="nextcloudPath"
+                  defaultValue={client?.nextcloudPath ?? ""}
+                  placeholder="Ex.: /CLIENTE ACME"
+                />
+              </div>
+              <small className="field-helper">
+                Caminho relativo a NEXTCLOUD_ROOT_PATH. Se ficar vazio, usamos
+                /{client?.slug || "slug-do-cliente"}. Use / apenas se este
+                cliente realmente puder acessar toda a pasta raiz configurada.
+              </small>
             </label>
           </div>
         </section>

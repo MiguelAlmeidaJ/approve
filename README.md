@@ -218,3 +218,31 @@ Arquivar um calendário:
 - mantém todo o histórico para uma restauração futura.
 
 A listagem de calendários possui filtro para visualizar os arquivados.
+
+
+### Pasta por cliente
+
+`NEXTCLOUD_ROOT_PATH` aponta somente para a pasta raiz compartilhada com a
+conta técnica, por exemplo:
+
+~~~env
+NEXTCLOUD_ROOT_PATH="/ARQUIVOS CLIENTES"
+~~~
+
+Cada cliente pode definir sua própria pasta relativa a essa raiz no cadastro ou
+na edição do cliente, no campo **Pasta do cliente no Nextcloud**.
+
+Exemplos:
+
+~~~text
+NEXTCLOUD_ROOT_PATH=/ARQUIVOS CLIENTES
+Pasta do cliente=/CLIENTE ACME
+
+Resultado:
+/ARQUIVOS CLIENTES/CLIENTE ACME
+~~~
+
+Se o campo do cliente ficar vazio, o sistema mantém compatibilidade com a regra
+anterior e usa `/<slug-do-cliente>`. O valor `/` aponta diretamente para a
+raiz configurada, mas só deve ser usado quando aquele cliente realmente puder
+navegar por toda a pasta raiz.

@@ -46,6 +46,10 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsString()
+  nextcloudPath?: string;
+
+  @IsOptional()
+  @IsString()
   assignedDesignerId?: string;
 }
 
@@ -69,6 +73,10 @@ export class UpdateClientDto {
   @IsString()
   @MinLength(6)
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  nextcloudPath?: string;
 }
 
 export class AssignClientDto {

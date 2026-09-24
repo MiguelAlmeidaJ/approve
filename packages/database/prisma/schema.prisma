@@ -75,6 +75,7 @@ model Client {
   slug               String            @unique
   niche              String?
   phone              String?
+  nextcloudPath      String?
   assignedDesignerId String?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
