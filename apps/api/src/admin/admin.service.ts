@@ -35,6 +35,21 @@ function dateKey(value: Date) {
   return value.toISOString().slice(0, 10);
 }
 
+function saoPauloDateKey(value: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(value);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  return `${year}-${month}-${day}`;
+}
+
 const clientInclude = {
   credential: {
     select: {
@@ -595,6 +610,17 @@ export class AdminService {
       );
     }
 
+    const scheduledAt = new Date(dto.scheduledAt);
+
+    if (
+      Number.isNaN(scheduledAt.getTime()) ||
+      saoPauloDateKey(scheduledAt) !== dto.postingDate
+    ) {
+      throw new BadRequestException(
+        "A data e o horário precisam corresponder ao dia de publicação selecionado."
+      );
+    }
+
     if (!dto.publishToFeed && !dto.publishToStories) {
       throw new BadRequestException(
         "Selecione Feed, Stories ou ambos para a publicação."
@@ -632,7 +658,7 @@ export class AdminService {
         calendarId: dto.calendarId,
         formatId: format.id,
         title: dto.title.trim(),
-        scheduledAt: new Date(dto.scheduledAt),
+        scheduledAt,
         channel: dto.channel ?? Channel.INSTAGRAM,
         contentType: dto.contentType,
         format: `${format.name} · ${format.width}x${format.height}`,
