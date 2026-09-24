@@ -9,7 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  MinLength,
+  MinLength
 } from "class-validator";
 
 export class CreateClientDto {
@@ -21,9 +21,46 @@ export class CreateClientDto {
   @IsString()
   slug?: string;
 
+  @IsString()
+  @MinLength(2)
+  niche!: string;
+
+  @IsString()
+  @MinLength(8)
+  phone!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(6)
+  password!: string;
+
   @IsOptional()
   @IsString()
   assignedDesignerId?: string;
+}
+
+export class UpdateClientDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsString()
+  @MinLength(2)
+  niche!: string;
+
+  @IsString()
+  @MinLength(8)
+  phone!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 }
 
 export class AssignClientDto {
@@ -111,11 +148,11 @@ export class CreateContentItemDto {
   @IsOptional()
   @IsUrl(
     {
-      require_protocol: true,
+      require_protocol: true
     },
     {
-      message: "assetUrl precisa ser uma URL completa.",
-    },
+      message: "assetUrl precisa ser uma URL completa."
+    }
   )
   assetUrl?: string;
 }

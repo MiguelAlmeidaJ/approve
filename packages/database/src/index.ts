@@ -11,6 +11,8 @@ export type {
   Designer,
   DesignerSession,
   Client,
+  ClientCredential,
+  ClientSession,
   Calendar,
   CalendarPostingDay,
   ContentItem,

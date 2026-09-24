@@ -1,11 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post
+} from "@nestjs/common";
 import {
   AssignClientDto,
   CreateCalendarDto,
   CreateClientDto,
   CreateContentItemDto,
   CreateDesignerDto,
-  UpdateUserDto,
+  UpdateClientDto,
+  UpdateUserDto
 } from "./admin.dto";
 import { AdminService } from "./admin.service";
 
@@ -58,8 +66,19 @@ export class AdminController {
     return this.adminService.createClient(dto);
   }
 
+  @Patch("clients/:id")
+  updateClient(
+    @Param("id") id: string,
+    @Body() dto: UpdateClientDto
+  ) {
+    return this.adminService.updateClient(id, dto);
+  }
+
   @Post("clients/:id/assign")
-  assignClient(@Param("id") id: string, @Body() dto: AssignClientDto) {
+  assignClient(
+    @Param("id") id: string,
+    @Body() dto: AssignClientDto
+  ) {
     return this.adminService.assignClient(id, dto);
   }
 

@@ -59,28 +59,54 @@ model DesignerSession {
 }
 
 model Client {
-  id                 String     @id @default(cuid())
+  id                 String            @id @default(cuid())
   name               String
-  slug               String     @unique
+  slug               String            @unique
+  niche              String?
+  phone              String?
   assignedDesignerId String?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  assignedDesigner   Designer?  @relation("ClientDesigner", fields: [assignedDesignerId], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  assignedDesigner   Designer?         @relation("ClientDesigner", fields: [assignedDesignerId], references: [id], onDelete: SetNull)
+  credential         ClientCredential?
+  sessions           ClientSession[]
   calendars          Calendar[]
 
   @@index([assignedDesignerId])
 }
 
+model ClientCredential {
+  id           String   @id @default(cuid())
+  clientId     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientSession {
+  id        String   @id @default(cuid())
+  clientId  String
+  tokenHash String   @unique @db.VarChar(64)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
 model Calendar {
-  id           String        @id @default(cuid())
+  id           String               @id @default(cuid())
   clientId     String
   title        String
   periodStart  DateTime
   periodEnd    DateTime
-  shareToken   String        @unique @db.VarChar(64)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  shareToken   String               @unique @db.VarChar(64)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  client       Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
   contentItems ContentItem[]
   postingDays  CalendarPostingDay[]
 

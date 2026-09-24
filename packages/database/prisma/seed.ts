@@ -72,12 +72,29 @@ async function main() {
     where: { slug: "cliente-demo" },
     update: {
       name: "Cliente Demo",
+      niche: "Marketing e comunicação",
+      phone: "(22) 99999-9999",
       assignedDesignerId: designer.id
     },
     create: {
       name: "Cliente Demo",
       slug: "cliente-demo",
+      niche: "Marketing e comunicação",
+      phone: "(22) 99999-9999",
       assignedDesignerId: designer.id
+    }
+  });
+
+  await prisma.clientCredential.upsert({
+    where: { clientId: client.id },
+    update: {
+      email: "cliente@dev.com",
+      passwordHash: hashPassword("senha123")
+    },
+    create: {
+      clientId: client.id,
+      email: "cliente@dev.com",
+      passwordHash: hashPassword("senha123")
     }
   });
 
@@ -147,6 +164,7 @@ async function main() {
   console.log(`DEV: ${dev.email}`);
   console.log(`ADMIN: ${admin.email}`);
   console.log(`DESIGNER: ${designer.email}`);
+  console.log("CLIENTE: cliente@dev.com / senha123");
   console.log("Link público: http://localhost:5005/p/demo-terceiro-andar");
 }
 
