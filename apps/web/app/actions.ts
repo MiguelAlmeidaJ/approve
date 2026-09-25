@@ -346,6 +346,7 @@ export async function createCommemorativeDate(formData: FormData) {
     state: String(formData.get("state") ?? "").trim() || undefined,
     description:
       String(formData.get("description") ?? "").trim() || undefined,
+    tags: String(formData.get("tags") ?? "").trim() || undefined,
     clientId: String(formData.get("clientId") ?? "").trim() || undefined,
     active: true,
   });
@@ -372,6 +373,7 @@ export async function updateCommemorativeDate(formData: FormData) {
       state: String(formData.get("state") ?? "").trim() || undefined,
       description:
         String(formData.get("description") ?? "").trim() || undefined,
+      tags: String(formData.get("tags") ?? "").trim() || undefined,
       clientId: String(formData.get("clientId") ?? "").trim() || undefined,
       active: formData.get("active") === "on",
     },
@@ -399,6 +401,7 @@ export async function toggleCommemorativeDate(formData: FormData) {
       state: String(formData.get("state") ?? "").trim() || undefined,
       description:
         String(formData.get("description") ?? "").trim() || undefined,
+      tags: String(formData.get("tags") ?? "").trim() || undefined,
       clientId: String(formData.get("clientId") ?? "").trim() || undefined,
       active: required(formData, "nextActive") === "true",
     },
