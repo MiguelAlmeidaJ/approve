@@ -81,6 +81,21 @@ enum CommemorativeScope {
   CUSTOM
 }
 
+enum CommentAuthorType {
+  INTERNAL
+  CLIENT
+  SYSTEM
+}
+
+enum NotificationType {
+  INFO
+  ACTION
+  APPROVAL
+  CHANGE
+  DEADLINE
+  PUBLISHING
+}
+
 model Designer {
   id                 String            @id @default(cuid())
   name               String
@@ -93,6 +108,8 @@ model Designer {
   updatedAt          DateTime          @updatedAt
   sessions           DesignerSession[]
   clients            Client[]          @relation("ClientDesigner")
+  comments           ContentComment[]
+  notifications      Notification[]
 }
 
 model DesignerSession {
@@ -115,6 +132,15 @@ model Client {
   phone              String?
   nextcloudPath      String?
   assignedDesignerId String?
+  toneOfVoice        String?            @db.Text
+  targetAudience     String?            @db.Text
+  region             String?
+  services           String?            @db.Text
+  objectives         String?            @db.Text
+  prohibitedTerms    String?            @db.Text
+  hashtags           String?            @db.Text
+  references         String?            @db.Text
+  mlabsProfileId     String?
   active             Boolean           @default(true)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
@@ -149,6 +175,7 @@ model CommemorativeDate {
   city        String?
   state       String?
   description String?             @db.Text
+  tags        String?             @db.Text
   clientId    String?
   active      Boolean             @default(true)
   createdAt   DateTime            @default(now())
@@ -205,9 +232,14 @@ model Calendar {
   title        String
   periodStart  DateTime
   periodEnd    DateTime
-  shareToken   String               @unique @db.VarChar(64)
-  stage        CalendarStage        @default(PLANNING)
-  archivedAt   DateTime?
+  shareToken           String               @unique @db.VarChar(64)
+  stage                CalendarStage        @default(PLANNING)
+  planningDueAt        DateTime?
+  planningApprovalDueAt DateTime?
+  artworkDueAt         DateTime?
+  artworkApprovalDueAt DateTime?
+  schedulingDueAt      DateTime?
+  archivedAt           DateTime?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   client       Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -249,6 +281,8 @@ model ContentItem {
   assetUrl         String?       @db.Text
   status           ContentStatus @default(DRAFT)
   stage            ContentStage  @default(PLANNING)
+  planningReady    Boolean       @default(true)
+  artworkVersion   Int           @default(0)
   sortOrder        Int           @default(0)
   reviewedAt       DateTime?
   planningApprovedAt DateTime?
@@ -256,12 +290,20 @@ model ContentItem {
   externalScheduleId String?
   publishedAt        DateTime?
   publishingError    String?      @db.Text
+  metricReach        Int?
+  metricImpressions  Int?
+  metricLikes        Int?
+  metricComments     Int?
+  metricShares       Int?
+  metricSaves        Int?
+  metricsUpdatedAt   DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   calendar         Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   formatPreset     ContentFormat? @relation(fields: [formatId], references: [id], onDelete: SetNull)
   assets           ContentAsset[]
   reviews          ReviewHistory[]
+  comments         ContentComment[]
 
   @@index([calendarId, scheduledAt])
   @@index([formatId])
@@ -279,6 +321,8 @@ model ContentAsset {
   mimeType      String?
   etag          String?
   sortOrder     Int           @default(0)
+  version       Int           @default(1)
+  active        Boolean       @default(true)
   createdAt     DateTime      @default(now())
   contentItem   ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
 
@@ -297,4 +341,56 @@ model ReviewHistory {
 
   @@index([contentItemId, createdAt])
   @@index([phase])
+}
+
+
+model ContentComment {
+  id               String            @id @default(cuid())
+  contentItemId    String
+  authorType       CommentAuthorType
+  authorDesignerId String?
+  authorName       String?
+  message          String            @db.Text
+  visibleToClient  Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  contentItem      ContentItem       @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  authorDesigner   Designer?         @relation(fields: [authorDesignerId], references: [id], onDelete: SetNull)
+
+  @@index([contentItemId, createdAt])
+  @@index([authorDesignerId])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  designerId String
+  type       NotificationType @default(INFO)
+  title      String
+  message    String           @db.Text
+  link       String?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  designer   Designer         @relation(fields: [designerId], references: [id], onDelete: Cascade)
+
+  @@index([designerId, readAt, createdAt])
+}
+
+model BriefingTemplate {
+  id               String      @id @default(cuid())
+  name             String
+  description      String?     @db.Text
+  niche            String?
+  contentType      ContentType @default(POST)
+  theme            String?
+  headline         String?
+  subheadline      String?
+  caption          String?     @db.Text
+  designerNotes    String?     @db.Text
+  publishToFeed    Boolean     @default(true)
+  publishToStories Boolean     @default(false)
+  active           Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([active, contentType])
+  @@index([niche])
 }

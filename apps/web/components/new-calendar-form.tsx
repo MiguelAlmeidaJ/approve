@@ -11,6 +11,7 @@ import {
   FiGrid,
   FiRepeat,
   FiStar,
+  FiTarget,
   FiUser,
   FiX,
   FiZap
@@ -98,6 +99,18 @@ function daysMatchingWeekdays(
   );
 }
 
+function deadlineBeforeMonth(month: string, daysBefore: number) {
+  const year = Number(month.slice(0, 4));
+  const monthIndex = Number(month.slice(5, 7)) - 1;
+  const date = new Date(Date.UTC(year, monthIndex, 1));
+  date.setUTCDate(date.getUTCDate() - daysBefore);
+  return date.toISOString().slice(0, 10);
+}
+
+function inputDate(value?: string | null) {
+  return value ? value.slice(0, 10) : "";
+}
+
 function formatPostingDay(day: number, year: number, monthIndex: number) {
   const value = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -119,7 +132,8 @@ export function NewCalendarForm({
   calendarId,
   initialTitle = "",
   initialPostingDays = [],
-  commemorativeDates
+  commemorativeDates,
+  initialDeadlines
 }: {
   clients: CalendarClientOption[];
   initialClientId?: string;
@@ -129,6 +143,13 @@ export function NewCalendarForm({
   initialTitle?: string;
   initialPostingDays?: string[];
   commemorativeDates: CommemorativeDate[];
+  initialDeadlines?: {
+    planningDueAt?: string | null;
+    planningApprovalDueAt?: string | null;
+    artworkDueAt?: string | null;
+    artworkApprovalDueAt?: string | null;
+    schedulingDueAt?: string | null;
+  };
 }) {
   const initialResolvedClientId =
     initialClientId && clients.some((client) => client.id === initialClientId)
@@ -489,6 +510,91 @@ export function NewCalendarForm({
               placeholder={`Ex.: Campanha de ${monthNames[selectedMonthIndex]}`}
             />
           </label>
+        </section>
+
+        <div className="builder-divider" />
+
+        <section className="planner-section planner-sla-section" key={selectedMonth}>
+          <div className="builder-field-heading">
+            <span className="builder-step">05</span>
+            <div>
+              <strong>Prazos da operação</strong>
+              <small>
+                SLAs para o painel sinalizar atrasos e o próximo responsável.
+              </small>
+            </div>
+          </div>
+
+          <div className="planner-sla-grid">
+            <label className="field">
+              <span>Pré-calendário pronto</span>
+              <input
+                type="date"
+                name="planningDueAt"
+                defaultValue={
+                  inputDate(initialDeadlines?.planningDueAt) ||
+                  deadlineBeforeMonth(selectedMonth, 15)
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Aprovação do planejamento</span>
+              <input
+                type="date"
+                name="planningApprovalDueAt"
+                defaultValue={
+                  inputDate(initialDeadlines?.planningApprovalDueAt) ||
+                  deadlineBeforeMonth(selectedMonth, 10)
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Artes prontas</span>
+              <input
+                type="date"
+                name="artworkDueAt"
+                defaultValue={
+                  inputDate(initialDeadlines?.artworkDueAt) ||
+                  deadlineBeforeMonth(selectedMonth, 5)
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Aprovação das artes</span>
+              <input
+                type="date"
+                name="artworkApprovalDueAt"
+                defaultValue={
+                  inputDate(initialDeadlines?.artworkApprovalDueAt) ||
+                  deadlineBeforeMonth(selectedMonth, 3)
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Programação concluída</span>
+              <input
+                type="date"
+                name="schedulingDueAt"
+                defaultValue={
+                  inputDate(initialDeadlines?.schedulingDueAt) ||
+                  deadlineBeforeMonth(selectedMonth, 1)
+                }
+              />
+            </label>
+          </div>
+
+          {!isEditing ? (
+            <div className="planner-auto-skeleton-note">
+              <FiTarget aria-hidden="true" />
+              <div>
+                <strong>Esqueleto automático ativado</strong>
+                <span>
+                  O sistema criará um slot para cada dia selecionado e usará
+                  datas comemorativas relevantes como sugestão de pauta.
+                </span>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <div className="calendar-creator-actions">

@@ -9,6 +9,8 @@ export {
   ContentStage,
   ApprovalPhase,
   CommemorativeScope,
+  CommentAuthorType,
+  NotificationType,
   ReviewAction,
   AssetProvider
 } from "@prisma/client";

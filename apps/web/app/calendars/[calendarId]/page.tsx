@@ -9,7 +9,9 @@ import {
   FiClock,
   FiEdit3,
   FiExternalLink,
+  FiGrid,
   FiImage,
+  FiMessageCircle,
   FiLayers,
   FiPlay,
   FiRefreshCw,
@@ -92,6 +94,49 @@ function formatTime(value: string) {
     minute: "2-digit",
     timeZone: "America/Sao_Paulo"
   }).format(new Date(value));
+}
+
+function stageDeadline(calendar: {
+  stage: CalendarStage;
+  planningDueAt: string | null;
+  planningApprovalDueAt: string | null;
+  artworkDueAt: string | null;
+  artworkApprovalDueAt: string | null;
+  schedulingDueAt: string | null;
+}) {
+  const map: Partial<Record<CalendarStage, { label: string; value: string | null }>> = {
+    PLANNING: { label: "Pré-calendário", value: calendar.planningDueAt },
+    PRE_APPROVAL: {
+      label: "Aprovação do planejamento",
+      value: calendar.planningApprovalDueAt
+    },
+    PRODUCTION: { label: "Entrega das artes", value: calendar.artworkDueAt },
+    FINAL_APPROVAL: {
+      label: "Aprovação das artes",
+      value: calendar.artworkApprovalDueAt
+    },
+    SCHEDULING: { label: "Programação", value: calendar.schedulingDueAt }
+  };
+
+  return map[calendar.stage] ?? null;
+}
+
+function deadlineText(value: string | null) {
+  if (!value) return "Sem prazo";
+  const date = new Date(value);
+  const today = new Date();
+  const diff = Math.ceil(
+    (date.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
+  );
+  const formatted = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC"
+  }).format(date);
+
+  if (diff < 0) return `${formatted} · ${Math.abs(diff)} dia(s) atrasado`;
+  if (diff === 0) return `${formatted} · hoje`;
+  return `${formatted} · ${diff} dia(s)`;
 }
 
 function statusTone(stage: ContentStage) {
@@ -178,6 +223,7 @@ export default async function CalendarPage({
         item.stage === "ART_APPROVED" ||
         (item.assets?.length ?? 0) > 0
     );
+  const currentDeadline = stageDeadline(calendar);
   const periodStart = new Date(calendar.periodStart);
   const periodEnd = new Date(calendar.periodEnd);
   const calendarCommemorativeDates = commemorativeDates
@@ -233,6 +279,13 @@ export default async function CalendarPage({
         </div>
 
         <div className="calendar-workflow-actions">
+          <Link
+            href={`/calendars/${calendar.id}/mes`}
+            className="button button-ghost"
+          >
+            <FiGrid aria-hidden="true" />
+            Visão mensal
+          </Link>
           {isManager &&
           !calendar.archivedAt &&
           calendar.stage === "PLANNING" ? (
@@ -297,6 +350,24 @@ export default async function CalendarPage({
           );
         })}
       </section>
+
+      {currentDeadline && !calendar.archivedAt ? (
+        <section
+          className={
+            currentDeadline.value &&
+            new Date(currentDeadline.value).getTime() < Date.now()
+              ? "workflow-deadline-banner overdue"
+              : "workflow-deadline-banner"
+          }
+        >
+          <FiClock aria-hidden="true" />
+          <div>
+            <span>Prazo da etapa</span>
+            <strong>{currentDeadline.label}</strong>
+          </div>
+          <p>{deadlineText(currentDeadline.value)}</p>
+        </section>
+      ) : null}
 
       {calendar.archivedAt ? (
         <section className="workflow-callout neutral">
@@ -630,6 +701,13 @@ export default async function CalendarPage({
                   </div>
 
                   <div className="workflow-item-actions">
+                    <Link
+                      href={`/calendars/${calendar.id}/content/${item.id}`}
+                      className="button button-ghost button-small"
+                    >
+                      <FiMessageCircle aria-hidden="true" />
+                      Detalhes
+                    </Link>
                     {canEditPlanning ? (
                       <Link
                         href={`/calendars/${calendar.id}/planning/${item.id}/edit`}

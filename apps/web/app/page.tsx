@@ -30,6 +30,32 @@ function compactDate(value: string) {
     .replace(".", "");
 }
 
+function stageDeadline(calendar: {
+  stage: string;
+  planningDueAt: string | null;
+  planningApprovalDueAt: string | null;
+  artworkDueAt: string | null;
+  artworkApprovalDueAt: string | null;
+  schedulingDueAt: string | null;
+}) {
+  if (calendar.stage === "PLANNING") return calendar.planningDueAt;
+  if (calendar.stage === "PRE_APPROVAL") return calendar.planningApprovalDueAt;
+  if (calendar.stage === "PRODUCTION") return calendar.artworkDueAt;
+  if (calendar.stage === "FINAL_APPROVAL") return calendar.artworkApprovalDueAt;
+  if (calendar.stage === "SCHEDULING") return calendar.schedulingDueAt;
+  return null;
+}
+
+function stageName(stage: string) {
+  return {
+    PLANNING: "Pré-calendário",
+    PRE_APPROVAL: "Aprovação do planejamento",
+    PRODUCTION: "Produção das artes",
+    FINAL_APPROVAL: "Aprovação das artes",
+    SCHEDULING: "Programação"
+  }[stage] ?? stage;
+}
+
 function clientInitials(name: string) {
   return name
     .split(/\s+/)
@@ -85,6 +111,34 @@ export default async function DashboardPage() {
   ).length;
   const approvalRate =
     reviewed > 0 ? Math.round((approved / reviewed) * 100) : 0;
+
+  const operations = activeClients.flatMap((client) =>
+    client.calendars
+      .filter(
+        (calendar) =>
+          !calendar.archivedAt &&
+          !["COMPLETED", "ARCHIVED"].includes(calendar.stage)
+      )
+      .map((calendar) => ({
+        client,
+        calendar,
+        dueAt: stageDeadline(calendar)
+      }))
+  );
+  const now = Date.now();
+  const overdue = operations.filter(
+    ({ dueAt }) => dueAt && new Date(dueAt).getTime() < now
+  );
+  const upcoming = operations
+    .filter(({ dueAt }) => dueAt)
+    .sort(
+      (a, b) =>
+        new Date(a.dueAt!).getTime() - new Date(b.dueAt!).getTime()
+    )
+    .slice(0, 5);
+  const requestedChanges = pieces.filter((item) =>
+    ["PRE_CHANGES_REQUESTED", "ART_CHANGES_REQUESTED"].includes(item.stage)
+  ).length;
 
   const recentCalendars = activeClients
     .flatMap((client) =>
@@ -169,6 +223,85 @@ export default async function DashboardPage() {
             <p>Fila preparada para mLabs</p>
           </div>
         </article>
+      </section>
+
+      <section className="dashboard-action-center">
+        <div className="dashboard-action-heading">
+          <div>
+            <span className="micro-label">PRECISA DA SUA ATENÇÃO</span>
+            <h2>Operação de hoje</h2>
+          </div>
+          <Link href={designer.role === "DESIGNER" ? "/producao" : "/calendars"}>
+            Abrir fila completa
+            <FiArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+
+        <div className="dashboard-action-grid">
+          <Link href="/calendars" className={overdue.length ? "dashboard-action danger" : "dashboard-action"}>
+            <FiAlertCircle aria-hidden="true" />
+            <div>
+              <strong>{overdue.length}</strong>
+              <span>etapa(s) com prazo vencido</span>
+            </div>
+          </Link>
+          <Link href="/producao" className="dashboard-action">
+            <FiCalendar aria-hidden="true" />
+            <div>
+              <strong>{production}</strong>
+              <span>arte(s) na fila de produção</span>
+            </div>
+          </Link>
+          <Link href="/calendars" className={requestedChanges ? "dashboard-action warning" : "dashboard-action"}>
+            <FiAlertCircle aria-hidden="true" />
+            <div>
+              <strong>{requestedChanges}</strong>
+              <span>alteração(ões) solicitada(s)</span>
+            </div>
+          </Link>
+          <Link href="/calendars" className="dashboard-action success">
+            <FiCheckCircle aria-hidden="true" />
+            <div>
+              <strong>{readyToSchedule}</strong>
+              <span>conteúdo(s) prontos para programar</span>
+            </div>
+          </Link>
+        </div>
+
+        {upcoming.length > 0 ? (
+          <div className="dashboard-deadlines">
+            <div className="dashboard-deadlines-title">
+              <FiClock aria-hidden="true" />
+              <strong>Próximos prazos</strong>
+            </div>
+            <div>
+              {upcoming.map(({ client, calendar, dueAt }) => {
+                const date = new Date(dueAt!);
+                const isOverdue = date.getTime() < now;
+                return (
+                  <Link
+                    href={`/calendars/${calendar.id}`}
+                    className={isOverdue ? "deadline-row overdue" : "deadline-row"}
+                    key={calendar.id}
+                  >
+                    <span>
+                      <strong>{client.name}</strong>
+                      <small>{stageName(calendar.stage)}</small>
+                    </span>
+                    <time dateTime={dueAt!}>
+                      {new Intl.DateTimeFormat("pt-BR", {
+                        day: "2-digit",
+                        month: "short",
+                        timeZone: "UTC"
+                      }).format(date)}
+                    </time>
+                    <FiArrowRight aria-hidden="true" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="dashboard-main-grid">

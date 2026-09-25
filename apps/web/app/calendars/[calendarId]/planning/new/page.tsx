@@ -5,6 +5,7 @@ import { AppShell } from "../../../../../components/app-shell";
 import { PlanningItemForm } from "../../../../../components/planning-item-form";
 import { requireRole } from "../../../../../lib/auth";
 import {
+  getBriefingTemplates,
   getCalendar,
   getCommemorativeDates
 } from "../../../../../lib/api";
@@ -31,9 +32,10 @@ export default async function NewPlanningItemPage({
 }) {
   const { calendarId } = await params;
   const designer = await requireRole("ADMIN", "DEV");
-  const [calendar, commemorativeDates] = await Promise.all([
+  const [calendar, commemorativeDates, templates] = await Promise.all([
     getCalendar(calendarId),
-    getCommemorativeDates()
+    getCommemorativeDates(),
+    getBriefingTemplates()
   ]);
 
   if (!calendar) {
@@ -71,6 +73,18 @@ export default async function NewPlanningItemPage({
           (date) =>
             date.active &&
             (date.clientId === null || date.clientId === calendar.client.id)
+        )}
+        templates={templates.filter(
+          (template) =>
+            template.active &&
+            (!template.niche ||
+              !calendar.client.niche ||
+              calendar.client.niche
+                .toLowerCase()
+                .includes(template.niche.toLowerCase()) ||
+              template.niche
+                .toLowerCase()
+                .includes(calendar.client.niche.toLowerCase()))
         )}
       />
     </AppShell>

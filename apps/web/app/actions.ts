@@ -241,6 +241,18 @@ export async function createClient(formData: FormData) {
         ? designer.id
         : selectedDesignerId || undefined,
     postingWeekdays,
+    toneOfVoice: String(formData.get("toneOfVoice") ?? "").trim() || undefined,
+    targetAudience:
+      String(formData.get("targetAudience") ?? "").trim() || undefined,
+    region: String(formData.get("region") ?? "").trim() || undefined,
+    services: String(formData.get("services") ?? "").trim() || undefined,
+    objectives: String(formData.get("objectives") ?? "").trim() || undefined,
+    prohibitedTerms:
+      String(formData.get("prohibitedTerms") ?? "").trim() || undefined,
+    hashtags: String(formData.get("hashtags") ?? "").trim() || undefined,
+    references: String(formData.get("references") ?? "").trim() || undefined,
+    mlabsProfileId:
+      String(formData.get("mlabsProfileId") ?? "").trim() || undefined,
   });
 
   revalidatePath("/");
@@ -275,6 +287,15 @@ export async function updateClient(formData: FormData) {
     email: required(formData, "email"),
     nextcloudPath: String(formData.get("nextcloudPath") ?? "").trim(),
     postingWeekdays,
+    toneOfVoice: String(formData.get("toneOfVoice") ?? "").trim(),
+    targetAudience: String(formData.get("targetAudience") ?? "").trim(),
+    region: String(formData.get("region") ?? "").trim(),
+    services: String(formData.get("services") ?? "").trim(),
+    objectives: String(formData.get("objectives") ?? "").trim(),
+    prohibitedTerms: String(formData.get("prohibitedTerms") ?? "").trim(),
+    hashtags: String(formData.get("hashtags") ?? "").trim(),
+    references: String(formData.get("references") ?? "").trim(),
+    mlabsProfileId: String(formData.get("mlabsProfileId") ?? "").trim(),
     ...(password ? { password } : {}),
   });
 
@@ -407,6 +428,17 @@ export async function createCalendar(formData: FormData) {
     periodStart: start.toISOString(),
     periodEnd: end.toISOString(),
     postingDays,
+    planningDueAt:
+      String(formData.get("planningDueAt") ?? "").trim() || undefined,
+    planningApprovalDueAt:
+      String(formData.get("planningApprovalDueAt") ?? "").trim() || undefined,
+    artworkDueAt:
+      String(formData.get("artworkDueAt") ?? "").trim() || undefined,
+    artworkApprovalDueAt:
+      String(formData.get("artworkApprovalDueAt") ?? "").trim() || undefined,
+    schedulingDueAt:
+      String(formData.get("schedulingDueAt") ?? "").trim() || undefined,
+    generateSkeleton: formData.get("generateSkeleton") !== "off",
   });
 
   revalidatePath("/");
@@ -436,6 +468,16 @@ export async function updateCalendar(formData: FormData) {
       periodStart: start.toISOString(),
       periodEnd: end.toISOString(),
       postingDays,
+      planningDueAt:
+        String(formData.get("planningDueAt") ?? "").trim() || undefined,
+      planningApprovalDueAt:
+        String(formData.get("planningApprovalDueAt") ?? "").trim() || undefined,
+      artworkDueAt:
+        String(formData.get("artworkDueAt") ?? "").trim() || undefined,
+      artworkApprovalDueAt:
+        String(formData.get("artworkApprovalDueAt") ?? "").trim() || undefined,
+      schedulingDueAt:
+        String(formData.get("schedulingDueAt") ?? "").trim() || undefined,
     },
   );
 
@@ -674,6 +716,123 @@ export async function markContentSchedulingError(formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/calendars/${calendarId}`);
   redirect(`/calendars/${calendarId}`);
+}
+
+export async function createBriefingTemplate(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+
+  await adminPost("/api/admin/briefing-templates", {
+    name: required(formData, "name"),
+    description:
+      String(formData.get("description") ?? "").trim() || undefined,
+    niche: String(formData.get("niche") ?? "").trim() || undefined,
+    contentType: required(formData, "contentType"),
+    theme: String(formData.get("theme") ?? "").trim() || undefined,
+    headline: String(formData.get("headline") ?? "").trim() || undefined,
+    subheadline:
+      String(formData.get("subheadline") ?? "").trim() || undefined,
+    caption: String(formData.get("caption") ?? "").trim() || undefined,
+    designerNotes:
+      String(formData.get("designerNotes") ?? "").trim() || undefined,
+    publishToFeed: formData.get("publishToFeed") === "on",
+    publishToStories: formData.get("publishToStories") === "on",
+    active: true,
+  });
+
+  revalidatePath("/modelos");
+  redirect("/modelos");
+}
+
+export async function updateBriefingTemplate(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const id = required(formData, "id");
+
+  await adminPatch(
+    `/api/admin/briefing-templates/${encodeURIComponent(id)}`,
+    {
+      name: required(formData, "name"),
+      description:
+        String(formData.get("description") ?? "").trim() || undefined,
+      niche: String(formData.get("niche") ?? "").trim() || undefined,
+      contentType: required(formData, "contentType"),
+      theme: String(formData.get("theme") ?? "").trim() || undefined,
+      headline: String(formData.get("headline") ?? "").trim() || undefined,
+      subheadline:
+        String(formData.get("subheadline") ?? "").trim() || undefined,
+      caption: String(formData.get("caption") ?? "").trim() || undefined,
+      designerNotes:
+        String(formData.get("designerNotes") ?? "").trim() || undefined,
+      publishToFeed: formData.get("publishToFeed") === "on",
+      publishToStories: formData.get("publishToStories") === "on",
+      active: formData.get("active") === "on",
+    },
+  );
+
+  revalidatePath("/modelos");
+  redirect("/modelos");
+}
+
+export async function addContentComment(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este conteúdo.");
+  }
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/comments`,
+    {
+      message: required(formData, "message"),
+      visibleToClient: formData.get("visibleToClient") === "on",
+    },
+  );
+
+  revalidatePath(`/calendars/${calendarId}`);
+  revalidatePath(`/calendars/${calendarId}/content/${itemId}`);
+}
+
+export async function updateContentMetrics(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+
+  const numberValue = (name: string) => {
+    const raw = String(formData.get(name) ?? "").trim();
+    return raw ? Number(raw) : undefined;
+  };
+
+  await adminPatch(
+    `/api/admin/items/${encodeURIComponent(itemId)}/metrics`,
+    {
+      reach: numberValue("reach"),
+      impressions: numberValue("impressions"),
+      likes: numberValue("likes"),
+      comments: numberValue("comments"),
+      shares: numberValue("shares"),
+      saves: numberValue("saves"),
+    },
+  );
+
+  revalidatePath(`/calendars/${calendarId}`);
+  revalidatePath(`/calendars/${calendarId}/content/${itemId}`);
+  revalidatePath("/relatorios");
+}
+
+export async function markNotificationRead(formData: FormData) {
+  await requireDesigner();
+  const id = required(formData, "notificationId");
+  const returnTo = String(formData.get("returnTo") ?? "/notificacoes");
+
+  await adminPost(
+    `/api/admin/notifications/${encodeURIComponent(id)}/read`,
+  );
+
+  revalidatePath("/notificacoes");
+  revalidatePath("/");
+  redirect(returnTo);
 }
 
 export async function createContentItem(formData: FormData) {

@@ -55,6 +55,42 @@ export class CreateClientDto {
   @IsString()
   assignedDesignerId?: string;
 
+  @IsOptional()
+  @IsString()
+  toneOfVoice?: string;
+
+  @IsOptional()
+  @IsString()
+  targetAudience?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  services?: string;
+
+  @IsOptional()
+  @IsString()
+  objectives?: string;
+
+  @IsOptional()
+  @IsString()
+  prohibitedTerms?: string;
+
+  @IsOptional()
+  @IsString()
+  hashtags?: string;
+
+  @IsOptional()
+  @IsString()
+  references?: string;
+
+  @IsOptional()
+  @IsString()
+  mlabsProfileId?: string;
+
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(7)
@@ -89,6 +125,42 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   nextcloudPath?: string;
+
+  @IsOptional()
+  @IsString()
+  toneOfVoice?: string;
+
+  @IsOptional()
+  @IsString()
+  targetAudience?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  services?: string;
+
+  @IsOptional()
+  @IsString()
+  objectives?: string;
+
+  @IsOptional()
+  @IsString()
+  prohibitedTerms?: string;
+
+  @IsOptional()
+  @IsString()
+  hashtags?: string;
+
+  @IsOptional()
+  @IsString()
+  references?: string;
+
+  @IsOptional()
+  @IsString()
+  mlabsProfileId?: string;
 
   @IsArray()
   @ArrayMinSize(1)
@@ -164,6 +236,30 @@ export class CreateCalendarDto {
   @ArrayMaxSize(31)
   @IsDateString({}, { each: true })
   postingDays!: string[];
+
+  @IsOptional()
+  @IsDateString()
+  planningDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  planningApprovalDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  artworkDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  artworkApprovalDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  schedulingDueAt?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  generateSkeleton?: boolean;
 }
 
 export class UpdateCalendarDto {
@@ -182,6 +278,27 @@ export class UpdateCalendarDto {
   @ArrayMaxSize(31)
   @IsDateString({}, { each: true })
   postingDays!: string[];
+
+  @IsOptional()
+  @IsDateString()
+  planningDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  planningApprovalDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  artworkDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  artworkApprovalDueAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  schedulingDueAt?: string;
+
 }
 
 export class CreateContentFormatDto {
@@ -387,3 +504,95 @@ export class CreateCommemorativeDateDto {
 }
 
 export class UpdateCommemorativeDateDto extends CreateCommemorativeDateDto {}
+
+
+export class CreateContentCommentDto {
+  @IsString()
+  @MinLength(1)
+  message!: string;
+
+  @IsOptional()
+  @IsBoolean()
+  visibleToClient?: boolean;
+}
+
+export class CreateBriefingTemplateDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  niche?: string;
+
+  @IsEnum(ContentType)
+  contentType!: ContentType;
+
+  @IsOptional()
+  @IsString()
+  theme?: string;
+
+  @IsOptional()
+  @IsString()
+  headline?: string;
+
+  @IsOptional()
+  @IsString()
+  subheadline?: string;
+
+  @IsOptional()
+  @IsString()
+  caption?: string;
+
+  @IsOptional()
+  @IsString()
+  designerNotes?: string;
+
+  @IsBoolean()
+  publishToFeed!: boolean;
+
+  @IsBoolean()
+  publishToStories!: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
+}
+
+export class UpdateBriefingTemplateDto extends CreateBriefingTemplateDto {}
+
+export class UpdateContentMetricsDto {
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  reach?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  impressions?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  likes?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  comments?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  shares?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  saves?: number;
+}

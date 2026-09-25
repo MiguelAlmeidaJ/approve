@@ -2,9 +2,12 @@ import Link from "next/link";
 import {
   FiAtSign,
   FiBriefcase,
+  FiCompass,
   FiFolder,
+  FiHash,
   FiKey,
   FiLock,
+  FiMessageSquare,
   FiPhone,
   FiRepeat,
   FiShield,
@@ -153,6 +156,116 @@ export function ClientForm({
             Ao criar um calendário, esses dias já virão selecionados. Ainda será
             possível ajustar datas específicas em cada mês.
           </p>
+        </section>
+
+        <section className="client-form-section client-strategy-section">
+          <div className="client-form-section-head">
+            <span className="client-form-icon">
+              <FiCompass aria-hidden="true" />
+            </span>
+            <div>
+              <strong>Estratégia do cliente</strong>
+              <small>
+                Contexto permanente para briefings, calendário e produção.
+              </small>
+            </div>
+          </div>
+
+          <div className="client-form-grid client-strategy-grid">
+            <label className="field">
+              <span>Região / praça</span>
+              <input
+                name="region"
+                defaultValue={client?.region ?? ""}
+                placeholder="Ex.: Cabo Frio e Região dos Lagos"
+              />
+            </label>
+
+            <label className="field">
+              <span>Perfil mLabs</span>
+              <input
+                name="mlabsProfileId"
+                defaultValue={client?.mlabsProfileId ?? ""}
+                placeholder="ID do perfil quando a integração for conectada"
+              />
+            </label>
+
+            <label className="field field-span-2">
+              <span>Público-alvo</span>
+              <textarea
+                name="targetAudience"
+                rows={3}
+                defaultValue={client?.targetAudience ?? ""}
+                placeholder="Quem queremos atingir, dores, contexto e comportamento..."
+              />
+            </label>
+
+            <label className="field field-span-2">
+              <span>Tom de voz</span>
+              <textarea
+                name="toneOfVoice"
+                rows={3}
+                defaultValue={client?.toneOfVoice ?? ""}
+                placeholder="Ex.: próximo, simples, técnico sem ser frio, evitar formalidade..."
+              />
+            </label>
+
+            <label className="field field-span-2">
+              <span>Serviços / produtos prioritários</span>
+              <textarea
+                name="services"
+                rows={3}
+                defaultValue={client?.services ?? ""}
+                placeholder="Liste os serviços, produtos ou categorias que precisam aparecer com frequência."
+              />
+            </label>
+
+            <label className="field field-span-2">
+              <span>Objetivos de comunicação</span>
+              <textarea
+                name="objectives"
+                rows={3}
+                defaultValue={client?.objectives ?? ""}
+                placeholder="Ex.: gerar autoridade, aumentar procura, educar clientes, divulgar lançamentos..."
+              />
+            </label>
+
+            <label className="field">
+              <span>
+                <FiHash aria-hidden="true" />
+                Hashtags / termos recorrentes
+              </span>
+              <textarea
+                name="hashtags"
+                rows={3}
+                defaultValue={client?.hashtags ?? ""}
+                placeholder="#cliente #segmento..."
+              />
+            </label>
+
+            <label className="field">
+              <span>
+                <FiMessageSquare aria-hidden="true" />
+                Palavras / temas a evitar
+              </span>
+              <textarea
+                name="prohibitedTerms"
+                rows={3}
+                defaultValue={client?.prohibitedTerms ?? ""}
+                placeholder="Termos proibidos, promessas que não podem ser feitas..."
+              />
+            </label>
+
+            <label className="field field-span-2">
+              <span>Referências e concorrentes</span>
+              <textarea
+                name="references"
+                rows={3}
+                defaultValue={client?.references ?? ""}
+                placeholder="Perfis de referência, concorrentes, links e observações estratégicas..."
+              />
+            </label>
+          </div>
         </section>
 
         <section className="client-form-section">

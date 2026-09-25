@@ -7,21 +7,26 @@ import {
 import {
   CalendarStage,
   Channel,
+  CommentAuthorType,
   CommemorativeScope,
   ContentStage,
   ContentStatus,
   ContentType,
+  NotificationType,
   UserRole
 } from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
+import { sendWorkflowEmail } from "../auth/smtp-mailer";
 import type { InternalActor } from "../common/internal-actor";
 import { NextcloudService } from "../nextcloud/nextcloud.service";
 import { PrismaService } from "../prisma.service";
 import {
   AssignClientDto,
   AttachArtworkDto,
+  CreateBriefingTemplateDto,
   CreateCalendarDto,
   CreateCommemorativeDateDto,
+  CreateContentCommentDto,
   CreateClientDto,
   CreateContentFormatDto,
   CreateContentItemDto,
@@ -30,10 +35,12 @@ import {
   MarkScheduledDto,
   MarkSchedulingErrorDto,
   MoveContentItemDto,
+  UpdateBriefingTemplateDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateCommemorativeDateDto,
   UpdateContentFormatDto,
+  UpdateContentMetricsDto,
   UpdatePlanningItemDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -443,13 +450,26 @@ export class AdminService {
           include: {
             formatPreset: true,
             assets: {
+              where: { active: true },
               orderBy: {
                 sortOrder: "asc"
               }
             },
             reviews: {
               orderBy: { createdAt: "desc" },
-              take: 1
+              take: 4
+            },
+            comments: {
+              orderBy: { createdAt: "asc" },
+              include: {
+                authorDesigner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    role: true
+                  }
+                }
+              }
             }
           }
         },
@@ -803,6 +823,15 @@ export class AdminService {
         phone: dto.phone.trim(),
         nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath),
         assignedDesignerId,
+        toneOfVoice: dto.toneOfVoice?.trim() || null,
+        targetAudience: dto.targetAudience?.trim() || null,
+        region: dto.region?.trim() || null,
+        services: dto.services?.trim() || null,
+        objectives: dto.objectives?.trim() || null,
+        prohibitedTerms: dto.prohibitedTerms?.trim() || null,
+        hashtags: dto.hashtags?.trim() || null,
+        references: dto.references?.trim() || null,
+        mlabsProfileId: dto.mlabsProfileId?.trim() || null,
         postingWeekdays: {
           create: dto.postingWeekdays.map((weekday) => ({ weekday }))
         },
@@ -863,6 +892,15 @@ export class AdminService {
         name: dto.name.trim(),
         niche: dto.niche.trim(),
         phone: dto.phone.trim(),
+        toneOfVoice: dto.toneOfVoice?.trim() || null,
+        targetAudience: dto.targetAudience?.trim() || null,
+        region: dto.region?.trim() || null,
+        services: dto.services?.trim() || null,
+        objectives: dto.objectives?.trim() || null,
+        prohibitedTerms: dto.prohibitedTerms?.trim() || null,
+        hashtags: dto.hashtags?.trim() || null,
+        references: dto.references?.trim() || null,
+        mlabsProfileId: dto.mlabsProfileId?.trim() || null,
         ...(dto.nextcloudPath !== undefined
           ? { nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath) }
           : {}),
@@ -944,13 +982,18 @@ export class AdminService {
       dto.postingDays
     );
 
-    return this.prisma.calendar.create({
+    const calendar = await this.prisma.calendar.create({
       data: {
         clientId: dto.clientId,
         title: dto.title.trim(),
         periodStart: dates.periodStart,
         periodEnd: dates.periodEnd,
         shareToken: randomBytes(24).toString("hex"),
+        planningDueAt: this.optionalDate(dto.planningDueAt),
+        planningApprovalDueAt: this.optionalDate(dto.planningApprovalDueAt),
+        artworkDueAt: this.optionalDate(dto.artworkDueAt),
+        artworkApprovalDueAt: this.optionalDate(dto.artworkApprovalDueAt),
+        schedulingDueAt: this.optionalDate(dto.schedulingDueAt),
         postingDays: {
           create: dates.postingDays.map((scheduledDate) => ({
             scheduledDate
@@ -963,6 +1006,16 @@ export class AdminService {
         }
       }
     });
+
+    if (dto.generateSkeleton !== false) {
+      await this.generatePlanningSkeleton(
+        calendar.id,
+        dto.clientId,
+        dates.postingDays
+      );
+    }
+
+    return this.getCalendar(actor, calendar.id);
   }
 
   async updateCalendar(
@@ -1022,7 +1075,12 @@ export class AdminService {
         data: {
           title: dto.title.trim(),
           periodStart: dates.periodStart,
-          periodEnd: dates.periodEnd
+          periodEnd: dates.periodEnd,
+          planningDueAt: this.optionalDate(dto.planningDueAt),
+          planningApprovalDueAt: this.optionalDate(dto.planningApprovalDueAt),
+          artworkDueAt: this.optionalDate(dto.artworkDueAt),
+          artworkApprovalDueAt: this.optionalDate(dto.artworkApprovalDueAt),
+          schedulingDueAt: this.optionalDate(dto.schedulingDueAt)
         }
       }),
       this.prisma.calendarPostingDay.deleteMany({
@@ -1114,7 +1172,8 @@ export class AdminService {
         publishToStories: dto.publishToStories,
         caption: dto.caption.trim(),
         status: ContentStatus.DRAFT,
-        stage: ContentStage.PLANNING
+        stage: ContentStage.PLANNING,
+        planningReady: true
       }
     });
   }
@@ -1183,7 +1242,8 @@ export class AdminService {
             ? ContentStatus.PENDING_APPROVAL
             : ContentStatus.DRAFT,
         planningApprovedAt: null,
-        reviewedAt: null
+        reviewedAt: null,
+        planningReady: true
       }
     });
   }
@@ -1214,6 +1274,20 @@ export class AdminService {
       );
     }
 
+    const unfinished = await this.prisma.contentItem.findFirst({
+      where: {
+        calendarId,
+        planningReady: false
+      },
+      select: { title: true }
+    });
+
+    if (unfinished) {
+      throw new BadRequestException(
+        `Finalize o briefing de "${unfinished.title}" antes de enviar o pré-calendário.`
+      );
+    }
+
     await this.prisma.$transaction([
       this.prisma.calendar.update({
         where: { id: calendarId },
@@ -1238,6 +1312,19 @@ export class AdminService {
       })
     ]);
 
+    await sendWorkflowEmail({
+      to: calendar.client.credential?.email,
+      subject: `Pré-calendário para aprovação · ${calendar.title}`,
+      lines: [
+        `Olá, ${calendar.client.name}.`,
+        "",
+        `O pré-calendário "${calendar.title}" está disponível para aprovação.`,
+        "Acesse o link enviado pela equipe da Terceiro Andar para revisar tema, headline, legenda e datas.",
+        "",
+        "Terceiro Andar · Aprovação"
+      ]
+    });
+
     return this.getCalendar(actor, calendarId);
   }
 
@@ -1254,7 +1341,8 @@ export class AdminService {
         contentType: true,
         publishToFeed: true,
         publishToStories: true,
-        stage: true
+        stage: true,
+        artworkVersion: true
       }
     });
 
@@ -1338,9 +1426,17 @@ export class AdminService {
       );
     }
 
+    const nextVersion = item.artworkVersion + 1;
+
     await this.prisma.$transaction([
-      this.prisma.contentAsset.deleteMany({
-        where: { contentItemId }
+      this.prisma.contentAsset.updateMany({
+        where: {
+          contentItemId,
+          active: true
+        },
+        data: {
+          active: false
+        }
       }),
       this.prisma.contentItem.update({
         where: { id: contentItemId },
@@ -1351,6 +1447,7 @@ export class AdminService {
           status: ContentStatus.DRAFT,
           artworkApprovedAt: null,
           reviewedAt: null,
+          artworkVersion: nextVersion,
           assets: {
             create: assets.map((asset, index) => ({
               filePath: asset.storedPath,
@@ -1358,7 +1455,9 @@ export class AdminService {
               fileId: asset.fileId,
               mimeType: asset.mimeType,
               etag: asset.etag,
-              sortOrder: index
+              sortOrder: index,
+              version: nextVersion,
+              active: true
             }))
           }
         }
@@ -1387,6 +1486,7 @@ export class AdminService {
       where: { calendarId },
       include: {
         assets: {
+          where: { active: true },
           select: { id: true }
         }
       }
@@ -1423,6 +1523,19 @@ export class AdminService {
         }
       })
     ]);
+
+    await sendWorkflowEmail({
+      to: calendar.client.credential?.email,
+      subject: `Artes para aprovação · ${calendar.title}`,
+      lines: [
+        `Olá, ${calendar.client.name}.`,
+        "",
+        `As artes do calendário "${calendar.title}" estão disponíveis para aprovação final.`,
+        "Use o link público do calendário para revisar as peças e enviar ajustes quando necessário.",
+        "",
+        "Terceiro Andar · Aprovação"
+      ]
+    });
 
     return this.getCalendar(actor, calendarId);
   }
@@ -1537,6 +1650,14 @@ export class AdminService {
         stage: ContentStage.SCHEDULING_ERROR,
         publishingError: dto.message.trim()
       }
+    });
+
+    await this.createNotification({
+      designerId: actor.id,
+      type: NotificationType.PUBLISHING,
+      title: "Falha na programação",
+      message: dto.message.trim(),
+      link: `/calendars/${item.calendarId}`
     });
 
     await this.syncCalendarPublishingStage(item.calendarId);
@@ -1717,9 +1838,23 @@ export class AdminService {
         client: {
           select: {
             id: true,
+            name: true,
             slug: true,
             nextcloudPath: true,
-            active: true
+            active: true,
+            assignedDesignerId: true,
+            credential: {
+              select: {
+                email: true
+              }
+            },
+            assignedDesigner: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
           }
         },
         postingDays: true,
@@ -1738,6 +1873,384 @@ export class AdminService {
     }
 
     return calendar;
+  }
+
+  listBriefingTemplates(_actor: InternalActor) {
+    return this.prisma.briefingTemplate.findMany({
+      orderBy: [{ active: "desc" }, { name: "asc" }]
+    });
+  }
+
+  async createBriefingTemplate(
+    actor: InternalActor,
+    dto: CreateBriefingTemplateDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.ensurePlacement(dto.publishToFeed, dto.publishToStories);
+
+    return this.prisma.briefingTemplate.create({
+      data: {
+        name: dto.name.trim(),
+        description: dto.description?.trim() || null,
+        niche: dto.niche?.trim() || null,
+        contentType: dto.contentType,
+        theme: dto.theme?.trim() || null,
+        headline: dto.headline?.trim() || null,
+        subheadline: dto.subheadline?.trim() || null,
+        caption: dto.caption?.trim() || null,
+        designerNotes: dto.designerNotes?.trim() || null,
+        publishToFeed: dto.publishToFeed,
+        publishToStories: dto.publishToStories,
+        active: dto.active ?? true
+      }
+    });
+  }
+
+  async updateBriefingTemplate(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateBriefingTemplateDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.ensurePlacement(dto.publishToFeed, dto.publishToStories);
+
+    const existing = await this.prisma.briefingTemplate.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      throw new NotFoundException("Modelo de pauta não encontrado.");
+    }
+
+    return this.prisma.briefingTemplate.update({
+      where: { id },
+      data: {
+        name: dto.name.trim(),
+        description: dto.description?.trim() || null,
+        niche: dto.niche?.trim() || null,
+        contentType: dto.contentType,
+        theme: dto.theme?.trim() || null,
+        headline: dto.headline?.trim() || null,
+        subheadline: dto.subheadline?.trim() || null,
+        caption: dto.caption?.trim() || null,
+        designerNotes: dto.designerNotes?.trim() || null,
+        publishToFeed: dto.publishToFeed,
+        publishToStories: dto.publishToStories,
+        active: dto.active ?? true
+      }
+    });
+  }
+
+  async listNotifications(actor: InternalActor) {
+    const calendars = await this.prisma.calendar.findMany({
+      where: {
+        archivedAt: null,
+        stage: {
+          notIn: [CalendarStage.COMPLETED, CalendarStage.ARCHIVED]
+        },
+        ...(actor.role === UserRole.DESIGNER
+          ? {
+              client: {
+                assignedDesignerId: actor.id
+              }
+            }
+          : {})
+      },
+      select: {
+        id: true,
+        title: true,
+        stage: true,
+        planningDueAt: true,
+        planningApprovalDueAt: true,
+        artworkDueAt: true,
+        artworkApprovalDueAt: true,
+        schedulingDueAt: true,
+        client: {
+          select: { name: true }
+        }
+      }
+    });
+
+    const now = new Date();
+
+    for (const calendar of calendars) {
+      const dueAt =
+        calendar.stage === CalendarStage.PLANNING
+          ? calendar.planningDueAt
+          : calendar.stage === CalendarStage.PRE_APPROVAL
+            ? calendar.planningApprovalDueAt
+            : calendar.stage === CalendarStage.PRODUCTION
+              ? calendar.artworkDueAt
+              : calendar.stage === CalendarStage.FINAL_APPROVAL
+                ? calendar.artworkApprovalDueAt
+                : calendar.stage === CalendarStage.SCHEDULING
+                  ? calendar.schedulingDueAt
+                  : null;
+
+      if (!dueAt || dueAt >= now) {
+        continue;
+      }
+
+      const link = `/calendars/${calendar.id}`;
+      const existing = await this.prisma.notification.findFirst({
+        where: {
+          designerId: actor.id,
+          type: NotificationType.DEADLINE,
+          link,
+          readAt: null
+        },
+        select: { id: true }
+      });
+
+      if (!existing) {
+        await this.prisma.notification.create({
+          data: {
+            designerId: actor.id,
+            type: NotificationType.DEADLINE,
+            title: "Prazo vencido",
+            message: `${calendar.client.name} · ${calendar.title} está com a etapa atual atrasada.`,
+            link
+          }
+        });
+      }
+    }
+
+    return this.prisma.notification.findMany({
+      where: { designerId: actor.id },
+      orderBy: { createdAt: "desc" },
+      take: 60
+    });
+  }
+
+  async markNotificationRead(actor: InternalActor, id: string) {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        id,
+        designerId: actor.id
+      },
+      select: { id: true }
+    });
+
+    if (!notification) {
+      throw new NotFoundException("Notificação não encontrada.");
+    }
+
+    return this.prisma.notification.update({
+      where: { id },
+      data: { readAt: new Date() }
+    });
+  }
+
+  async addContentComment(
+    actor: InternalActor,
+    itemId: string,
+    dto: CreateContentCommentDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: itemId },
+      select: {
+        id: true,
+        calendarId: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    await this.assertCalendarAccess(actor, item.calendarId);
+
+    return this.prisma.contentComment.create({
+      data: {
+        contentItemId: itemId,
+        authorType: CommentAuthorType.INTERNAL,
+        authorDesignerId: actor.id,
+        authorName: actor.name,
+        message: dto.message.trim(),
+        visibleToClient: dto.visibleToClient ?? false
+      },
+      include: {
+        authorDesigner: {
+          select: {
+            id: true,
+            name: true,
+            role: true
+          }
+        }
+      }
+    });
+  }
+
+  async getArtworkVersions(actor: InternalActor, itemId: string) {
+    const item = await this.prisma.contentItem.findFirst({
+      where: {
+        id: itemId,
+        ...(actor.role === UserRole.DESIGNER
+          ? {
+              calendar: {
+                client: {
+                  assignedDesignerId: actor.id
+                }
+              }
+            }
+          : {})
+      },
+      select: {
+        id: true,
+        artworkVersion: true,
+        assets: {
+          orderBy: [{ version: "desc" }, { sortOrder: "asc" }],
+          select: {
+            id: true,
+            fileName: true,
+            mimeType: true,
+            sortOrder: true,
+            version: true,
+            active: true,
+            createdAt: true
+          }
+        }
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    return item;
+  }
+
+  async updateContentMetrics(
+    actor: InternalActor,
+    itemId: string,
+    dto: UpdateContentMetricsDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: itemId },
+      select: { id: true, stage: true }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    if (item.stage !== ContentStage.PUBLISHED) {
+      throw new BadRequestException(
+        "Métricas só podem ser registradas para conteúdos publicados."
+      );
+    }
+
+    return this.prisma.contentItem.update({
+      where: { id: itemId },
+      data: {
+        metricReach: dto.reach ?? null,
+        metricImpressions: dto.impressions ?? null,
+        metricLikes: dto.likes ?? null,
+        metricComments: dto.comments ?? null,
+        metricShares: dto.shares ?? null,
+        metricSaves: dto.saves ?? null,
+        metricsUpdatedAt: new Date()
+      }
+    });
+  }
+
+  private optionalDate(value?: string) {
+    return value ? new Date(value) : null;
+  }
+
+  private async generatePlanningSkeleton(
+    calendarId: string,
+    clientId: string,
+    postingDays: Date[]
+  ) {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+      select: {
+        niche: true,
+        region: true
+      }
+    });
+
+    const commemorativeDates = await this.prisma.commemorativeDate.findMany({
+      where: {
+        active: true,
+        OR: [{ clientId: null }, { clientId }]
+      }
+    });
+
+    const items = postingDays.map((scheduledDate, index) => {
+      const day = scheduledDate.getUTCDate();
+      const month = scheduledDate.getUTCMonth() + 1;
+      const year = scheduledDate.getUTCFullYear();
+      const exactDates = commemorativeDates.filter(
+        (date) =>
+          date.day === day &&
+          date.month === month &&
+          (date.year === null || date.year === year)
+      );
+      const opportunity =
+        exactDates.find((date) => {
+          if (!date.tags) {
+            return false;
+          }
+
+          const tags = date.tags.toLowerCase();
+          return Boolean(
+            (client?.niche && tags.includes(client.niche.toLowerCase())) ||
+            (client?.region && tags.includes(client.region.toLowerCase()))
+          );
+        }) ?? exactDates[0];
+
+      return {
+        calendarId,
+        title: opportunity
+          ? opportunity.name
+          : `Pauta ${String(index + 1).padStart(2, "0")}`,
+        theme: opportunity?.name ?? "Definir pauta",
+        headline: "Definir headline",
+        subheadline: null,
+        designerNotes: opportunity?.description ?? null,
+        scheduledAt: new Date(Date.UTC(year, month - 1, day, 15, 0, 0)),
+        channel: Channel.INSTAGRAM,
+        contentType: ContentType.POST,
+        format: "A definir na produção",
+        publishToFeed: true,
+        publishToStories: false,
+        caption: "Definir legenda",
+        status: ContentStatus.DRAFT,
+        stage: ContentStage.PLANNING,
+        planningReady: false,
+        sortOrder: index
+      };
+    });
+
+    if (items.length > 0) {
+      await this.prisma.contentItem.createMany({ data: items });
+    }
+  }
+
+  private async createNotification(input: {
+    designerId?: string | null;
+    type: NotificationType;
+    title: string;
+    message: string;
+    link?: string;
+  }) {
+    if (!input.designerId) {
+      return;
+    }
+
+    await this.prisma.notification.create({
+      data: {
+        designerId: input.designerId,
+        type: input.type,
+        title: input.title,
+        message: input.message,
+        link: input.link ?? null
+      }
+    });
   }
 
   private validateCommemorativeDate(

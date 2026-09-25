@@ -145,10 +145,10 @@ function dotStuff(value: string) {
     .join("\r\n");
 }
 
-export async function sendTemporaryPasswordEmail(input: {
+export async function sendTextEmail(input: {
   to: string;
-  name: string;
-  temporaryPassword: string;
+  subject: string;
+  body: string;
 }) {
   const host = process.env.SMTP_HOST?.trim();
   const port = Number(process.env.SMTP_PORT ?? 587);
@@ -249,7 +249,32 @@ export async function sendTemporaryPasswordEmail(input: {
   await command(socket, reader, `RCPT TO:<${input.to}>`, 250, 251);
   await command(socket, reader, "DATA", 354);
 
-  const loginUrl = `${(process.env.APP_URL ?? "http://localhost:5005").replace(/\/$/, "")}/login`;
+  const message = [
+    `From: ${from}`,
+    `To: ${input.to}`,
+    `Subject: ${input.subject}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/plain; charset=UTF-8",
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    dotStuff(input.body),
+    "."
+  ].join("\r\n");
+
+  socket.write(`${message}\r\n`);
+  assertResponse(await reader.read(), 250);
+
+  socket.write("QUIT\r\n");
+  socket.end();
+}
+
+
+export async function sendTemporaryPasswordEmail(input: {
+  to: string;
+  name: string;
+  temporaryPassword: string;
+}) {
+  const loginUrl = `${(process.env.APP_URL ?? "http://localhost:4334").replace(/\/$/, "")}/login`;
   const body = [
     `Olá, ${input.name}.`,
     "",
@@ -263,21 +288,33 @@ export async function sendTemporaryPasswordEmail(input: {
     "Se você não solicitou esta recuperação, entre em contato com a equipe responsável."
   ].join("\n");
 
-  const message = [
-    `From: ${from}`,
-    `To: ${input.to}`,
-    "Subject: Nova senha temporaria - Terceiro Andar",
-    "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    dotStuff(body),
-    "."
-  ].join("\r\n");
+  return sendTextEmail({
+    to: input.to,
+    subject: "Nova senha temporaria - Terceiro Andar",
+    body
+  });
+}
 
-  socket.write(`${message}\r\n`);
-  assertResponse(await reader.read(), 250);
+export async function sendWorkflowEmail(input: {
+  to?: string | null;
+  subject: string;
+  lines: string[];
+}) {
+  const to = input.to?.trim();
 
-  socket.write("QUIT\r\n");
-  socket.end();
+  if (!to || !process.env.SMTP_HOST?.trim()) {
+    return false;
+  }
+
+  try {
+    await sendTextEmail({
+      to,
+      subject: input.subject,
+      body: input.lines.join("\n")
+    });
+    return true;
+  } catch (error) {
+    console.error("[mail] Falha ao enviar notificação de workflow.", error);
+    return false;
+  }
 }

@@ -2,6 +2,14 @@ import { cookies } from "next/headers";
 
 export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
 export type CommemorativeScope = "NATIONAL" | "CUSTOM";
+export type CommentAuthorType = "INTERNAL" | "CLIENT" | "SYSTEM";
+export type NotificationType =
+  | "INFO"
+  | "ACTION"
+  | "APPROVAL"
+  | "CHANGE"
+  | "DEADLINE"
+  | "PUBLISHING";
 export type ContentType = "POST" | "CAROUSEL" | "REEL" | "STORY";
 
 export type ContentStatus =
@@ -93,6 +101,15 @@ export type ContentItem = {
   externalScheduleId: string | null;
   publishedAt: string | null;
   publishingError: string | null;
+  planningReady: boolean;
+  artworkVersion: number;
+  metricReach: number | null;
+  metricImpressions: number | null;
+  metricLikes: number | null;
+  metricComments: number | null;
+  metricShares: number | null;
+  metricSaves: number | null;
+  metricsUpdatedAt: string | null;
   reviews?: Array<{
     id: string;
     action: "APPROVED" | "CHANGES_REQUESTED";
@@ -100,6 +117,19 @@ export type ContentItem = {
     message: string | null;
     reviewerName: string | null;
     createdAt: string;
+  }>;
+  comments?: Array<{
+    id: string;
+    authorType: CommentAuthorType;
+    authorName: string | null;
+    message: string;
+    visibleToClient?: boolean;
+    createdAt: string;
+    authorDesigner?: {
+      id: string;
+      name: string;
+      role: UserRole;
+    } | null;
   }>;
 };
 
@@ -139,6 +169,7 @@ export type CommemorativeDate = {
   city: string | null;
   state: string | null;
   description: string | null;
+  tags: string | null;
   clientId: string | null;
   active: boolean;
   createdAt: string;
@@ -151,6 +182,42 @@ export type CommemorativeDate = {
 
 export type UserListItem = DesignerListItem;
 
+export type BriefingTemplate = {
+  id: string;
+  name: string;
+  description: string | null;
+  niche: string | null;
+  contentType: ContentType;
+  theme: string | null;
+  headline: string | null;
+  subheadline: string | null;
+  caption: string | null;
+  designerNotes: string | null;
+  publishToFeed: boolean;
+  publishToStories: boolean;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Notification = {
+  id: string;
+  designerId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  link: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type ArtworkVersionResult = {
+  id: string;
+  artworkVersion: number;
+  assets: ContentAsset[];
+};
+
+
 export type Calendar = {
   id: string;
   clientId: string;
@@ -159,6 +226,11 @@ export type Calendar = {
   periodEnd: string;
   shareToken: string;
   stage: CalendarStage;
+  planningDueAt: string | null;
+  planningApprovalDueAt: string | null;
+  artworkDueAt: string | null;
+  artworkApprovalDueAt: string | null;
+  schedulingDueAt: string | null;
   archivedAt: string | null;
   postingDays: CalendarPostingDay[];
   contentItems: ContentItem[];
@@ -172,6 +244,15 @@ export type Client = {
   phone: string | null;
   nextcloudPath: string | null;
   assignedDesignerId: string | null;
+  toneOfVoice: string | null;
+  targetAudience: string | null;
+  region: string | null;
+  services: string | null;
+  objectives: string | null;
+  prohibitedTerms: string | null;
+  hashtags: string | null;
+  references: string | null;
+  mlabsProfileId: string | null;
   active: boolean;
   credential?: {
     email: string;
@@ -190,6 +271,16 @@ export type CalendarWithClient = Calendar & {
     phone: string | null;
     nextcloudPath: string | null;
     assignedDesignerId: string | null;
+    toneOfVoice: string | null;
+    targetAudience: string | null;
+    region: string | null;
+    services: string | null;
+    objectives: string | null;
+    prohibitedTerms: string | null;
+    hashtags: string | null;
+    references: string | null;
+    mlabsProfileId: string | null;
+
     active: boolean;
     credential?: {
       email: string;
@@ -279,6 +370,22 @@ export async function getUsers(): Promise<UserListItem[]> {
 
 export async function getFormats(): Promise<ContentFormat[]> {
   return (await adminGet<ContentFormat[]>("/api/admin/formats")) ?? [];
+}
+
+export async function getBriefingTemplates(): Promise<BriefingTemplate[]> {
+  return (
+    (await adminGet<BriefingTemplate[]>("/api/admin/briefing-templates")) ?? []
+  );
+}
+
+export async function getNotifications(): Promise<Notification[]> {
+  return (await adminGet<Notification[]>("/api/admin/notifications")) ?? [];
+}
+
+export function getArtworkVersions(itemId: string) {
+  return adminGet<ArtworkVersionResult>(
+    `/api/admin/items/${encodeURIComponent(itemId)}/artwork-versions`
+  );
 }
 
 export async function getCommemorativeDates(): Promise<CommemorativeDate[]> {

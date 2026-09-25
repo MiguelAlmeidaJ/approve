@@ -174,6 +174,7 @@ export class NextcloudService {
     const asset = await this.prisma.contentAsset.findFirst({
       where: {
         id: assetId,
+        active: true,
         contentItem: {
           stage: {
             in: [

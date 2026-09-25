@@ -70,6 +70,13 @@ export default async function EditCalendarPage({
         initialPostingDays={calendar.postingDays.map((day) =>
           day.scheduledDate.slice(0, 10)
         )}
+        initialDeadlines={{
+          planningDueAt: calendar.planningDueAt,
+          planningApprovalDueAt: calendar.planningApprovalDueAt,
+          artworkDueAt: calendar.artworkDueAt,
+          artworkApprovalDueAt: calendar.artworkApprovalDueAt,
+          schedulingDueAt: calendar.schedulingDueAt
+        }}
       />
     </AppShell>
   );
