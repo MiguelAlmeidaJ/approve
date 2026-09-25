@@ -217,6 +217,18 @@ export default async function TeamPage({
                 />
               </label>
 
+              <label className="field">
+                <span>Capacidade semanal <small>(pontos)</small></span>
+                <input
+                  type="number"
+                  name="weeklyCapacityPoints"
+                  min={1}
+                  max={200}
+                  defaultValue={30}
+                  required
+                />
+              </label>
+
               <div className="team-access-note team-create-note">
                 <FiShield aria-hidden="true" />
                 <span>
@@ -316,6 +328,18 @@ export default async function TeamPage({
                   name="password"
                   minLength={6}
                   placeholder="Mantenha vazio para não alterar"
+                />
+              </label>
+
+              <label className="field">
+                <span>Capacidade semanal <small>(pontos)</small></span>
+                <input
+                  type="number"
+                  name="weeklyCapacityPoints"
+                  min={1}
+                  max={200}
+                  defaultValue={selectedUser.weeklyCapacityPoints ?? 30}
+                  required
                 />
               </label>
               {selectedUser._count.clients > 0 ? (

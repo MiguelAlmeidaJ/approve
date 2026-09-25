@@ -12,7 +12,7 @@ import {
 } from "@approve/database";
 import { sendWorkflowEmail } from "../auth/smtp-mailer";
 import { PrismaService } from "../prisma.service";
-import { ReviewContentDto } from "./public.dto";
+import { CreatePublicAnnotationDto, ReviewContentDto } from "./public.dto";
 
 @Injectable()
 export class PublicService {
@@ -23,6 +23,10 @@ export class PublicService {
       where: {
         shareToken: token,
         archivedAt: null,
+        OR: [
+          { shareExpiresAt: null },
+          { shareExpiresAt: { gt: new Date() } }
+        ],
         stage: {
           notIn: [CalendarStage.PLANNING, CalendarStage.ARCHIVED]
         },
@@ -75,6 +79,23 @@ export class PublicService {
                 message: true,
                 createdAt: true
               }
+            },
+            annotations: {
+              where: {
+                authorType: "CLIENT"
+              },
+              orderBy: { createdAt: "asc" },
+              select: {
+                id: true,
+                assetId: true,
+                authorType: true,
+                authorName: true,
+                x: true,
+                y: true,
+                message: true,
+                resolvedAt: true,
+                createdAt: true
+              }
             }
           }
         }
@@ -97,6 +118,10 @@ export class PublicService {
       where: {
         shareToken: token,
         archivedAt: null,
+        OR: [
+          { shareExpiresAt: null },
+          { shareExpiresAt: { gt: new Date() } }
+        ],
         stage: {
           in: [CalendarStage.PRE_APPROVAL, CalendarStage.FINAL_APPROVAL]
         },
@@ -252,9 +277,117 @@ export class PublicService {
       });
     }
 
+    await this.prisma.auditLog.create({
+      data: {
+        actorName: dto.reviewerName?.trim() || "Cliente",
+        action:
+          dto.action === ReviewAction.APPROVED
+            ? "PUBLIC_REVIEW_APPROVED"
+            : "PUBLIC_REVIEW_CHANGES_REQUESTED",
+        entityType: "ContentItem",
+        entityId: item.id,
+        summary:
+          dto.action === ReviewAction.APPROVED
+            ? `Cliente aprovou "${item.title}".`
+            : `Cliente solicitou alteração em "${item.title}".`
+      }
+    });
+
     await this.syncCalendarAfterReview(calendar.id, phase);
 
     return { ok: true };
+  }
+
+  async createAnnotation(
+    token: string,
+    contentItemId: string,
+    dto: CreatePublicAnnotationDto
+  ) {
+    const calendar = await this.prisma.calendar.findFirst({
+      where: {
+        shareToken: token,
+        archivedAt: null,
+        stage: CalendarStage.FINAL_APPROVAL,
+        OR: [
+          { shareExpiresAt: null },
+          { shareExpiresAt: { gt: new Date() } }
+        ],
+        client: {
+          active: true
+        }
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!calendar) {
+      throw new NotFoundException(
+        "Este calendário não está disponível para marcações."
+      );
+    }
+
+    const item = await this.prisma.contentItem.findFirst({
+      where: {
+        id: contentItemId,
+        calendarId: calendar.id,
+        stage: {
+          in: [
+            ContentStage.ART_APPROVAL_PENDING,
+            ContentStage.ART_CHANGES_REQUESTED
+          ]
+        }
+      },
+      select: {
+        id: true,
+        title: true
+      }
+    });
+
+    if (!item) {
+      throw new BadRequestException(
+        "Esta peça não está disponível para comentários sobre a arte."
+      );
+    }
+
+    if (dto.assetId) {
+      const asset = await this.prisma.contentAsset.findFirst({
+        where: {
+          id: dto.assetId,
+          contentItemId,
+          active: true
+        },
+        select: { id: true }
+      });
+
+      if (!asset) {
+        throw new BadRequestException("A mídia selecionada não está disponível.");
+      }
+    }
+
+    const annotation = await this.prisma.contentAnnotation.create({
+      data: {
+        contentItemId,
+        assetId: dto.assetId ?? null,
+        authorType: "CLIENT",
+        authorName: dto.authorName?.trim() || "Cliente",
+        x: dto.x / 100,
+        y: dto.y / 100,
+        message: dto.message.trim()
+      }
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorName: dto.authorName?.trim() || "Cliente",
+        action: "PUBLIC_ART_ANNOTATION_CREATED",
+        entityType: "ContentItem",
+        entityId: contentItemId,
+        summary: `Cliente marcou um ajuste na arte de "${item.title}".`
+      }
+    });
+
+    return annotation;
   }
 
   private async syncCalendarAfterReview(

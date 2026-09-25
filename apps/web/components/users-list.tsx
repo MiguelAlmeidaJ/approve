@@ -214,7 +214,7 @@ export function UsersList({
                     </strong>
                     <small>
                       {user.role === "DESIGNER"
-                        ? "cliente(s)"
+                        ? `cliente(s) · ${user.weeklyCapacityPoints ?? 30} pts/sem`
                         : "nível de acesso"}
                     </small>
                   </span>

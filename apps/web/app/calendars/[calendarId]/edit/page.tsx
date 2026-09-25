@@ -75,7 +75,8 @@ export default async function EditCalendarPage({
           planningApprovalDueAt: calendar.planningApprovalDueAt,
           artworkDueAt: calendar.artworkDueAt,
           artworkApprovalDueAt: calendar.artworkApprovalDueAt,
-          schedulingDueAt: calendar.schedulingDueAt
+          schedulingDueAt: calendar.schedulingDueAt,
+          shareExpiresAt: calendar.shareExpiresAt
         }}
       />
     </AppShell>
