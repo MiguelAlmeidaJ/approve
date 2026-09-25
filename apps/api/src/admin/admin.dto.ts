@@ -19,6 +19,7 @@ import {
   IsUrl,
   Matches,
   Max,
+  MaxLength,
   Min,
   MinLength
 } from "class-validator";
