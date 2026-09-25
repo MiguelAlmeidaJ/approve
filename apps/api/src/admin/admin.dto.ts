@@ -496,6 +496,10 @@ export class CreateCommemorativeDateDto {
 
   @IsOptional()
   @IsString()
+  tags?: string;
+
+  @IsOptional()
+  @IsString()
   clientId?: string;
 
   @IsOptional()
