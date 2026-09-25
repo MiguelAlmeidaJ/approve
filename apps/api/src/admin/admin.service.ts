@@ -2492,6 +2492,8 @@ export class AdminService {
         entityId: input.entityId,
         summary: input.summary,
         metadata: input.metadata
+          ? JSON.parse(JSON.stringify(input.metadata))
+          : undefined
       }
     });
   }
