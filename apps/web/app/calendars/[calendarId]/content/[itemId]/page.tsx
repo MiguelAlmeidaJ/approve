@@ -7,6 +7,7 @@ import {
   FiClock,
   FiEdit3,
   FiImage,
+  FiMapPin,
   FiMessageCircle,
   FiRefreshCw,
   FiSend
@@ -14,6 +15,7 @@ import {
 import { AppShell } from "../../../../../components/app-shell";
 import {
   addContentComment,
+  resolveContentAnnotation,
   updateContentMetrics
 } from "../../../../actions";
 import { requireDesigner } from "../../../../../lib/auth";
@@ -63,6 +65,18 @@ export default async function ContentDetailPage({
   }
   const versionEntries = [...groupedVersions.entries()].sort(
     (a, b) => b[0] - a[0]
+  );
+  const currentImage = versionEntries[0]?.[1].find(
+    (asset) => asset.mimeType?.startsWith("image/")
+  );
+  const previousImage = versionEntries[1]?.[1].find(
+    (asset) => asset.mimeType?.startsWith("image/")
+  );
+  const currentAnnotations = (item.annotations ?? []).filter(
+    (annotation) =>
+      !currentImage?.id ||
+      annotation.assetId === currentImage.id ||
+      annotation.assetId === null
   );
   const canEditMetrics =
     (designer.role === "ADMIN" || designer.role === "DEV") &&
@@ -122,6 +136,75 @@ export default async function ContentDetailPage({
               </div>
             ) : null}
           </section>
+
+          {currentImage && currentAnnotations.length > 0 ? (
+            <section className="content-detail-card">
+              <div className="content-detail-card-head">
+                <div>
+                  <span className="micro-label">FEEDBACK VISUAL</span>
+                  <h2>Marcações na arte</h2>
+                </div>
+                <FiMapPin aria-hidden="true" />
+              </div>
+
+              <div className="internal-annotation-preview">
+                <img
+                  src={`/api/media/${currentImage.id}`}
+                  alt={item.title}
+                />
+                {currentAnnotations.map((annotation, index) => (
+                  <span
+                    className={
+                      annotation.resolvedAt
+                        ? "internal-annotation-pin resolved"
+                        : "internal-annotation-pin"
+                    }
+                    style={{
+                      left: `${annotation.x}%`,
+                      top: `${annotation.y}%`
+                    }}
+                    title={annotation.message}
+                    key={annotation.id}
+                  >
+                    {index + 1}
+                  </span>
+                ))}
+              </div>
+
+              <div className="internal-annotation-list">
+                {currentAnnotations.map((annotation, index) => (
+                  <article
+                    className={annotation.resolvedAt ? "resolved" : ""}
+                    key={annotation.id}
+                  >
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{annotation.authorName || "Cliente"}</strong>
+                      <p>{annotation.message}</p>
+                      <small>
+                        {annotation.resolvedAt
+                          ? `Resolvida · ${formatDate(annotation.resolvedAt)}`
+                          : formatDate(annotation.createdAt)}
+                      </small>
+                    </div>
+                    <form action={resolveContentAnnotation}>
+                      <input type="hidden" name="calendarId" value={calendar.id} />
+                      <input type="hidden" name="itemId" value={item.id} />
+                      <input type="hidden" name="annotationId" value={annotation.id} />
+                      <input
+                        type="hidden"
+                        name="resolved"
+                        value={annotation.resolvedAt ? "false" : "true"}
+                      />
+                      <button type="submit" className="button button-ghost button-small">
+                        {annotation.resolvedAt ? "Reabrir" : "Resolver"}
+                      </button>
+                    </form>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className="content-detail-card">
             <div className="content-detail-card-head">
@@ -215,6 +298,32 @@ export default async function ContentDetailPage({
         </div>
 
         <aside className="content-detail-side">
+          {currentImage && previousImage ? (
+            <section className="content-detail-card">
+              <div className="content-detail-card-head">
+                <div>
+                  <span className="micro-label">COMPARAÇÃO</span>
+                  <h2>V{versionEntries[0][0]} × V{versionEntries[1][0]}</h2>
+                </div>
+              </div>
+              <div className="art-version-comparison">
+                <figure>
+                  <img
+                    src={`/api/media/${previousImage.id}`}
+                    alt={`Versão ${versionEntries[1][0]}`}
+                  />
+                  <figcaption>Versão {versionEntries[1][0]}</figcaption>
+                </figure>
+                <figure className="current">
+                  <img
+                    src={`/api/media/${currentImage.id}`}
+                    alt={`Versão ${versionEntries[0][0]}`}
+                  />
+                  <figcaption>Versão {versionEntries[0][0]} · atual</figcaption>
+                </figure>
+              </div>
+            </section>
+          ) : null}
           <section className="content-detail-card">
             <div className="content-detail-card-head">
               <div>

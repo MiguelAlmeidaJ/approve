@@ -198,6 +198,12 @@ export class CreateDesignerDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  weeklyCapacityPoints?: number;
 }
 
 export class UpdateUserDto {
@@ -215,6 +221,12 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(6)
   password?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  weeklyCapacityPoints?: number;
 }
 
 export class CreateCalendarDto {
@@ -258,6 +270,10 @@ export class CreateCalendarDto {
   schedulingDueAt?: string;
 
   @IsOptional()
+  @IsDateString()
+  shareExpiresAt?: string;
+
+  @IsOptional()
   @IsBoolean()
   generateSkeleton?: boolean;
 }
@@ -299,6 +315,9 @@ export class UpdateCalendarDto {
   @IsDateString()
   schedulingDueAt?: string;
 
+  @IsOptional()
+  @IsDateString()
+  shareExpiresAt?: string;
 }
 
 export class CreateContentFormatDto {
@@ -599,4 +618,31 @@ export class UpdateContentMetricsDto {
   @IsInt()
   @Min(0)
   saves?: number;
+}
+
+
+export class CreateContentAnnotationDto {
+  @IsOptional()
+  @IsString()
+  assetId?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  x!: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  y!: number;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(4000)
+  message!: string;
+}
+
+export class ResolveContentAnnotationDto {
+  @IsBoolean()
+  resolved!: boolean;
 }

@@ -110,6 +110,9 @@ model Designer {
   clients            Client[]          @relation("ClientDesigner")
   comments           ContentComment[]
   notifications      Notification[]
+  annotations        ContentAnnotation[]
+  auditLogs          AuditLog[]
+  weeklyCapacityPoints Int               @default(30)
 }
 
 model DesignerSession {
@@ -239,6 +242,7 @@ model Calendar {
   artworkDueAt         DateTime?
   artworkApprovalDueAt DateTime?
   schedulingDueAt      DateTime?
+  shareExpiresAt        DateTime?
   archivedAt           DateTime?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
@@ -283,6 +287,7 @@ model ContentItem {
   stage            ContentStage  @default(PLANNING)
   planningReady    Boolean       @default(true)
   artworkVersion   Int           @default(0)
+  effortPoints     Int           @default(1)
   sortOrder        Int           @default(0)
   reviewedAt       DateTime?
   planningApprovedAt DateTime?
@@ -304,6 +309,7 @@ model ContentItem {
   assets           ContentAsset[]
   reviews          ReviewHistory[]
   comments         ContentComment[]
+  annotations      ContentAnnotation[]
 
   @@index([calendarId, scheduledAt])
   @@index([formatId])
@@ -325,6 +331,7 @@ model ContentAsset {
   active        Boolean       @default(true)
   createdAt     DateTime      @default(now())
   contentItem   ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  annotations   ContentAnnotation[]
 
   @@index([contentItemId, sortOrder])
 }
@@ -393,4 +400,44 @@ model BriefingTemplate {
 
   @@index([active, contentType])
   @@index([niche])
+}
+
+
+model ContentAnnotation {
+  id               String            @id @default(cuid())
+  contentItemId    String
+  assetId          String?
+  authorType       CommentAuthorType
+  authorDesignerId String?
+  authorName       String?
+  x                Float
+  y                Float
+  message          String            @db.Text
+  resolvedAt       DateTime?
+  createdAt        DateTime          @default(now())
+  contentItem      ContentItem       @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  asset            ContentAsset?     @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  authorDesigner   Designer?         @relation(fields: [authorDesignerId], references: [id], onDelete: SetNull)
+
+  @@index([contentItemId, createdAt])
+  @@index([assetId])
+  @@index([authorDesignerId])
+  @@index([resolvedAt])
+}
+
+model AuditLog {
+  id              String    @id @default(cuid())
+  actorDesignerId String?
+  actorName       String?
+  action          String
+  entityType      String
+  entityId        String
+  summary         String    @db.Text
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  actorDesigner   Designer? @relation(fields: [actorDesignerId], references: [id], onDelete: SetNull)
+
+  @@index([actorDesignerId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@index([action, createdAt])
 }

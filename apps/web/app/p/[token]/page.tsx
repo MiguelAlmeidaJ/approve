@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import {
   FiCalendar,
   FiCheck,
+  FiChevronLeft,
+  FiChevronRight,
   FiClock,
   FiGrid,
   FiHeart,
@@ -13,7 +15,7 @@ import {
   FiSmartphone
 } from "react-icons/fi";
 import { Brand } from "../../../components/brand";
-import { PublicMediaCarousel } from "../../../components/public-media-carousel";
+import { PublicArtworkReviewer } from "../../../components/public-artwork-reviewer";
 import { PublicReviewActions } from "../../../components/public-review-actions";
 import {
   ProtectedPublicImage,
@@ -156,6 +158,9 @@ function PlanningApprovalView({
       item.stage
     )
   ).length;
+  const pendingPlanningItems = calendar.contentItems.filter((item) =>
+    ["PRE_APPROVAL_PENDING", "PRE_CHANGES_REQUESTED"].includes(item.stage)
+  );
 
   return (
     <main className="planning-public-page">
@@ -268,6 +273,19 @@ function PlanningApprovalView({
                   defaultName={defaultName}
                   approved={false}
                   phase="planning"
+                  reviewedIndex={
+                    pendingPlanningItems.findIndex(
+                      (entry) => entry.id === item.id
+                    ) + 1
+                  }
+                  reviewTotal={pendingPlanningItems.length}
+                  nextItemId={
+                    pendingPlanningItems[
+                      pendingPlanningItems.findIndex(
+                        (entry) => entry.id === item.id
+                      ) + 1
+                    ]?.id
+                  }
                 />
               ) : itemApproved ? (
                 <div className="planning-public-approved-note">
@@ -351,6 +369,18 @@ export default async function ApprovalPage({
     (item) => item.publishToFeed
   );
   const canReviewArtwork = calendar.stage === "FINAL_APPROVAL";
+  const artworkReviewQueue = calendar.contentItems.filter((item) =>
+    ["ART_APPROVAL_PENDING", "ART_CHANGES_REQUESTED"].includes(item.stage)
+  );
+  const artworkQueueIndex = selectedItem
+    ? artworkReviewQueue.findIndex((item) => item.id === selectedItem.id)
+    : -1;
+  const previousArtworkItem =
+    artworkQueueIndex > 0 ? artworkReviewQueue[artworkQueueIndex - 1] : null;
+  const nextArtworkItem =
+    artworkQueueIndex >= 0
+      ? artworkReviewQueue[artworkQueueIndex + 1] ?? null
+      : null;
 
   return (
     <main className="instagram-preview-page">
@@ -506,11 +536,17 @@ export default async function ApprovalPage({
           />
           <article className="instagram-post-modal">
             <div className="instagram-post-media">
-              {selectedItem.assets?.length > 1 ? (
-                <PublicMediaCarousel
-                  assets={selectedItem.assets}
+              {selectedItem.assets?.length > 0 ? (
+                <PublicArtworkReviewer
                   token={token}
-                  title={selectedItem.title}
+                  item={selectedItem}
+                  defaultName={account?.name}
+                  canAnnotate={
+                    canReviewArtwork &&
+                    ["ART_APPROVAL_PENDING", "ART_CHANGES_REQUESTED"].includes(
+                      selectedItem.stage
+                    )
+                  }
                 />
               ) : (
                 <PublicArt
@@ -542,6 +578,36 @@ export default async function ApprovalPage({
                   ×
                 </Link>
               </header>
+
+              {artworkReviewQueue.length > 1 && artworkQueueIndex >= 0 ? (
+                <nav className="public-piece-navigation" aria-label="Navegar entre peças">
+                  {previousArtworkItem ? (
+                    <Link
+                      href={`/p/${token}?item=${previousArtworkItem.id}`}
+                      aria-label="Peça anterior"
+                    >
+                      <FiChevronLeft />
+                      Anterior
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                  <strong>
+                    {artworkQueueIndex + 1} de {artworkReviewQueue.length}
+                  </strong>
+                  {nextArtworkItem ? (
+                    <Link
+                      href={`/p/${token}?item=${nextArtworkItem.id}`}
+                      aria-label="Próxima peça"
+                    >
+                      Próxima
+                      <FiChevronRight />
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                </nav>
+              ) : null}
 
               <div className="instagram-post-caption">
                 <p>
@@ -597,6 +663,11 @@ export default async function ApprovalPage({
                     defaultName={account?.name}
                     approved={false}
                     phase="artwork"
+                    reviewedIndex={
+                      artworkQueueIndex >= 0 ? artworkQueueIndex + 1 : undefined
+                    }
+                    reviewTotal={artworkReviewQueue.length}
+                    nextItemId={nextArtworkItem?.id}
                   />
                 ) : (
                   <div className="public-review-locked">

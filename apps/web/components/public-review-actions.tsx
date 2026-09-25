@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FiCheck, FiEdit3, FiX } from "react-icons/fi";
 import { submitReview } from "../app/p/[token]/actions";
 
@@ -11,24 +12,46 @@ export function PublicReviewActions({
   itemId,
   defaultName,
   approved,
-  phase = "artwork"
+  phase = "artwork",
+  nextItemId,
+  reviewedIndex,
+  reviewTotal
 }: {
   token: string;
   itemId: string;
   defaultName?: string;
   approved: boolean;
   phase?: "planning" | "artwork";
+  nextItemId?: string;
+  reviewedIndex?: number;
+  reviewTotal?: number;
 }) {
+  const router = useRouter();
   const [mode, setMode] = useState<ReviewMode>(null);
   const planning = phase === "planning";
 
   async function handleSubmit(formData: FormData) {
     await submitReview(formData);
     setMode(null);
+
+    if (nextItemId) {
+      router.push(`/p/${token}?item=${encodeURIComponent(nextItemId)}`);
+      router.refresh();
+      return;
+    }
+
+    router.push(`/p/${token}`);
+    router.refresh();
   }
 
   return (
     <>
+      {reviewTotal && reviewedIndex ? (
+        <div className="public-review-progress">
+          Revisando <strong>{reviewedIndex}</strong> de <strong>{reviewTotal}</strong>
+        </div>
+      ) : null}
+
       <div className="public-review-actions">
         <button
           type="button"
@@ -169,9 +192,15 @@ export function PublicReviewActions({
                   )}
                   {mode === "approve"
                     ? planning
-                      ? "Aprovar briefing"
-                      : "Confirmar aprovação"
-                    : "Enviar solicitação"}
+                      ? nextItemId
+                        ? "Aprovar e próxima"
+                        : "Aprovar briefing"
+                      : nextItemId
+                        ? "Aprovar e próxima"
+                        : "Aprovar e concluir"
+                    : nextItemId
+                      ? "Enviar e próxima"
+                      : "Enviar solicitação"}
                 </button>
               </div>
             </form>

@@ -223,6 +223,15 @@ export default async function CalendarPage({
         item.stage === "ART_APPROVED" ||
         (item.assets?.length ?? 0) > 0
     );
+  const nextOwner = {
+    PLANNING: "Admin",
+    PRE_APPROVAL: "Cliente",
+    PRODUCTION: calendar.client.assignedDesigner?.name ?? "Designer",
+    FINAL_APPROVAL: "Cliente",
+    SCHEDULING: "Admin",
+    COMPLETED: "Concluído",
+    ARCHIVED: "Arquivado"
+  }[calendar.stage];
   const currentDeadline = stageDeadline(calendar);
   const periodStart = new Date(calendar.periodStart);
   const periodEnd = new Date(calendar.periodEnd);
@@ -271,7 +280,12 @@ export default async function CalendarPage({
             {calendar.client.name}
           </Link>
           <span className="micro-label">FLUXO DE CONTEÚDO</span>
-          <h1>{calendar.title}</h1>
+          <div className="calendar-title-line">
+            <h1>{calendar.title}</h1>
+            <span className="workflow-owner-chip">
+              Próxima ação · {nextOwner}
+            </span>
+          </div>
           <p>
             Planejamento, produção, aprovação e programação em uma única
             esteira.
@@ -791,6 +805,14 @@ export default async function CalendarPage({
             <p>
               O mesmo link acompanha o calendário durante as fases de
               pré-aprovação e aprovação das artes.
+              {calendar.shareExpiresAt
+                ? ` Expira em ${new Intl.DateTimeFormat("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    timeZone: "UTC"
+                  }).format(new Date(calendar.shareExpiresAt))}.`
+                : " Sem expiração automática."}
             </p>
           </div>
           {isManager ? (

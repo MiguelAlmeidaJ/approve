@@ -1,17 +1,21 @@
 import Link from "next/link";
 import {
+  FiActivity,
   FiBell,
   FiCalendar,
   FiClipboard,
   FiHome,
   FiLogOut,
   FiPieChart,
+  FiSearch,
   FiSettings,
   FiSliders,
   FiStar,
+  FiTrendingUp,
   FiTool,
   FiUserCheck,
   FiUsers,
+  FiShield,
 } from "react-icons/fi";
 import { logoutDesigner } from "../app/actions";
 import type { Designer } from "../lib/api";
@@ -19,6 +23,8 @@ import { Brand } from "./brand";
 
 export type AppSection =
   | "panel"
+  | "today"
+  | "search"
   | "calendars"
   | "clients"
   | "team"
@@ -27,6 +33,8 @@ export type AppSection =
   | "templates"
   | "notifications"
   | "reports"
+  | "capacity"
+  | "audit"
   | "formats"
   | "config";
 
@@ -66,6 +74,15 @@ export function AppShell({
           <span>aprovação</span>
         </div>
 
+        <form action="/buscar" className="sidebar-search">
+          <FiSearch aria-hidden="true" />
+          <input
+            name="q"
+            placeholder="Buscar..."
+            aria-label="Buscar no sistema"
+          />
+        </form>
+
         <nav className="sidebar-nav main-menu" aria-label="Navegação principal">
           <Link
             href="/"
@@ -75,6 +92,16 @@ export function AppShell({
           >
             <FiHome className="nav-icon" aria-hidden="true" />
             Painel
+          </Link>
+
+          <Link
+            href="/meu-dia"
+            className={
+              activeSection === "today" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiActivity className="nav-icon" aria-hidden="true" />
+            Meu dia
           </Link>
 
           <Link
@@ -160,6 +187,30 @@ export function AppShell({
             <FiPieChart className="nav-icon" aria-hidden="true" />
             Relatórios
           </Link>
+
+          {canSeeUsers ? (
+            <Link
+              href="/capacidade"
+              className={
+                activeSection === "capacity" ? "nav-link active" : "nav-link"
+              }
+            >
+              <FiTrendingUp className="nav-icon" aria-hidden="true" />
+              Capacidade
+            </Link>
+          ) : null}
+
+          {canSeeUsers ? (
+            <Link
+              href="/auditoria"
+              className={
+                activeSection === "audit" ? "nav-link active" : "nav-link"
+              }
+            >
+              <FiShield className="nav-icon" aria-hidden="true" />
+              Auditoria
+            </Link>
+          ) : null}
 
           {canSeeFormats ? (
             <Link

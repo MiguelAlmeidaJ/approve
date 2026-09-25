@@ -149,6 +149,7 @@ export function NewCalendarForm({
     artworkDueAt?: string | null;
     artworkApprovalDueAt?: string | null;
     schedulingDueAt?: string | null;
+    shareExpiresAt?: string | null;
   };
 }) {
   const initialResolvedClientId =
@@ -580,6 +581,17 @@ export function NewCalendarForm({
                   deadlineBeforeMonth(selectedMonth, 1)
                 }
               />
+            </label>
+            <label className="field">
+              <span>Validade do link público</span>
+              <input
+                type="date"
+                name="shareExpiresAt"
+                defaultValue={inputDate(initialDeadlines?.shareExpiresAt)}
+              />
+              <small className="field-helper">
+                Opcional. Depois desta data, o link do cliente deixa de abrir.
+              </small>
             </label>
           </div>
 

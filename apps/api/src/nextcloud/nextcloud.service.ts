@@ -189,6 +189,10 @@ export class NextcloudService {
           calendar: {
             shareToken,
             archivedAt: null,
+            OR: [
+              { shareExpiresAt: null },
+              { shareExpiresAt: { gt: new Date() } }
+            ],
             client: {
               active: true
             }
