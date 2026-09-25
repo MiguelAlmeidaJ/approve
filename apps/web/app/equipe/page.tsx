@@ -318,6 +318,27 @@ export default async function TeamPage({
                   placeholder="Mantenha vazio para não alterar"
                 />
               </label>
+              {selectedUser.role === "DESIGNER" ? (
+                <label className="field">
+                  <span>Capacidade semanal <small>(pontos)</small></span>
+                  <input
+                    type="number"
+                    name="weeklyCapacityPoints"
+                    min={1}
+                    max={200}
+                    defaultValue={selectedUser.weeklyCapacityPoints ?? 30}
+                  />
+                  <small className="field-helper">
+                    Referência para visualizar a carga criativa da semana.
+                  </small>
+                </label>
+              ) : (
+                <input
+                  type="hidden"
+                  name="weeklyCapacityPoints"
+                  value={selectedUser.weeklyCapacityPoints ?? 30}
+                />
+              )}
               {selectedUser._count.clients > 0 ? (
                 <p className="edit-warning">
                   Esta pessoa possui {selectedUser._count.clients} cliente(s).

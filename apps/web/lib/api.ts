@@ -106,6 +106,7 @@ export type ContentItem = {
   publishingError: string | null;
   planningReady: boolean;
   artworkVersion: number;
+  effortPoints: number;
   metricReach: number | null;
   metricImpressions: number | null;
   metricLikes: number | null;
@@ -134,6 +135,22 @@ export type ContentItem = {
       role: UserRole;
     } | null;
   }>;
+  annotations?: Array<{
+    id: string;
+    assetId: string | null;
+    authorType: CommentAuthorType;
+    authorName: string | null;
+    x: number;
+    y: number;
+    message: string;
+    resolvedAt: string | null;
+    createdAt: string;
+    authorDesigner?: {
+      id: string;
+      name: string;
+      role: UserRole;
+    } | null;
+  }>;
 };
 
 export type Designer = {
@@ -142,6 +159,7 @@ export type Designer = {
   email: string;
   role: UserRole;
   active: boolean;
+  weeklyCapacityPoints?: number;
   mustChangePassword: boolean;
 };
 
@@ -214,6 +232,23 @@ export type Notification = {
   createdAt: string;
 };
 
+
+export type AuditLog = {
+  id: string;
+  actorDesignerId: string | null;
+  actorName: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  summary: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  actorDesigner?: {
+    id: string;
+    name: string;
+    role: UserRole;
+  } | null;
+};
 export type ArtworkVersionResult = {
   id: string;
   artworkVersion: number;
@@ -234,6 +269,7 @@ export type Calendar = {
   artworkDueAt: string | null;
   artworkApprovalDueAt: string | null;
   schedulingDueAt: string | null;
+  shareExpiresAt: string | null;
   archivedAt: string | null;
   postingDays: CalendarPostingDay[];
   contentItems: ContentItem[];
@@ -383,6 +419,10 @@ export async function getBriefingTemplates(): Promise<BriefingTemplate[]> {
 
 export async function getNotifications(): Promise<Notification[]> {
   return (await adminGet<Notification[]>("/api/admin/notifications")) ?? [];
+}
+
+export async function getAuditLogs(): Promise<AuditLog[]> {
+  return (await adminGet<AuditLog[]>("/api/admin/audit-logs")) ?? [];
 }
 
 export function getArtworkVersions(itemId: string) {

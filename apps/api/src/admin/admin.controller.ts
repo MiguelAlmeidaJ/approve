@@ -15,6 +15,7 @@ import {
   CreateCalendarDto,
   CreateClientDto,
   CreateCommemorativeDateDto,
+  CreateContentAnnotationDto,
   CreateContentCommentDto,
   CreateContentFormatDto,
   CreateContentItemDto,
@@ -114,6 +115,33 @@ export class AdminController {
     @Param("id") id: string
   ) {
     return this.adminService.markNotificationRead(request.actor, id);
+  }
+
+  @Get("audit-logs")
+  listAuditLogs(@Req() request: InternalActorRequest) {
+    return this.adminService.listAuditLogs(request.actor);
+  }
+
+  @Post("items/:id/annotations")
+  createContentAnnotation(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: CreateContentAnnotationDto
+  ) {
+    return this.adminService.createContentAnnotation(request.actor, id, dto);
+  }
+
+  @Patch("annotations/:id/resolve")
+  resolveContentAnnotation(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: ResolveContentAnnotationDto
+  ) {
+    return this.adminService.resolveContentAnnotation(
+      request.actor,
+      id,
+      dto.resolved
+    );
   }
 
   @Post("items/:id/comments")

@@ -441,6 +441,8 @@ export async function createCalendar(formData: FormData) {
       String(formData.get("artworkApprovalDueAt") ?? "").trim() || undefined,
     schedulingDueAt:
       String(formData.get("schedulingDueAt") ?? "").trim() || undefined,
+    shareExpiresAt:
+      String(formData.get("shareExpiresAt") ?? "").trim() || undefined,
     generateSkeleton: formData.get("generateSkeleton") !== "off",
   });
 
@@ -481,6 +483,8 @@ export async function updateCalendar(formData: FormData) {
         String(formData.get("artworkApprovalDueAt") ?? "").trim() || undefined,
       schedulingDueAt:
         String(formData.get("schedulingDueAt") ?? "").trim() || undefined,
+      shareExpiresAt:
+        String(formData.get("shareExpiresAt") ?? "").trim() || undefined,
     },
   );
 
@@ -790,6 +794,52 @@ export async function addContentComment(formData: FormData) {
     {
       message: required(formData, "message"),
       visibleToClient: formData.get("visibleToClient") === "on",
+    },
+  );
+
+  revalidatePath(`/calendars/${calendarId}`);
+  revalidatePath(`/calendars/${calendarId}/content/${itemId}`);
+}
+
+export async function addContentAnnotation(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este conteúdo.");
+  }
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/annotations`,
+    {
+      assetId: String(formData.get("assetId") ?? "").trim() || undefined,
+      x: Number(required(formData, "x")),
+      y: Number(required(formData, "y")),
+      message: required(formData, "message"),
+    },
+  );
+
+  revalidatePath(`/calendars/${calendarId}`);
+  revalidatePath(`/calendars/${calendarId}/content/${itemId}`);
+}
+
+export async function resolveContentAnnotation(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const annotationId = required(formData, "annotationId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este conteúdo.");
+  }
+
+  await adminPatch(
+    `/api/admin/annotations/${encodeURIComponent(annotationId)}/resolve`,
+    {
+      resolved: required(formData, "resolved") === "true",
     },
   );
 

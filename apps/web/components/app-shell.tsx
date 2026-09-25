@@ -1,8 +1,11 @@
 import Link from "next/link";
 import {
+  FiBarChart2,
   FiBell,
   FiCalendar,
+  FiChevronDown,
   FiClipboard,
+  FiFolder,
   FiHome,
   FiLogOut,
   FiPieChart,
@@ -28,6 +31,7 @@ export type AppSection =
   | "notifications"
   | "reports"
   | "formats"
+  | "audit"
   | "config";
 
 const roleLabel = {
@@ -45,6 +49,13 @@ function initials(name: string) {
     .join("");
 }
 
+function sectionActive(
+  activeSection: AppSection,
+  sections: AppSection[],
+) {
+  return sections.includes(activeSection);
+}
+
 export function AppShell({
   designer,
   activeSection = "panel",
@@ -56,6 +67,7 @@ export function AppShell({
 }) {
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
+  const canSeeAudit = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
 
   return (
@@ -77,115 +89,223 @@ export function AppShell({
             Painel
           </Link>
 
-          <Link
-            href="/calendars"
-            className={
-              activeSection === "calendars" ? "nav-link active" : "nav-link"
-            }
+          <details
+            className="sidebar-menu-group"
+            open={sectionActive(activeSection, [
+              "calendars",
+              "production",
+              "notifications",
+            ])}
           >
-            <FiCalendar className="nav-icon" aria-hidden="true" />
-            Calendário
-          </Link>
-
-          <Link
-            href="/producao"
-            className={
-              activeSection === "production" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiTool className="nav-icon" aria-hidden="true" />
-            Produção
-          </Link>
-
-          <Link
-            href="/notificacoes"
-            className={
-              activeSection === "notifications" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiBell className="nav-icon" aria-hidden="true" />
-            Notificações
-          </Link>
-
-          <Link
-            href="/clients"
-            className={
-              activeSection === "clients" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiUsers className="nav-icon" aria-hidden="true" />
-            Clientes
-          </Link>
-
-          {canSeeUsers ? (
-            <Link
-              href="/equipe"
-              className={
-                activeSection === "team" ? "nav-link active" : "nav-link"
-              }
-            >
-              <FiUserCheck className="nav-icon" aria-hidden="true" />
-              Equipe
-            </Link>
-          ) : null}
-
-          {canSeeFormats ? (
-            <Link
-              href="/modelos"
-              className={
-                activeSection === "templates" ? "nav-link active" : "nav-link"
-              }
-            >
-              <FiClipboard className="nav-icon" aria-hidden="true" />
-              Modelos
-            </Link>
-          ) : null}
-
-          <Link
-            href="/datas-comemorativas"
-            className={
-              activeSection === "dates" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiStar className="nav-icon" aria-hidden="true" />
-            Datas
-          </Link>
-
-          <Link
-            href="/relatorios"
-            className={
-              activeSection === "reports" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiPieChart className="nav-icon" aria-hidden="true" />
-            Relatórios
-          </Link>
-
-          {canSeeFormats ? (
-            <Link
-              href="/formats"
-              className={
-                activeSection === "formats" ? "nav-link active" : "nav-link"
-              }
-            >
-              <FiSliders className="nav-icon" aria-hidden="true" />
-              Formatos
-            </Link>
-          ) : null}
-
-          {canSeeConfig ? (
-            <>
-              <div className="menu-divider" />
+            <summary>
+              <span>
+                <FiFolder className="nav-icon" aria-hidden="true" />
+                Operação
+              </span>
+              <FiChevronDown className="sidebar-menu-chevron" aria-hidden="true" />
+            </summary>
+            <div className="sidebar-submenu">
               <Link
-                href="/config"
+                href="/calendars"
                 className={
-                  activeSection === "config" ? "nav-link active" : "nav-link"
+                  activeSection === "calendars"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
                 }
               >
-                <FiSettings className="nav-icon" aria-hidden="true" />
-                Config
+                <FiCalendar aria-hidden="true" />
+                Calendários
               </Link>
-            </>
+              <Link
+                href="/producao"
+                className={
+                  activeSection === "production"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiTool aria-hidden="true" />
+                Produção
+              </Link>
+              <Link
+                href="/notificacoes"
+                className={
+                  activeSection === "notifications"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiBell aria-hidden="true" />
+                Notificações
+              </Link>
+            </div>
+          </details>
+
+          <details
+            className="sidebar-menu-group"
+            open={sectionActive(activeSection, ["clients", "team"])}
+          >
+            <summary>
+              <span>
+                <FiUsers className="nav-icon" aria-hidden="true" />
+                Gestão
+              </span>
+              <FiChevronDown className="sidebar-menu-chevron" aria-hidden="true" />
+            </summary>
+            <div className="sidebar-submenu">
+              <Link
+                href="/clients"
+                className={
+                  activeSection === "clients"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiUsers aria-hidden="true" />
+                Clientes
+              </Link>
+              {canSeeUsers ? (
+                <Link
+                  href="/equipe"
+                  className={
+                    activeSection === "team"
+                      ? "sidebar-submenu-link active"
+                      : "sidebar-submenu-link"
+                  }
+                >
+                  <FiUserCheck aria-hidden="true" />
+                  Equipe
+                </Link>
+              ) : null}
+            </div>
+          </details>
+
+          <details
+            className="sidebar-menu-group"
+            open={sectionActive(activeSection, [
+              "templates",
+              "dates",
+              "formats",
+            ])}
+          >
+            <summary>
+              <span>
+                <FiClipboard className="nav-icon" aria-hidden="true" />
+                Conteúdo
+              </span>
+              <FiChevronDown className="sidebar-menu-chevron" aria-hidden="true" />
+            </summary>
+            <div className="sidebar-submenu">
+              {canSeeFormats ? (
+                <Link
+                  href="/modelos"
+                  className={
+                    activeSection === "templates"
+                      ? "sidebar-submenu-link active"
+                      : "sidebar-submenu-link"
+                  }
+                >
+                  <FiClipboard aria-hidden="true" />
+                  Modelos de pauta
+                </Link>
+              ) : null}
+              <Link
+                href="/datas-comemorativas"
+                className={
+                  activeSection === "dates"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiStar aria-hidden="true" />
+                Datas comemorativas
+              </Link>
+              {canSeeFormats ? (
+                <Link
+                  href="/formats"
+                  className={
+                    activeSection === "formats"
+                      ? "sidebar-submenu-link active"
+                      : "sidebar-submenu-link"
+                  }
+                >
+                  <FiSliders aria-hidden="true" />
+                  Formatos
+                </Link>
+              ) : null}
+            </div>
+          </details>
+
+          <details
+            className="sidebar-menu-group"
+            open={sectionActive(activeSection, ["reports"])}
+          >
+            <summary>
+              <span>
+                <FiBarChart2 className="nav-icon" aria-hidden="true" />
+                Resultados
+              </span>
+              <FiChevronDown className="sidebar-menu-chevron" aria-hidden="true" />
+            </summary>
+            <div className="sidebar-submenu">
+              <Link
+                href="/relatorios"
+                className={
+                  activeSection === "reports"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiPieChart aria-hidden="true" />
+                Relatórios
+              </Link>
+            </div>
+          </details>
+
+          {canSeeAudit || canSeeConfig ? (
+            <details
+              className="sidebar-menu-group"
+              open={sectionActive(activeSection, ["audit", "config"])}
+            >
+              <summary>
+                <span>
+                  <FiSettings className="nav-icon" aria-hidden="true" />
+                  Sistema
+                </span>
+                <FiChevronDown
+                  className="sidebar-menu-chevron"
+                  aria-hidden="true"
+                />
+              </summary>
+              <div className="sidebar-submenu">
+                {canSeeAudit ? (
+                  <Link
+                    href="/auditoria"
+                    className={
+                      activeSection === "audit"
+                        ? "sidebar-submenu-link active"
+                        : "sidebar-submenu-link"
+                    }
+                  >
+                    <FiUserCheck aria-hidden="true" />
+                    Auditoria
+                  </Link>
+                ) : null}
+                {canSeeConfig ? (
+                  <Link
+                    href="/config"
+                    className={
+                      activeSection === "config"
+                        ? "sidebar-submenu-link active"
+                        : "sidebar-submenu-link"
+                    }
+                  >
+                    <FiSettings aria-hidden="true" />
+                    Configurações
+                  </Link>
+                ) : null}
+              </div>
+            </details>
           ) : null}
         </nav>
 

@@ -26,6 +26,7 @@ import {
   CreateBriefingTemplateDto,
   CreateCalendarDto,
   CreateCommemorativeDateDto,
+  CreateContentAnnotationDto,
   CreateContentCommentDto,
   CreateClientDto,
   CreateContentFormatDto,
@@ -35,6 +36,7 @@ import {
   MarkScheduledDto,
   MarkSchedulingErrorDto,
   MoveContentItemDto,
+  ResolveContentAnnotationDto,
   UpdateBriefingTemplateDto,
   UpdateCalendarDto,
   UpdateClientDto,
@@ -163,6 +165,9 @@ const clientInclude = {
         include: {
           formatPreset: true,
           assets: {
+            where: {
+              active: true
+            },
             orderBy: {
               sortOrder: "asc" as const
             }
@@ -206,6 +211,7 @@ export class AdminService {
         email: true,
         role: true,
         active: true,
+        weeklyCapacityPoints: true,
         createdAt: true,
         _count: {
           select: {
@@ -235,6 +241,7 @@ export class AdminService {
         email: true,
         role: true,
         active: true,
+        weeklyCapacityPoints: true,
         createdAt: true,
         _count: {
           select: {
@@ -472,6 +479,18 @@ export class AdminService {
                   }
                 }
               }
+            },
+            annotations: {
+              orderBy: { createdAt: "asc" },
+              include: {
+                authorDesigner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    role: true
+                  }
+                }
+              }
             }
           }
         },
@@ -595,6 +614,9 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         role: dto.role,
+        ...(dto.weeklyCapacityPoints !== undefined
+          ? { weeklyCapacityPoints: dto.weeklyCapacityPoints }
+          : {}),
         ...(password
           ? {
               passwordHash: hashPassword(password),
@@ -617,6 +639,13 @@ export class AdminService {
         where: { designerId: id }
       });
     }
+
+    await this.createAuditLog(actor, {
+      action: "USER_UPDATED",
+      entityType: "Designer",
+      entityId: id,
+      summary: `Usuário "${updated.name}" atualizado.`
+    });
 
     return updated;
   }
@@ -682,6 +711,13 @@ export class AdminService {
         where: { designerId: id }
       });
     }
+
+    await this.createAuditLog(actor, {
+      action: active ? "USER_REACTIVATED" : "USER_DEACTIVATED",
+      entityType: "Designer",
+      entityId: id,
+      summary: `Usuário "${updated.name}" ${active ? "reativado" : "inativado"}.`
+    });
 
     return updated;
   }
@@ -817,7 +853,7 @@ export class AdminService {
       ? `${baseSlug}-${randomBytes(2).toString("hex")}`
       : baseSlug;
 
-    return this.prisma.client.create({
+    const created = await this.prisma.client.create({
       data: {
         name: dto.name.trim(),
         slug,
@@ -846,6 +882,15 @@ export class AdminService {
       },
       include: clientInclude
     });
+
+    await this.createAuditLog(actor, {
+      action: "CLIENT_CREATED",
+      entityType: "Client",
+      entityId: created.id,
+      summary: `Cliente "${created.name}" criado.`
+    });
+
+    return created;
   }
 
   async updateClient(
@@ -937,6 +982,13 @@ export class AdminService {
       });
     }
 
+    await this.createAuditLog(actor, {
+      action: "CLIENT_UPDATED",
+      entityType: "Client",
+      entityId: id,
+      summary: `Cliente "${updated.name}" atualizado.`
+    });
+
     return updated;
   }
 
@@ -996,6 +1048,7 @@ export class AdminService {
         artworkDueAt: this.optionalDate(dto.artworkDueAt),
         artworkApprovalDueAt: this.optionalDate(dto.artworkApprovalDueAt),
         schedulingDueAt: this.optionalDate(dto.schedulingDueAt),
+        shareExpiresAt: this.optionalDate(dto.shareExpiresAt),
         postingDays: {
           create: dates.postingDays.map((scheduledDate) => ({
             scheduledDate
@@ -1016,6 +1069,13 @@ export class AdminService {
         dates.postingDays
       );
     }
+
+    await this.createAuditLog(actor, {
+      action: "CALENDAR_CREATED",
+      entityType: "Calendar",
+      entityId: calendar.id,
+      summary: `Calendário "${calendar.title}" criado.`
+    });
 
     return this.getCalendar(actor, calendar.id);
   }
@@ -1082,7 +1142,8 @@ export class AdminService {
           planningApprovalDueAt: this.optionalDate(dto.planningApprovalDueAt),
           artworkDueAt: this.optionalDate(dto.artworkDueAt),
           artworkApprovalDueAt: this.optionalDate(dto.artworkApprovalDueAt),
-          schedulingDueAt: this.optionalDate(dto.schedulingDueAt)
+          schedulingDueAt: this.optionalDate(dto.schedulingDueAt),
+          shareExpiresAt: this.optionalDate(dto.shareExpiresAt)
         }
       }),
       this.prisma.calendarPostingDay.deleteMany({
@@ -1095,6 +1156,13 @@ export class AdminService {
         }))
       })
     ]);
+
+    await this.createAuditLog(actor, {
+      action: "CALENDAR_UPDATED",
+      entityType: "Calendar",
+      entityId: calendarId,
+      summary: `Calendário "${dto.title.trim()}" atualizado.`
+    });
 
     return this.getCalendar(actor, calendarId);
   }
@@ -1169,6 +1237,7 @@ export class AdminService {
         scheduledAt,
         channel: dto.channel ?? Channel.INSTAGRAM,
         contentType: dto.contentType,
+        effortPoints: this.effortPointsForType(dto.contentType),
         format: "A definir na produção",
         publishToFeed: dto.publishToFeed,
         publishToStories: dto.publishToStories,
@@ -1232,6 +1301,7 @@ export class AdminService {
         scheduledAt,
         channel: dto.channel ?? Channel.INSTAGRAM,
         contentType: dto.contentType,
+        effortPoints: this.effortPointsForType(dto.contentType),
         publishToFeed: dto.publishToFeed,
         publishToStories: dto.publishToStories,
         caption: dto.caption.trim(),
@@ -1325,6 +1395,13 @@ export class AdminService {
         "",
         "Terceiro Andar · Aprovação"
       ]
+    });
+
+    await this.createAuditLog(actor, {
+      action: "PLANNING_SENT",
+      entityType: "Calendar",
+      entityId: calendarId,
+      summary: `Pré-calendário "${calendar.title}" enviado para aprovação.`
     });
 
     return this.getCalendar(actor, calendarId);
@@ -2217,6 +2294,7 @@ export class AdminService {
         scheduledAt: new Date(Date.UTC(year, month - 1, day, 15, 0, 0)),
         channel: Channel.INSTAGRAM,
         contentType: ContentType.POST,
+        effortPoints: this.effortPointsForType(ContentType.POST),
         format: "A definir na produção",
         publishToFeed: true,
         publishToStories: false,
@@ -2251,6 +2329,167 @@ export class AdminService {
         title: input.title,
         message: input.message,
         link: input.link ?? null
+      }
+    });
+  }
+
+  listAuditLogs(actor: InternalActor) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    return this.prisma.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      include: {
+        actorDesigner: {
+          select: {
+            id: true,
+            name: true,
+            role: true
+          }
+        }
+      }
+    });
+  }
+
+  async createContentAnnotation(
+    actor: InternalActor,
+    itemId: string,
+    dto: CreateContentAnnotationDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: itemId },
+      select: {
+        id: true,
+        title: true,
+        calendarId: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    await this.assertCalendarAccess(actor, item.calendarId);
+
+    if (dto.assetId) {
+      const asset = await this.prisma.contentAsset.findFirst({
+        where: {
+          id: dto.assetId,
+          contentItemId: itemId,
+          active: true
+        },
+        select: { id: true }
+      });
+
+      if (!asset) {
+        throw new BadRequestException("A arte selecionada não está disponível.");
+      }
+    }
+
+    const annotation = await this.prisma.contentAnnotation.create({
+      data: {
+        contentItemId: itemId,
+        assetId: dto.assetId ?? null,
+        authorType: CommentAuthorType.INTERNAL,
+        authorDesignerId: actor.id,
+        authorName: actor.name,
+        x: dto.x / 100,
+        y: dto.y / 100,
+        message: dto.message.trim()
+      },
+      include: {
+        authorDesigner: {
+          select: {
+            id: true,
+            name: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "ANNOTATION_CREATED",
+      entityType: "ContentItem",
+      entityId: itemId,
+      summary: `Comentário marcado na arte de "${item.title}".`
+    });
+
+    return annotation;
+  }
+
+  async resolveContentAnnotation(
+    actor: InternalActor,
+    annotationId: string,
+    resolved: boolean
+  ) {
+    const annotation = await this.prisma.contentAnnotation.findUnique({
+      where: { id: annotationId },
+      select: {
+        id: true,
+        contentItemId: true,
+        contentItem: {
+          select: {
+            calendarId: true,
+            title: true
+          }
+        }
+      }
+    });
+
+    if (!annotation) {
+      throw new NotFoundException("Marcação não encontrada.");
+    }
+
+    await this.assertCalendarAccess(actor, annotation.contentItem.calendarId);
+
+    const updated = await this.prisma.contentAnnotation.update({
+      where: { id: annotationId },
+      data: {
+        resolvedAt: resolved ? new Date() : null
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: resolved ? "ANNOTATION_RESOLVED" : "ANNOTATION_REOPENED",
+      entityType: "ContentItem",
+      entityId: annotation.contentItemId,
+      summary: `Marcação ${resolved ? "resolvida" : "reaberta"} em "${annotation.contentItem.title}".`
+    });
+
+    return updated;
+  }
+
+  private effortPointsForType(type: ContentType) {
+    if (type === ContentType.REEL) {
+      return 3;
+    }
+
+    if (type === ContentType.CAROUSEL) {
+      return 2;
+    }
+
+    return 1;
+  }
+
+  private async createAuditLog(
+    actor: InternalActor,
+    input: {
+      action: string;
+      entityType: string;
+      entityId: string;
+      summary: string;
+      metadata?: Record<string, unknown>;
+    }
+  ) {
+    await this.prisma.auditLog.create({
+      data: {
+        actorDesignerId: actor.id,
+        actorName: actor.name,
+        action: input.action,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        summary: input.summary
       }
     });
   }
