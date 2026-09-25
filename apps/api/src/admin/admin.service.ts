@@ -829,7 +829,7 @@ export class AdminService {
     }
 
     if (
-      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+      !([CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL] as CalendarStage[]).includes(
         calendar.stage
       )
     ) {
@@ -985,7 +985,7 @@ export class AdminService {
     const calendar = await this.assertCalendarAccess(actor, item.calendarId);
 
     if (
-      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+      !([CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL] as CalendarStage[]).includes(
         calendar.stage
       )
     ) {
@@ -1042,7 +1042,7 @@ export class AdminService {
     }
 
     if (
-      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+      !([CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL] as CalendarStage[]).includes(
         calendar.stage
       )
     ) {
@@ -1120,11 +1120,11 @@ export class AdminService {
     }
 
     if (
-      ![
+      !([
         ContentStage.DESIGN_PENDING,
         ContentStage.DESIGN_IN_PROGRESS,
         ContentStage.ART_CHANGES_REQUESTED
-      ].includes(item.stage)
+      ] as ContentStage[]).includes(item.stage)
     ) {
       throw new BadRequestException(
         "Esta peça não está disponível para produção de arte."
@@ -1287,10 +1287,10 @@ export class AdminService {
     }
 
     if (
-      ![
+      !([
         ContentStage.READY_TO_SCHEDULE,
         ContentStage.SCHEDULING_ERROR
-      ].includes(item.stage)
+      ] as ContentStage[]).includes(item.stage)
     ) {
       throw new BadRequestException(
         "Somente conteúdos aprovados podem ser marcados como programados."
@@ -1323,10 +1323,10 @@ export class AdminService {
     }
 
     if (
-      ![
+      !([
         ContentStage.SCHEDULED,
         ContentStage.READY_TO_SCHEDULE
-      ].includes(item.stage)
+      ] as ContentStage[]).includes(item.stage)
     ) {
       throw new BadRequestException(
         "Este conteúdo ainda não está pronto para publicação."
@@ -1363,11 +1363,11 @@ export class AdminService {
     }
 
     if (
-      ![
+      !([
         ContentStage.READY_TO_SCHEDULE,
         ContentStage.SCHEDULED,
         ContentStage.SCHEDULING_ERROR
-      ].includes(item.stage)
+      ] as ContentStage[]).includes(item.stage)
     ) {
       throw new BadRequestException(
         "Este conteúdo ainda não entrou na fila de programação."
@@ -1430,7 +1430,7 @@ export class AdminService {
     }
 
     if (
-      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+      !([CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL] as CalendarStage[]).includes(
         calendar.stage
       )
     ) {
@@ -1649,12 +1649,12 @@ export class AdminService {
 
     if (
       items.some((item) =>
-        [
+        ([
           ContentStage.READY_TO_SCHEDULE,
           ContentStage.SCHEDULED,
           ContentStage.SCHEDULING_ERROR,
           ContentStage.PUBLISHED
-        ].includes(item.stage)
+        ] as ContentStage[]).includes(item.stage)
       )
     ) {
       return CalendarStage.SCHEDULING;
@@ -1668,12 +1668,12 @@ export class AdminService {
 
     if (
       items.some((item) =>
-        [
+        ([
           ContentStage.DESIGN_PENDING,
           ContentStage.DESIGN_IN_PROGRESS,
           ContentStage.ART_CHANGES_REQUESTED,
           ContentStage.ART_APPROVED
-        ].includes(item.stage)
+        ] as ContentStage[]).includes(item.stage)
       )
     ) {
       return CalendarStage.PRODUCTION;
@@ -1681,11 +1681,11 @@ export class AdminService {
 
     if (
       items.some((item) =>
-        [
+        ([
           ContentStage.PRE_APPROVAL_PENDING,
           ContentStage.PRE_APPROVED,
           ContentStage.PRE_CHANGES_REQUESTED
-        ].includes(item.stage)
+        ] as ContentStage[]).includes(item.stage)
       )
     ) {
       return CalendarStage.PRE_APPROVAL;
