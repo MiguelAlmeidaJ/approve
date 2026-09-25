@@ -7,6 +7,7 @@ import {
 import {
   CalendarStage,
   Channel,
+  CommemorativeScope,
   ContentStage,
   ContentStatus,
   ContentType,
@@ -20,6 +21,7 @@ import {
   AssignClientDto,
   AttachArtworkDto,
   CreateCalendarDto,
+  CreateCommemorativeDateDto,
   CreateClientDto,
   CreateContentFormatDto,
   CreateContentItemDto,
@@ -30,6 +32,7 @@ import {
   MoveContentItemDto,
   UpdateCalendarDto,
   UpdateClientDto,
+  UpdateCommemorativeDateDto,
   UpdateContentFormatDto,
   UpdatePlanningItemDto,
   UpdateUserDto
@@ -128,6 +131,11 @@ const clientInclude = {
       email: true,
       role: true,
       active: true
+    }
+  },
+  postingWeekdays: {
+    orderBy: {
+      weekday: "asc" as const
     }
   },
   calendars: {
@@ -240,6 +248,143 @@ export class AdminService {
     });
   }
 
+
+  listCommemorativeDates(actor: InternalActor) {
+    return this.prisma.commemorativeDate.findMany({
+      where:
+        actor.role === UserRole.DESIGNER
+          ? {
+              OR: [
+                { clientId: null },
+                {
+                  client: {
+                    assignedDesignerId: actor.id
+                  }
+                }
+              ]
+            }
+          : undefined,
+      orderBy: [
+        { active: "desc" },
+        { month: "asc" },
+        { day: "asc" },
+        { name: "asc" }
+      ],
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+  }
+
+  async createCommemorativeDate(
+    actor: InternalActor,
+    dto: CreateCommemorativeDateDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.validateCommemorativeDate(dto.day, dto.month, dto.year);
+
+    if (dto.clientId) {
+      const client = await this.prisma.client.findUnique({
+        where: { id: dto.clientId },
+        select: { id: true }
+      });
+
+      if (!client) {
+        throw new BadRequestException("Cliente selecionado não existe.");
+      }
+    }
+
+    return this.prisma.commemorativeDate.create({
+      data: {
+        name: dto.name.trim(),
+        day: dto.day,
+        month: dto.month,
+        year: dto.year ?? null,
+        scope: CommemorativeScope.CUSTOM,
+        city: dto.city?.trim() || null,
+        state: dto.state?.trim().toUpperCase() || null,
+        description: dto.description?.trim() || null,
+        clientId: dto.clientId?.trim() || null,
+        active: dto.active ?? true
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+  }
+
+  async updateCommemorativeDate(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateCommemorativeDateDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const current = await this.prisma.commemorativeDate.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        scope: true
+      }
+    });
+
+    if (!current) {
+      throw new NotFoundException("Data comemorativa não encontrada.");
+    }
+
+    if (current.scope === CommemorativeScope.NATIONAL) {
+      throw new BadRequestException(
+        "Datas nacionais do sistema são somente leitura."
+      );
+    }
+
+    this.validateCommemorativeDate(dto.day, dto.month, dto.year);
+
+    if (dto.clientId) {
+      const client = await this.prisma.client.findUnique({
+        where: { id: dto.clientId },
+        select: { id: true }
+      });
+
+      if (!client) {
+        throw new BadRequestException("Cliente selecionado não existe.");
+      }
+    }
+
+    return this.prisma.commemorativeDate.update({
+      where: { id },
+      data: {
+        name: dto.name.trim(),
+        day: dto.day,
+        month: dto.month,
+        year: dto.year ?? null,
+        city: dto.city?.trim() || null,
+        state: dto.state?.trim().toUpperCase() || null,
+        description: dto.description?.trim() || null,
+        clientId: dto.clientId?.trim() || null,
+        active: dto.active ?? true
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+  }
+
   async getClient(actor: InternalActor, id: string) {
     const client = await this.prisma.client.findFirst({
       where: {
@@ -284,6 +429,11 @@ export class AdminService {
                 name: true,
                 email: true,
                 role: true
+              }
+            },
+            postingWeekdays: {
+              orderBy: {
+                weekday: "asc"
               }
             }
           }
@@ -653,6 +803,9 @@ export class AdminService {
         phone: dto.phone.trim(),
         nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath),
         assignedDesignerId,
+        postingWeekdays: {
+          create: dto.postingWeekdays.map((weekday) => ({ weekday }))
+        },
         credential: {
           create: {
             email: loginEmail,
@@ -713,6 +866,10 @@ export class AdminService {
         ...(dto.nextcloudPath !== undefined
           ? { nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath) }
           : {}),
+        postingWeekdays: {
+          deleteMany: {},
+          create: dto.postingWeekdays.map((weekday) => ({ weekday }))
+        },
         credential: current.credential
           ? {
               update: {
@@ -1581,6 +1738,23 @@ export class AdminService {
     }
 
     return calendar;
+  }
+
+  private validateCommemorativeDate(
+    day: number,
+    month: number,
+    year?: number
+  ) {
+    const sampleYear = year ?? 2024;
+    const date = new Date(Date.UTC(sampleYear, month - 1, day));
+
+    if (
+      date.getUTCFullYear() !== sampleYear ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) {
+      throw new BadRequestException("Informe uma data comemorativa válida.");
+    }
   }
 
   private validatePlanningSchedule(

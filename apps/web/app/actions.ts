@@ -219,6 +219,14 @@ export async function createClient(formData: FormData) {
   const selectedDesignerId = String(
     formData.get("assignedDesignerId") ?? "",
   ).trim();
+  const postingWeekdays = formData
+    .getAll("postingWeekday")
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6);
+
+  if (postingWeekdays.length === 0) {
+    throw new Error("Selecione ao menos um dia de publicação do cliente.");
+  }
 
   const client = await adminPost<{ id: string }>("/api/admin/clients", {
     name: required(formData, "name"),
@@ -232,6 +240,7 @@ export async function createClient(formData: FormData) {
       designer.role === "DESIGNER"
         ? designer.id
         : selectedDesignerId || undefined,
+    postingWeekdays,
   });
 
   revalidatePath("/");
@@ -250,6 +259,14 @@ export async function updateClient(formData: FormData) {
   }
 
   const password = String(formData.get("password") ?? "").trim();
+  const postingWeekdays = formData
+    .getAll("postingWeekday")
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6);
+
+  if (postingWeekdays.length === 0) {
+    throw new Error("Selecione ao menos um dia de publicação do cliente.");
+  }
 
   await adminPatch(`/api/admin/clients/${encodeURIComponent(clientId)}`, {
     name: required(formData, "name"),
@@ -257,6 +274,7 @@ export async function updateClient(formData: FormData) {
     phone: required(formData, "phone"),
     email: required(formData, "email"),
     nextcloudPath: String(formData.get("nextcloudPath") ?? "").trim(),
+    postingWeekdays,
     ...(password ? { password } : {}),
   });
 
@@ -291,6 +309,82 @@ export async function assignClient(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
+}
+
+export async function createCommemorativeDate(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+
+  await adminPost("/api/admin/commemorative-dates", {
+    name: required(formData, "name"),
+    day: Number(required(formData, "day")),
+    month: Number(required(formData, "month")),
+    year: String(formData.get("year") ?? "").trim()
+      ? Number(String(formData.get("year")))
+      : undefined,
+    city: String(formData.get("city") ?? "").trim() || undefined,
+    state: String(formData.get("state") ?? "").trim() || undefined,
+    description:
+      String(formData.get("description") ?? "").trim() || undefined,
+    clientId: String(formData.get("clientId") ?? "").trim() || undefined,
+    active: true,
+  });
+
+  revalidatePath("/datas-comemorativas");
+  revalidatePath("/calendars");
+  redirect("/datas-comemorativas");
+}
+
+export async function updateCommemorativeDate(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const id = required(formData, "id");
+
+  await adminPatch(
+    `/api/admin/commemorative-dates/${encodeURIComponent(id)}`,
+    {
+      name: required(formData, "name"),
+      day: Number(required(formData, "day")),
+      month: Number(required(formData, "month")),
+      year: String(formData.get("year") ?? "").trim()
+        ? Number(String(formData.get("year")))
+        : undefined,
+      city: String(formData.get("city") ?? "").trim() || undefined,
+      state: String(formData.get("state") ?? "").trim() || undefined,
+      description:
+        String(formData.get("description") ?? "").trim() || undefined,
+      clientId: String(formData.get("clientId") ?? "").trim() || undefined,
+      active: formData.get("active") === "on",
+    },
+  );
+
+  revalidatePath("/datas-comemorativas");
+  revalidatePath("/calendars");
+  redirect("/datas-comemorativas");
+}
+
+export async function toggleCommemorativeDate(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const id = required(formData, "id");
+
+  await adminPatch(
+    `/api/admin/commemorative-dates/${encodeURIComponent(id)}`,
+    {
+      name: required(formData, "name"),
+      day: Number(required(formData, "day")),
+      month: Number(required(formData, "month")),
+      year: String(formData.get("year") ?? "").trim()
+        ? Number(String(formData.get("year")))
+        : undefined,
+      city: String(formData.get("city") ?? "").trim() || undefined,
+      state: String(formData.get("state") ?? "").trim() || undefined,
+      description:
+        String(formData.get("description") ?? "").trim() || undefined,
+      clientId: String(formData.get("clientId") ?? "").trim() || undefined,
+      active: required(formData, "nextActive") === "true",
+    },
+  );
+
+  revalidatePath("/datas-comemorativas");
+  revalidatePath("/calendars");
 }
 
 export async function createCalendar(formData: FormData) {

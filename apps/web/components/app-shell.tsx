@@ -5,6 +5,7 @@ import {
   FiLogOut,
   FiSettings,
   FiSliders,
+  FiStar,
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
@@ -17,6 +18,7 @@ export type AppSection =
   | "calendars"
   | "clients"
   | "team"
+  | "dates"
   | "formats"
   | "config";
 
@@ -98,6 +100,16 @@ export function AppShell({
               Equipe
             </Link>
           ) : null}
+
+          <Link
+            href="/datas-comemorativas"
+            className={
+              activeSection === "dates" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiStar className="nav-icon" aria-hidden="true" />
+            Datas
+          </Link>
 
           {canSeeFormats ? (
             <Link

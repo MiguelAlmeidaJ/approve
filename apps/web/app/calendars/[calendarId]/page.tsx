@@ -22,6 +22,7 @@ import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
   getCalendar,
+  getCommemorativeDates,
   type CalendarStage,
   type ContentItem,
   type ContentStage
@@ -145,7 +146,10 @@ export default async function CalendarPage({
 }) {
   const { calendarId } = await params;
   const designer = await requireDesigner();
-  const calendar = await getCalendar(calendarId);
+  const [calendar, commemorativeDates] = await Promise.all([
+    getCalendar(calendarId),
+    getCommemorativeDates()
+  ]);
 
   if (!calendar || !canAccessClient(designer, calendar.client)) {
     notFound();
@@ -173,6 +177,43 @@ export default async function CalendarPage({
       (item) =>
         item.stage === "ART_APPROVED" ||
         (item.assets?.length ?? 0) > 0
+    );
+  const periodStart = new Date(calendar.periodStart);
+  const periodEnd = new Date(calendar.periodEnd);
+  const calendarCommemorativeDates = commemorativeDates
+    .filter(
+      (date) =>
+        date.active &&
+        (date.clientId === null || date.clientId === calendar.client.id)
+    )
+    .flatMap((date) => {
+      const years = date.year
+        ? [date.year]
+        : Array.from(
+            {
+              length:
+                periodEnd.getUTCFullYear() -
+                periodStart.getUTCFullYear() +
+                1
+            },
+            (_, index) => periodStart.getUTCFullYear() + index
+          );
+
+      return years.map((year) => ({
+        ...date,
+        occurrence: new Date(
+          Date.UTC(year, date.month - 1, date.day, 12, 0, 0)
+        )
+      }));
+    })
+    .filter(
+      (date) =>
+        date.occurrence >= periodStart &&
+        date.occurrence <= periodEnd
+    )
+    .sort(
+      (first, second) =>
+        first.occurrence.getTime() - second.occurrence.getTime()
     );
 
   return (
@@ -427,6 +468,59 @@ export default async function CalendarPage({
           </strong>
         </article>
       </section>
+
+      {calendarCommemorativeDates.length > 0 ? (
+        <section className="calendar-opportunities-panel">
+          <div className="calendar-opportunities-heading">
+            <div>
+              <span className="micro-label">OPORTUNIDADES DE PAUTA</span>
+              <h2>Datas comemorativas do período</h2>
+              <p>
+                Use essas datas como referência para criar pautas especiais sem
+                perder o ritmo de publicação do cliente.
+              </p>
+            </div>
+            <Link href="/datas-comemorativas">Ver calendário de datas</Link>
+          </div>
+
+          <div className="calendar-opportunities-list">
+            {calendarCommemorativeDates.map((date) => (
+              <article
+                className="calendar-opportunity-card"
+                key={`${date.id}-${date.occurrence.getUTCFullYear()}`}
+              >
+                <div className="calendar-opportunity-date">
+                  <strong>
+                    {String(date.occurrence.getUTCDate()).padStart(2, "0")}
+                  </strong>
+                  <span>
+                    {new Intl.DateTimeFormat("pt-BR", {
+                      month: "short",
+                      timeZone: "UTC"
+                    })
+                      .format(date.occurrence)
+                      .replace(".", "")
+                      .toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <span>
+                    {date.scope === "NATIONAL"
+                      ? "Nacional"
+                      : date.client?.name ?? "Personalizada"}
+                  </span>
+                  <strong>{date.name}</strong>
+                  <small>
+                    {date.description ||
+                      [date.city, date.state].filter(Boolean).join(" · ") ||
+                      "Oportunidade de conteúdo"}
+                  </small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="workflow-content-section">
         <div className="workflow-section-heading">

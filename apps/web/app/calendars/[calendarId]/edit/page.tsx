@@ -6,7 +6,8 @@ import { NewCalendarForm } from "../../../../components/new-calendar-form";
 import { requireDesigner } from "../../../../lib/auth";
 import {
   canAccessClient,
-  getCalendar
+  getCalendar,
+  getCommemorativeDates
 } from "../../../../lib/api";
 
 export default async function EditCalendarPage({
@@ -16,7 +17,10 @@ export default async function EditCalendarPage({
 }) {
   const { calendarId } = await params;
   const designer = await requireDesigner();
-  const calendar = await getCalendar(calendarId);
+  const [calendar, commemorativeDates] = await Promise.all([
+    getCalendar(calendarId),
+    getCommemorativeDates()
+  ]);
 
   if (!calendar || !canAccessClient(designer, calendar.client)) {
     notFound();
@@ -51,9 +55,13 @@ export default async function EditCalendarPage({
             id: calendar.client.id,
             name: calendar.client.name,
             designerName:
-              calendar.client.assignedDesigner?.name ?? "Sem responsável"
+              calendar.client.assignedDesigner?.name ?? "Sem responsável",
+            postingWeekdays: calendar.client.postingWeekdays.map(
+              (item) => item.weekday
+            )
           }
         ]}
+        commemorativeDates={commemorativeDates}
         initialClientId={calendar.client.id}
         cancelHref={`/calendars/${calendar.id}`}
         initialMonth={initialMonth}

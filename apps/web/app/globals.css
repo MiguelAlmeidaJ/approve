@@ -10052,3 +10052,665 @@ body::-webkit-scrollbar,
     display: none;
   }
 }
+
+
+/* Client publishing rhythm */
+
+.client-posting-rhythm-section {
+  background: linear-gradient(180deg, #fff 0%, #fffdfd 100%);
+}
+
+.client-weekday-selector {
+  padding: 0 22px 18px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.client-weekday-option {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.client-weekday-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.client-weekday-option > span {
+  min-height: 62px;
+  padding: 10px 7px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #fafaf8;
+  text-align: center;
+  transition: 160ms ease;
+}
+
+.client-weekday-option strong {
+  font-size: 10px;
+}
+
+.client-weekday-option small {
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.client-weekday-option input:checked + span {
+  border-color: var(--pink);
+  background: #fff0f4;
+  color: var(--pink);
+  box-shadow: inset 0 0 0 1px rgba(255, 1, 74, 0.08);
+}
+
+.client-weekday-option input:focus-visible + span {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px;
+}
+
+.client-rhythm-help {
+  margin: -4px 22px 19px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+/* Commemorative date management */
+
+.commemorative-page-header {
+  margin-bottom: 20px;
+}
+
+.commemorative-summary {
+  margin-bottom: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fff;
+}
+
+.commemorative-summary article {
+  min-height: 88px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-right: 1px solid var(--line);
+}
+
+.commemorative-summary article:last-child {
+  border-right: 0;
+}
+
+.commemorative-summary-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff0f4;
+  color: var(--pink);
+}
+
+.commemorative-summary-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.commemorative-summary article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.commemorative-summary small {
+  color: var(--muted);
+  font-size: 7px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.commemorative-summary strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.commemorative-section {
+  margin-top: 22px;
+}
+
+.commemorative-section-heading {
+  margin-bottom: 11px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.commemorative-section-heading .micro-label {
+  margin-bottom: 3px;
+}
+
+.commemorative-section-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+}
+
+.commemorative-section-heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.commemorative-section-heading > span {
+  color: var(--muted);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.commemorative-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.commemorative-card {
+  min-width: 0;
+  padding: 13px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.commemorative-card.national:hover {
+  border-color: #d8b8c1;
+}
+
+.commemorative-date-box {
+  width: 48px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 10px;
+  background: var(--black);
+  color: #fff;
+}
+
+.commemorative-date-box strong {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.commemorative-date-box span {
+  margin-top: 3px;
+  color: #d7d7d7;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+}
+
+.commemorative-card-copy {
+  min-width: 0;
+}
+
+.commemorative-scope {
+  color: var(--pink);
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.commemorative-card-copy h3 {
+  margin: 2px 0 3px;
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commemorative-card-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.commemorative-custom-list {
+  display: grid;
+  gap: 7px;
+}
+
+.commemorative-custom-row {
+  min-height: 76px;
+  padding: 11px 13px;
+  display: grid;
+  grid-template-columns: 105px minmax(190px, 1fr) minmax(120px, 0.65fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.commemorative-custom-row.inactive {
+  opacity: 0.58;
+  background: #f7f7f5;
+}
+
+.commemorative-custom-date,
+.commemorative-custom-copy,
+.commemorative-custom-scope {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.commemorative-custom-date strong {
+  font-size: 11px;
+}
+
+.commemorative-custom-date small,
+.commemorative-custom-scope small {
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.commemorative-custom-copy h3 {
+  margin: 0;
+  font-size: 9px;
+}
+
+.commemorative-custom-copy p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commemorative-custom-scope span {
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commemorative-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.commemorative-row-actions form {
+  display: flex;
+}
+
+.commemorative-empty {
+  min-height: 170px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  border: 1px dashed #d7d7d2;
+  border-radius: 14px;
+  background: #fafaf8;
+  text-align: center;
+}
+
+.commemorative-empty svg {
+  width: 21px;
+  height: 21px;
+  color: #a2a3a6;
+}
+
+.commemorative-empty strong {
+  font-size: 10px;
+}
+
+.commemorative-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.commemorative-modal {
+  width: min(680px, calc(100vw - 36px));
+}
+
+.commemorative-form {
+  padding: 18px 20px 20px;
+}
+
+.commemorative-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+
+.commemorative-active-toggle {
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  background: #f6f6f3;
+}
+
+.commemorative-active-toggle input {
+  accent-color: var(--pink);
+}
+
+.commemorative-active-toggle > span {
+  display: grid;
+  gap: 1px;
+}
+
+.commemorative-active-toggle strong {
+  font-size: 8px;
+}
+
+.commemorative-active-toggle small {
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.commemorative-form .form-actions {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Calendar commemorative-date awareness */
+
+.calendar-opportunity-strip {
+  margin: 0 0 13px;
+  padding: 10px;
+  border: 1px solid rgba(255, 1, 74, 0.18);
+  border-radius: 11px;
+  background: rgba(255, 1, 74, 0.035);
+}
+
+.calendar-opportunity-title {
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--pink);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+}
+
+.calendar-opportunity-title svg {
+  width: 11px;
+  height: 11px;
+}
+
+.calendar-opportunity-strip > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.calendar-opportunity-chip,
+.calendar-opportunity-more {
+  padding: 5px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  background: #fff;
+  color: #5e6064;
+  font-size: 7px;
+}
+
+.calendar-opportunity-chip strong {
+  color: var(--pink);
+  font-size: 7px;
+}
+
+.interactive-calendar .commemorative {
+  position: relative;
+}
+
+.interactive-calendar .commemorative:not(.selected) {
+  border-color: rgba(255, 1, 74, 0.34);
+  background: #fff8fa;
+}
+
+.commemorative-day-mark {
+  width: 7px !important;
+  height: 7px !important;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  color: var(--pink);
+}
+
+.interactive-calendar .selected .commemorative-day-mark {
+  color: #fff;
+}
+
+.calendar-opportunities-panel {
+  margin-bottom: 22px;
+  padding: 16px 17px;
+  border: 1px solid #f0d9df;
+  border-radius: 15px;
+  background:
+    linear-gradient(100deg, rgba(255, 1, 74, 0.045), transparent 48%),
+    #fff;
+}
+
+.calendar-opportunities-heading {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.calendar-opportunities-heading .micro-label {
+  margin-bottom: 3px;
+}
+
+.calendar-opportunities-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.calendar-opportunities-heading p {
+  max-width: 660px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.calendar-opportunities-heading > a {
+  color: var(--pink);
+  font-size: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.calendar-opportunities-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.calendar-opportunity-card {
+  min-width: 0;
+  padding: 9px 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.calendar-opportunity-date {
+  width: 38px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 8px;
+  background: #fff0f4;
+  color: var(--pink);
+}
+
+.calendar-opportunity-date strong {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.calendar-opportunity-date span {
+  margin-top: 2px;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.calendar-opportunity-card > div:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.calendar-opportunity-card > div:last-child > span {
+  color: var(--pink);
+  font-size: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.calendar-opportunity-card > div:last-child > strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-opportunity-card > div:last-child > small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1080px) {
+  .commemorative-grid,
+  .calendar-opportunities-list {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .commemorative-custom-row {
+    grid-template-columns: 95px minmax(180px, 1fr) minmax(110px, 0.7fr) auto;
+  }
+
+  .commemorative-row-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 760px) {
+  .client-weekday-selector {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .commemorative-summary,
+  .commemorative-grid,
+  .calendar-opportunities-list {
+    grid-template-columns: 1fr;
+  }
+
+  .commemorative-summary article {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .commemorative-summary article:last-child {
+    border-bottom: 0;
+  }
+
+  .commemorative-custom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .commemorative-row-actions {
+    grid-column: 1;
+    justify-content: stretch;
+  }
+
+  .commemorative-row-actions .button,
+  .commemorative-row-actions form {
+    width: 100%;
+  }
+
+  .commemorative-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commemorative-form-grid .field,
+  .commemorative-form-grid .field-span-2,
+  .commemorative-active-toggle {
+    grid-column: 1;
+  }
+
+  .calendar-opportunities-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .client-weekday-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+.planning-date-opportunity {
+  margin-top: -2px;
+  padding: 11px 12px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(255, 1, 74, 0.2);
+  border-radius: 10px;
+  background: #fff7f9;
+}
+
+.planning-date-opportunity strong {
+  color: var(--pink);
+  font-size: 8px;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.planning-date-opportunity span {
+  color: #585a5e;
+  font-size: 8px;
+  line-height: 1.45;
+}

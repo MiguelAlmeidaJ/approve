@@ -13,6 +13,7 @@ import {
   AttachArtworkDto,
   CreateCalendarDto,
   CreateClientDto,
+  CreateCommemorativeDateDto,
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
@@ -23,6 +24,7 @@ import {
   SetActiveDto,
   UpdateCalendarDto,
   UpdateClientDto,
+  UpdateCommemorativeDateDto,
   UpdateContentFormatDto,
   UpdatePlanningItemDto,
   UpdateUserDto
@@ -51,6 +53,28 @@ export class AdminController {
   @Get("formats")
   listFormats(@Req() request: InternalActorRequest) {
     return this.adminService.listFormats(request.actor);
+  }
+
+  @Get("commemorative-dates")
+  listCommemorativeDates(@Req() request: InternalActorRequest) {
+    return this.adminService.listCommemorativeDates(request.actor);
+  }
+
+  @Post("commemorative-dates")
+  createCommemorativeDate(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateCommemorativeDateDto
+  ) {
+    return this.adminService.createCommemorativeDate(request.actor, dto);
+  }
+
+  @Patch("commemorative-dates/:id")
+  updateCommemorativeDate(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateCommemorativeDateDto
+  ) {
+    return this.adminService.updateCommemorativeDate(request.actor, id, dto);
   }
 
   @Get("clients/:id")

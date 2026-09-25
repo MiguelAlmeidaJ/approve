@@ -3,7 +3,10 @@ import { FiUsers } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { NewCalendarForm } from "../../../components/new-calendar-form";
 import { requireRole } from "../../../lib/auth";
-import { getAccessibleClients } from "../../../lib/api";
+import {
+  getAccessibleClients,
+  getCommemorativeDates
+} from "../../../lib/api";
 
 function currentMonthInSaoPaulo() {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -23,7 +26,10 @@ export default async function NewCalendarPage({
   searchParams: Promise<{ client?: string }>;
 }) {
   const designer = await requireRole("ADMIN", "DEV");
-  const clients = await getAccessibleClients(designer);
+  const [clients, commemorativeDates] = await Promise.all([
+    getAccessibleClients(designer),
+    getCommemorativeDates()
+  ]);
   const { client: initialClientId } = await searchParams;
 
   return (
@@ -58,8 +64,10 @@ export default async function NewCalendarPage({
           clients={clients.map((client) => ({
             id: client.id,
             name: client.name,
-            designerName: client.assignedDesigner?.name ?? "Sem responsável"
+            designerName: client.assignedDesigner?.name ?? "Sem responsável",
+            postingWeekdays: client.postingWeekdays.map((item) => item.weekday)
           }))}
+          commemorativeDates={commemorativeDates}
           initialClientId={initialClientId}
           cancelHref="/calendars"
           initialMonth={currentMonthInSaoPaulo()}

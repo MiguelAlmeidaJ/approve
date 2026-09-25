@@ -10,11 +10,13 @@ import {
   FiClock,
   FiGrid,
   FiRepeat,
+  FiStar,
   FiUser,
   FiX,
   FiZap
 } from "react-icons/fi";
 import { createCalendar, updateCalendar } from "../app/actions";
+import type { CommemorativeDate } from "../lib/api";
 
 const monthNames = [
   "Janeiro",
@@ -63,6 +65,7 @@ export type CalendarClientOption = {
   id: string;
   name: string;
   designerName: string;
+  postingWeekdays: number[];
 };
 
 function toMonthValue(year: number, monthIndex: number) {
@@ -115,7 +118,8 @@ export function NewCalendarForm({
   initialMonth,
   calendarId,
   initialTitle = "",
-  initialPostingDays = []
+  initialPostingDays = [],
+  commemorativeDates
 }: {
   clients: CalendarClientOption[];
   initialClientId?: string;
@@ -124,24 +128,43 @@ export function NewCalendarForm({
   calendarId?: string;
   initialTitle?: string;
   initialPostingDays?: string[];
+  commemorativeDates: CommemorativeDate[];
 }) {
-  const [clientId, setClientId] = useState(
+  const initialResolvedClientId =
     initialClientId && clients.some((client) => client.id === initialClientId)
       ? initialClientId
-      : clients[0]?.id ?? ""
+      : clients[0]?.id ?? "";
+  const initialWeekdays =
+    clients.find((client) => client.id === initialResolvedClientId)
+      ?.postingWeekdays ?? [];
+
+  const [clientId, setClientId] = useState(
+    initialResolvedClientId
   );
   const [selectedMonth, setSelectedMonth] = useState(initialMonth);
   const [visibleYear, setVisibleYear] = useState(
     Number(initialMonth.slice(0, 4))
   );
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
-  const [selectedDays, setSelectedDays] = useState<number[]>(
-    initialPostingDays
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(
+    calendarId ? [] : initialWeekdays
+  );
+  const [selectedDays, setSelectedDays] = useState<number[]>(() => {
+    const explicitDays = initialPostingDays
       .filter((value) => value.startsWith(`${initialMonth}-`))
       .map((value) => Number(value.slice(8, 10)))
       .filter((value) => Number.isFinite(value))
-      .sort((first, second) => first - second)
-  );
+      .sort((first, second) => first - second);
+
+    if (explicitDays.length > 0 || calendarId) {
+      return explicitDays;
+    }
+
+    return daysMatchingWeekdays(
+      Number(initialMonth.slice(0, 4)),
+      Number(initialMonth.slice(5, 7)) - 1,
+      initialWeekdays
+    );
+  });
   const [title, setTitle] = useState(initialTitle);
   const isEditing = Boolean(calendarId);
 
@@ -153,9 +176,39 @@ export function NewCalendarForm({
     [selectedMonthIndex, selectedYear]
   );
   const generatedTitle = `${monthNames[selectedMonthIndex]} ${selectedYear}`;
+  const monthCommemorativeDates = commemorativeDates.filter(
+    (date) =>
+      date.active &&
+      date.month === selectedMonthIndex + 1 &&
+      (date.year === null || date.year === selectedYear) &&
+      (date.clientId === null || date.clientId === clientId)
+  );
+  const commemorativeByDay = new Map<number, CommemorativeDate[]>();
+
+  for (const date of monthCommemorativeDates) {
+    const current = commemorativeByDay.get(date.day) ?? [];
+    current.push(date);
+    commemorativeByDay.set(date.day, current);
+  }
+
   const postingDates = selectedDays.map(
     (day) => `${selectedMonth}-${String(day).padStart(2, "0")}`
   );
+
+  function chooseClient(value: string) {
+    setClientId(value);
+
+    if (isEditing) {
+      return;
+    }
+
+    const preferred =
+      clients.find((client) => client.id === value)?.postingWeekdays ?? [];
+    setSelectedWeekdays(preferred);
+    setSelectedDays(
+      daysMatchingWeekdays(selectedYear, selectedMonthIndex, preferred)
+    );
+  }
 
   function chooseMonth(value: string) {
     const year = Number(value.slice(0, 4));
@@ -228,7 +281,7 @@ export function NewCalendarForm({
             <span>Cliente</span>
             <select
               value={clientId}
-              onChange={(event) => setClientId(event.target.value)}
+              onChange={(event) => chooseClient(event.target.value)}
               required
               disabled={isEditing}
             >
@@ -480,7 +533,30 @@ export function NewCalendarForm({
 
           <p className="planner-preview-hint">
             Clique em qualquer data para incluir ou remover uma publicação.
+            Datas comemorativas aparecem destacadas como oportunidades de pauta.
           </p>
+
+          {monthCommemorativeDates.length > 0 ? (
+            <div className="calendar-opportunity-strip">
+              <div className="calendar-opportunity-title">
+                <FiStar aria-hidden="true" />
+                <span>Oportunidades do mês</span>
+              </div>
+              <div>
+                {monthCommemorativeDates.slice(0, 6).map((date) => (
+                  <span className="calendar-opportunity-chip" key={date.id}>
+                    <strong>{String(date.day).padStart(2, "0")}</strong>
+                    {date.name}
+                  </span>
+                ))}
+                {monthCommemorativeDates.length > 6 ? (
+                  <span className="calendar-opportunity-more">
+                    +{monthCommemorativeDates.length - 6}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mini-calendar interactive-calendar">
             <div className="mini-calendar-labels">
@@ -496,13 +572,36 @@ export function NewCalendarForm({
                 ) : (
                   <button
                     type="button"
-                    className={selectedDays.includes(day) ? "selected" : ""}
+                    className={[
+                      selectedDays.includes(day) ? "selected" : "",
+                      commemorativeByDay.has(day) ? "commemorative" : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     onClick={() => togglePostingDay(day)}
                     aria-pressed={selectedDays.includes(day)}
-                    aria-label={`${day} de ${monthNames[selectedMonthIndex]}`}
+                    aria-label={`${day} de ${monthNames[selectedMonthIndex]}${
+                      commemorativeByDay.has(day)
+                        ? ` · ${commemorativeByDay
+                            .get(day)!
+                            .map((date) => date.name)
+                            .join(", ")}`
+                        : ""
+                    }`}
+                    title={
+                      commemorativeByDay.has(day)
+                        ? commemorativeByDay
+                            .get(day)!
+                            .map((date) => date.name)
+                            .join(" · ")
+                        : undefined
+                    }
                     key={day}
                   >
                     {day}
+                    {commemorativeByDay.has(day) ? (
+                      <FiStar className="commemorative-day-mark" aria-hidden="true" />
+                    ) : null}
                     {selectedDays.includes(day) ? <i /> : null}
                   </button>
                 )

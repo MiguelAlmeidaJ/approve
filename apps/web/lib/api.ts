@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
+export type CommemorativeScope = "NATIONAL" | "CUSTOM";
 export type ContentType = "POST" | "CAROUSEL" | "REEL" | "STORY";
 
 export type ContentStatus =
@@ -123,6 +124,31 @@ export type CalendarPostingDay = {
   scheduledDate: string;
 };
 
+export type ClientPostingWeekday = {
+  id: string;
+  weekday: number;
+};
+
+export type CommemorativeDate = {
+  id: string;
+  name: string;
+  day: number;
+  month: number;
+  year: number | null;
+  scope: CommemorativeScope;
+  city: string | null;
+  state: string | null;
+  description: string | null;
+  clientId: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  client?: {
+    id: string;
+    name: string;
+  } | null;
+};
+
 export type UserListItem = DesignerListItem;
 
 export type Calendar = {
@@ -151,6 +177,7 @@ export type Client = {
     email: string;
   } | null;
   assignedDesigner?: Designer | null;
+  postingWeekdays: ClientPostingWeekday[];
   calendars: Calendar[];
 };
 
@@ -168,6 +195,7 @@ export type CalendarWithClient = Calendar & {
       email: string;
     } | null;
     assignedDesigner?: Designer | null;
+    postingWeekdays: ClientPostingWeekday[];
   };
 };
 
@@ -251,6 +279,13 @@ export async function getUsers(): Promise<UserListItem[]> {
 
 export async function getFormats(): Promise<ContentFormat[]> {
   return (await adminGet<ContentFormat[]>("/api/admin/formats")) ?? [];
+}
+
+export async function getCommemorativeDates(): Promise<CommemorativeDate[]> {
+  return (
+    (await adminGet<CommemorativeDate[]>("/api/admin/commemorative-dates")) ??
+    []
+  );
 }
 
 export function getClient(id: string) {

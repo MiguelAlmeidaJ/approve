@@ -76,6 +76,11 @@ enum AssetProvider {
   NEXTCLOUD
 }
 
+enum CommemorativeScope {
+  NATIONAL
+  CUSTOM
+}
+
 model Designer {
   id                 String            @id @default(cuid())
   name               String
@@ -117,8 +122,43 @@ model Client {
   credential         ClientCredential?
   sessions           ClientSession[]
   calendars          Calendar[]
+  postingWeekdays    ClientPostingWeekday[]
+  commemorativeDates CommemorativeDate[]
 
   @@index([assignedDesignerId])
+}
+
+model ClientPostingWeekday {
+  id        String   @id @default(cuid())
+  clientId  String
+  weekday   Int
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, weekday])
+  @@index([weekday])
+}
+
+model CommemorativeDate {
+  id          String              @id @default(cuid())
+  name        String
+  day         Int
+  month       Int
+  year        Int?
+  scope       CommemorativeScope @default(CUSTOM)
+  city        String?
+  state       String?
+  description String?             @db.Text
+  clientId    String?
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  client      Client?             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([month, day])
+  @@index([year])
+  @@index([scope, active])
+  @@index([clientId])
 }
 
 model ClientCredential {

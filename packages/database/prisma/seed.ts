@@ -156,6 +156,17 @@ async function main() {
     }
   });
 
+  await prisma.clientPostingWeekday.deleteMany({
+    where: { clientId: client.id }
+  });
+
+  await prisma.clientPostingWeekday.createMany({
+    data: [1, 3, 5].map((weekday) => ({
+      clientId: client.id,
+      weekday
+    }))
+  });
+
   await prisma.clientCredential.upsert({
     where: { clientId: client.id },
     update: {
