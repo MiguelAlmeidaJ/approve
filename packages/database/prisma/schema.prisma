@@ -36,6 +36,37 @@ enum ContentStatus {
   CHANGES_REQUESTED
 }
 
+enum CalendarStage {
+  PLANNING
+  PRE_APPROVAL
+  PRODUCTION
+  FINAL_APPROVAL
+  SCHEDULING
+  COMPLETED
+  ARCHIVED
+}
+
+enum ContentStage {
+  PLANNING
+  PRE_APPROVAL_PENDING
+  PRE_APPROVED
+  PRE_CHANGES_REQUESTED
+  DESIGN_PENDING
+  DESIGN_IN_PROGRESS
+  ART_APPROVAL_PENDING
+  ART_CHANGES_REQUESTED
+  ART_APPROVED
+  READY_TO_SCHEDULE
+  SCHEDULED
+  PUBLISHED
+  SCHEDULING_ERROR
+}
+
+enum ApprovalPhase {
+  PLANNING
+  ARTWORK
+}
+
 enum ReviewAction {
   APPROVED
   CHANGES_REQUESTED
@@ -135,6 +166,7 @@ model Calendar {
   periodStart  DateTime
   periodEnd    DateTime
   shareToken   String               @unique @db.VarChar(64)
+  stage        CalendarStage        @default(PLANNING)
   archivedAt   DateTime?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
@@ -144,6 +176,7 @@ model Calendar {
 
   @@index([clientId])
   @@index([periodStart, periodEnd])
+  @@index([stage])
 }
 
 model CalendarPostingDay {
@@ -162,6 +195,10 @@ model ContentItem {
   calendarId       String
   formatId         String?
   title            String
+  theme            String?
+  headline         String?
+  subheadline      String?
+  designerNotes    String?       @db.Text
   scheduledAt      DateTime
   channel          Channel       @default(INSTAGRAM)
   contentType      ContentType   @default(POST)
@@ -171,8 +208,14 @@ model ContentItem {
   caption          String        @db.Text
   assetUrl         String?       @db.Text
   status           ContentStatus @default(DRAFT)
+  stage            ContentStage  @default(PLANNING)
   sortOrder        Int           @default(0)
   reviewedAt       DateTime?
+  planningApprovedAt DateTime?
+  artworkApprovedAt  DateTime?
+  externalScheduleId String?
+  publishedAt        DateTime?
+  publishingError    String?      @db.Text
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   calendar         Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
@@ -183,6 +226,7 @@ model ContentItem {
   @@index([calendarId, scheduledAt])
   @@index([formatId])
   @@index([status])
+  @@index([stage])
 }
 
 model ContentAsset {
@@ -205,10 +249,12 @@ model ReviewHistory {
   id            String       @id @default(cuid())
   contentItemId String
   action        ReviewAction
+  phase         ApprovalPhase @default(ARTWORK)
   message       String?      @db.Text
   reviewerName  String?
   createdAt     DateTime     @default(now())
   contentItem   ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
 
   @@index([contentItemId, createdAt])
+  @@index([phase])
 }

@@ -7,7 +7,7 @@ import {
   ServiceUnavailableException,
   UnauthorizedException
 } from "@nestjs/common";
-import { ContentStatus, UserRole } from "@approve/database";
+import { ContentStage, UserRole } from "@approve/database";
 import { createHash } from "node:crypto";
 import type { InternalActor } from "../common/internal-actor";
 import { PrismaService } from "../prisma.service";
@@ -175,8 +175,15 @@ export class NextcloudService {
       where: {
         id: assetId,
         contentItem: {
-          status: {
-            not: ContentStatus.DRAFT
+          stage: {
+            in: [
+              ContentStage.ART_APPROVAL_PENDING,
+              ContentStage.ART_APPROVED,
+              ContentStage.READY_TO_SCHEDULE,
+              ContentStage.SCHEDULED,
+              ContentStage.PUBLISHED,
+              ContentStage.SCHEDULING_ERROR
+            ]
           },
           calendar: {
             shareToken,

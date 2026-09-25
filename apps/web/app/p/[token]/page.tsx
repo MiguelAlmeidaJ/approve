@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  FiCalendar,
+  FiCheck,
+  FiClock,
   FiGrid,
   FiHeart,
   FiMessageCircle,
@@ -18,7 +21,7 @@ import {
 } from "../../../components/protected-public-media";
 import { getClientAccount } from "../../../lib/client-auth";
 import {
-  ContentItem,
+  type ContentItem,
   getPublicCalendar
 } from "../../../lib/api";
 
@@ -32,7 +35,7 @@ export const metadata = {
 };
 
 const statusText = {
-  DRAFT: "Rascunho",
+  DRAFT: "Em produção",
   PENDING_APPROVAL: "Aguardando aprovação",
   APPROVED: "Aprovado",
   CHANGES_REQUESTED: "Alteração solicitada"
@@ -40,6 +43,57 @@ const statusText = {
 
 function publicMediaUrl(assetId: string, token: string) {
   return `/api/media/${assetId}?share=${encodeURIComponent(token)}`;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Sao_Paulo"
+  })
+    .format(new Date(value))
+    .replaceAll(".", "");
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo"
+  }).format(new Date(value));
+}
+
+function typeLabel(item: ContentItem) {
+  const type = {
+    POST: "Post",
+    CAROUSEL: "Carrossel",
+    REEL: "Reels",
+    STORY: "Stories"
+  }[item.contentType];
+
+  const placements = [
+    item.publishToFeed ? "Feed" : "",
+    item.publishToStories ? "Stories" : ""
+  ].filter(Boolean);
+
+  return `${type} · ${placements.join(" + ")}`;
+}
+
+function planningStageLabel(item: ContentItem) {
+  if (item.stage === "PRE_APPROVED" || item.stage === "DESIGN_PENDING") {
+    return "Aprovado";
+  }
+
+  if (item.stage === "PRE_CHANGES_REQUESTED") {
+    return "Ajuste solicitado";
+  }
+
+  if (item.stage === "DESIGN_IN_PROGRESS") {
+    return "Em produção";
+  }
+
+  return "Aguardando aprovação";
 }
 
 function PublicArt({
@@ -82,8 +136,155 @@ function PublicArt({
   return (
     <div className={`ig-art ig-art-tone-${index % 3} ${className}`}>
       <span>TERCEIRO ANDAR</span>
-      <strong>{item.title}</strong>
+      <strong>{item.headline || item.title}</strong>
     </div>
+  );
+}
+
+function PlanningApprovalView({
+  token,
+  calendar,
+  defaultName
+}: {
+  token: string;
+  calendar: NonNullable<Awaited<ReturnType<typeof getPublicCalendar>>>;
+  defaultName?: string;
+}) {
+  const approving = calendar.stage === "PRE_APPROVAL";
+  const approved = calendar.contentItems.filter((item) =>
+    ["PRE_APPROVED", "DESIGN_PENDING", "DESIGN_IN_PROGRESS"].includes(
+      item.stage
+    )
+  ).length;
+
+  return (
+    <main className="planning-public-page">
+      <header className="planning-public-topbar">
+        <Brand />
+        <div>
+          <span>Pré-calendário · {calendar.client.name}</span>
+          <small>{calendar.title}</small>
+        </div>
+      </header>
+
+      <section className="planning-public-hero">
+        <div>
+          <span className="micro-label">
+            {approving ? "APROVAÇÃO DE PLANEJAMENTO" : "PLANEJAMENTO APROVADO"}
+          </span>
+          <h1>{calendar.title}</h1>
+          <p>
+            {approving
+              ? "Revise tema, textos, legenda e datas antes de a equipe iniciar a produção das artes."
+              : "O pré-calendário foi aprovado e a equipe está produzindo as artes."}
+          </p>
+        </div>
+        <div className="planning-public-progress">
+          <strong>
+            {approved}/{calendar.contentItems.length}
+          </strong>
+          <span>briefings aprovados</span>
+        </div>
+      </section>
+
+      <section className="planning-public-list">
+        {calendar.contentItems.map((item, index) => {
+          const latestPlanningReview = item.reviews?.find(
+            (review) => review.phase === "PLANNING"
+          );
+          const canReview =
+            approving &&
+            ["PRE_APPROVAL_PENDING", "PRE_CHANGES_REQUESTED"].includes(
+              item.stage
+            );
+          const itemApproved = [
+            "PRE_APPROVED",
+            "DESIGN_PENDING",
+            "DESIGN_IN_PROGRESS"
+          ].includes(item.stage);
+
+          return (
+            <article className="planning-public-card" key={item.id}>
+              <div className="planning-public-card-index">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <strong>{formatDate(item.scheduledAt)}</strong>
+                  <small>
+                    <FiClock aria-hidden="true" />
+                    {formatTime(item.scheduledAt)}
+                  </small>
+                </div>
+              </div>
+
+              <div className="planning-public-card-head">
+                <div>
+                  <span className="planning-public-type">{typeLabel(item)}</span>
+                  <h2>{item.title}</h2>
+                </div>
+                <span
+                  className={[
+                    "workflow-status",
+                    item.stage === "PRE_CHANGES_REQUESTED"
+                      ? "danger"
+                      : itemApproved
+                        ? "success"
+                        : "warning"
+                  ].join(" ")}
+                >
+                  {planningStageLabel(item)}
+                </span>
+              </div>
+
+              <div className="planning-public-copy-grid">
+                <div>
+                  <small>Tema</small>
+                  <p>{item.theme || "—"}</p>
+                </div>
+                <div>
+                  <small>Headline</small>
+                  <p>{item.headline || "—"}</p>
+                </div>
+                <div>
+                  <small>Subheadline</small>
+                  <p>{item.subheadline || "—"}</p>
+                </div>
+                <div className="planning-public-caption">
+                  <small>Legenda</small>
+                  <p>{item.caption}</p>
+                </div>
+              </div>
+
+              {latestPlanningReview?.message ? (
+                <div className="planning-public-feedback">
+                  <strong>Último feedback</strong>
+                  <p>{latestPlanningReview.message}</p>
+                </div>
+              ) : null}
+
+              {canReview ? (
+                <PublicReviewActions
+                  token={token}
+                  itemId={item.id}
+                  defaultName={defaultName}
+                  approved={false}
+                  phase="planning"
+                />
+              ) : itemApproved ? (
+                <div className="planning-public-approved-note">
+                  <FiCheck aria-hidden="true" />
+                  Briefing aprovado
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </section>
+
+      <footer className="planning-public-footer">
+        <Brand />
+        <span>Terceiro Andar · Planejamento de conteúdo</span>
+      </footer>
+    </main>
   );
 }
 
@@ -103,14 +304,45 @@ export default async function ApprovalPage({
     notFound();
   }
 
+  const initialProduction =
+    calendar.stage === "PRODUCTION" &&
+    !calendar.contentItems.some((item) =>
+      [
+        "ART_APPROVAL_PENDING",
+        "ART_CHANGES_REQUESTED",
+        "ART_APPROVED",
+        "READY_TO_SCHEDULE",
+        "SCHEDULED",
+        "PUBLISHED",
+        "SCHEDULING_ERROR"
+      ].includes(item.stage)
+    );
+
+  if (calendar.stage === "PRE_APPROVAL" || initialProduction) {
+    return (
+      <PlanningApprovalView
+        token={token}
+        calendar={calendar}
+        defaultName={account?.name}
+      />
+    );
+  }
+
   const selectedIndex = calendar.contentItems.findIndex(
     (item) => item.id === selectedId
   );
   const selectedItem =
     selectedIndex >= 0 ? calendar.contentItems[selectedIndex] : null;
-  const latestReview = selectedItem?.reviews?.[0];
-  const approved = calendar.contentItems.filter(
-    (item) => item.status === "APPROVED"
+  const latestArtworkReview = selectedItem?.reviews?.find(
+    (review) => review.phase === "ARTWORK"
+  );
+  const approved = calendar.contentItems.filter((item) =>
+    [
+      "ART_APPROVED",
+      "READY_TO_SCHEDULE",
+      "SCHEDULED",
+      "PUBLISHED"
+    ].includes(item.stage)
   ).length;
   const stories = calendar.contentItems.filter(
     (item) => item.publishToStories
@@ -118,13 +350,20 @@ export default async function ApprovalPage({
   const feedItems = calendar.contentItems.filter(
     (item) => item.publishToFeed
   );
+  const canReviewArtwork = calendar.stage === "FINAL_APPROVAL";
 
   return (
     <main className="instagram-preview-page">
       <header className="instagram-preview-topbar">
         <Brand />
         <div>
-          <span>Calendário público de aprovação</span>
+          <span>
+            {canReviewArtwork
+              ? "Aprovação final das artes"
+              : calendar.stage === "PRODUCTION"
+                ? "Ajustes de arte em produção"
+                : "Calendário aprovado"}
+          </span>
           {account ? (
             <Link href="/cliente">Meus calendários</Link>
           ) : (
@@ -147,17 +386,28 @@ export default async function ApprovalPage({
           </div>
 
           <div className="instagram-stats">
-            <span><strong>{feedItems.length}</strong> publicações</span>
-            <span><strong>{approved}</strong> aprovadas</span>
-            <span><strong>{calendar.contentItems.length - approved}</strong> pendentes</span>
+            <span>
+              <strong>{feedItems.length}</strong> publicações
+            </span>
+            <span>
+              <strong>{approved}</strong> aprovadas
+            </span>
+            <span>
+              <strong>{calendar.contentItems.length - approved}</strong>{" "}
+              pendentes
+            </span>
           </div>
 
           <div className="instagram-bio">
             <strong>{calendar.client.name}</strong>
-            <span>{calendar.client.niche ?? "Conteúdo planejado pela Terceiro Andar"}</span>
+            <span>
+              {calendar.client.niche ??
+                "Conteúdo planejado pela Terceiro Andar"}
+            </span>
             <p>
-              Prévia visual para aprovação. Clique em qualquer peça para abrir
-              detalhes, legenda e ações.
+              {canReviewArtwork
+                ? "Clique em qualquer peça para revisar a arte, a legenda e aprovar a versão final."
+                : "As artes estão em ajuste ou já seguiram para a etapa de programação."}
             </p>
           </div>
         </div>
@@ -165,7 +415,7 @@ export default async function ApprovalPage({
 
       {stories.length > 0 ? (
         <section className="instagram-stories" aria-label="Stories planejados">
-          {stories.map((item, index) => (
+          {stories.map((item) => (
             <Link
               href={`/p/${token}?item=${item.id}`}
               className="instagram-story"
@@ -182,8 +432,6 @@ export default async function ApprovalPage({
                         alt=""
                       />
                     )
-                  ) : item.assetUrl ? (
-                    <ProtectedPublicImage src={item.assetUrl} alt="" />
                   ) : (
                     <FiSmartphone aria-hidden="true" />
                   )}
@@ -196,8 +444,12 @@ export default async function ApprovalPage({
       ) : null}
 
       <div className="instagram-tabs">
-        <span className="active"><FiGrid /> PUBLICAÇÕES</span>
-        <span><FiPlay /> REELS</span>
+        <span className="active">
+          <FiGrid /> PUBLICAÇÕES
+        </span>
+        <span>
+          <FiPlay /> REELS
+        </span>
       </div>
 
       {feedItems.length === 0 ? (
@@ -220,8 +472,20 @@ export default async function ApprovalPage({
                 <span className="instagram-carousel-mark">▣</span>
               ) : null}
               <span className="instagram-tile-overlay">
-                <span><FiHeart /> {item.status === "APPROVED" ? "Aprovado" : "Revisar"}</span>
-                <span><FiMessageCircle /> Abrir</span>
+                <span>
+                  <FiHeart />{" "}
+                  {[
+                    "ART_APPROVED",
+                    "READY_TO_SCHEDULE",
+                    "SCHEDULED",
+                    "PUBLISHED"
+                  ].includes(item.stage)
+                    ? "Aprovado"
+                    : "Revisar"}
+                </span>
+                <span>
+                  <FiMessageCircle /> Abrir
+                </span>
               </span>
             </Link>
           ))}
@@ -265,31 +529,32 @@ export default async function ApprovalPage({
                   {calendar.client.name.slice(0, 2).toUpperCase()}
                 </span>
                 <div>
-                  <strong>{calendar.client.slug.replaceAll("-", "_")}</strong>
-                  <small>
-                    {selectedItem.publishToFeed ? "Feed" : ""}
-                    {selectedItem.publishToFeed && selectedItem.publishToStories
-                      ? " + "
-                      : ""}
-                    {selectedItem.publishToStories ? "Stories" : ""}
-                  </small>
+                  <strong>
+                    {calendar.client.slug.replaceAll("-", "_")}
+                  </strong>
+                  <small>{typeLabel(selectedItem)}</small>
                 </div>
                 <FiMoreHorizontal aria-hidden="true" />
-                <Link href={`/p/${token}`} className="instagram-modal-close">
+                <Link
+                  href={`/p/${token}`}
+                  className="instagram-modal-close"
+                >
                   ×
                 </Link>
               </header>
 
               <div className="instagram-post-caption">
                 <p>
-                  <strong>{calendar.client.slug.replaceAll("-", "_")}</strong>{" "}
+                  <strong>
+                    {calendar.client.slug.replaceAll("-", "_")}
+                  </strong>{" "}
                   {selectedItem.caption}
                 </p>
 
-                {latestReview?.message ? (
+                {latestArtworkReview?.message ? (
                   <div className="instagram-last-feedback">
                     <span>Último ajuste solicitado</span>
-                    <p>{latestReview.message}</p>
+                    <p>{latestArtworkReview.message}</p>
                   </div>
                 ) : null}
               </div>
@@ -298,18 +563,41 @@ export default async function ApprovalPage({
                 <FiHeart />
                 <FiMessageCircle />
                 <FiSend />
-                <span className={`status-pill status-${selectedItem.status.toLowerCase()}`}>
+                <span
+                  className={`status-pill status-${selectedItem.status.toLowerCase()}`}
+                >
                   {statusText[selectedItem.status]}
                 </span>
               </div>
 
               <div className="instagram-approval-panel compact">
-                <PublicReviewActions
-                  token={token}
-                  itemId={selectedItem.id}
-                  defaultName={account?.name}
-                  approved={selectedItem.status === "APPROVED"}
-                />
+                {canReviewArtwork &&
+                [
+                  "ART_APPROVAL_PENDING",
+                  "ART_CHANGES_REQUESTED"
+                ].includes(selectedItem.stage) ? (
+                  <PublicReviewActions
+                    token={token}
+                    itemId={selectedItem.id}
+                    defaultName={account?.name}
+                    approved={false}
+                    phase="artwork"
+                  />
+                ) : (
+                  <div className="public-review-locked">
+                    <FiCheck aria-hidden="true" />
+                    <span>
+                      {[
+                        "ART_APPROVED",
+                        "READY_TO_SCHEDULE",
+                        "SCHEDULED",
+                        "PUBLISHED"
+                      ].includes(selectedItem.stage)
+                        ? "Arte aprovada"
+                        : "Esta peça não está disponível para revisão agora."}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </article>

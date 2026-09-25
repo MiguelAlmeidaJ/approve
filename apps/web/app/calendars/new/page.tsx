@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FiUsers } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { NewCalendarForm } from "../../../components/new-calendar-form";
-import { requireDesigner } from "../../../lib/auth";
+import { requireRole } from "../../../lib/auth";
 import { getAccessibleClients } from "../../../lib/api";
 
 function currentMonthInSaoPaulo() {
@@ -22,7 +22,7 @@ export default async function NewCalendarPage({
 }: {
   searchParams: Promise<{ client?: string }>;
 }) {
-  const designer = await requireDesigner();
+  const designer = await requireRole("ADMIN", "DEV");
   const clients = await getAccessibleClients(designer);
   const { client: initialClientId } = await searchParams;
 

@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { CalendarStage } from "@approve/database";
 import {
   createHash,
   randomBytes,
@@ -100,7 +101,10 @@ export class ClientAuthService {
             },
             calendars: {
               where: {
-                archivedAt: null
+                archivedAt: null,
+                stage: {
+                  notIn: [CalendarStage.PLANNING, CalendarStage.ARCHIVED]
+                }
               },
               orderBy: {
                 periodStart: "desc"
@@ -109,7 +113,8 @@ export class ClientAuthService {
                 contentItems: {
                   select: {
                     id: true,
-                    status: true
+                    status: true,
+                    stage: true
                   }
                 }
               }

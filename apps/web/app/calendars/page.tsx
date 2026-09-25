@@ -23,10 +23,12 @@ export default async function CalendarsPage() {
             Todos os planejamentos editoriais dos clientes que você pode acessar.
           </p>
         </div>
-        <Link href="/calendars/new" className="button button-primary">
-          <FiPlus aria-hidden="true" />
-          Novo calendário
-        </Link>
+        {designer.role !== "DESIGNER" ? (
+          <Link href="/calendars/new" className="button button-primary">
+            <FiPlus aria-hidden="true" />
+            Novo calendário
+          </Link>
+        ) : null}
       </header>
 
       {calendarCount === 0 ? (
@@ -34,10 +36,12 @@ export default async function CalendarsPage() {
           <div className="empty-icon">□</div>
           <h3>Nenhum calendário</h3>
           <p>Crie o primeiro planejamento e escolha os dias de postagem.</p>
-          <Link href="/calendars/new" className="button button-primary">
-            <FiPlus aria-hidden="true" />
-            Criar calendário
-          </Link>
+          {designer.role !== "DESIGNER" ? (
+            <Link href="/calendars/new" className="button button-primary">
+              <FiPlus aria-hidden="true" />
+              Criar calendário
+            </Link>
+          ) : null}
         </div>
       ) : (
         <CalendarsList clients={clients} />
