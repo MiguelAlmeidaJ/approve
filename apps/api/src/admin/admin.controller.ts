@@ -11,9 +11,11 @@ import type { InternalActorRequest } from "../common/internal-actor";
 import {
   AssignClientDto,
   AttachArtworkDto,
+  CreateBriefingTemplateDto,
   CreateCalendarDto,
   CreateClientDto,
   CreateCommemorativeDateDto,
+  CreateContentCommentDto,
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
@@ -22,10 +24,12 @@ import {
   MarkSchedulingErrorDto,
   MoveContentItemDto,
   SetActiveDto,
+  UpdateBriefingTemplateDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateCommemorativeDateDto,
   UpdateContentFormatDto,
+  UpdateContentMetricsDto,
   UpdatePlanningItemDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -75,6 +79,67 @@ export class AdminController {
     @Body() dto: UpdateCommemorativeDateDto
   ) {
     return this.adminService.updateCommemorativeDate(request.actor, id, dto);
+  }
+
+  @Get("briefing-templates")
+  listBriefingTemplates(@Req() request: InternalActorRequest) {
+    return this.adminService.listBriefingTemplates(request.actor);
+  }
+
+  @Post("briefing-templates")
+  createBriefingTemplate(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateBriefingTemplateDto
+  ) {
+    return this.adminService.createBriefingTemplate(request.actor, dto);
+  }
+
+  @Patch("briefing-templates/:id")
+  updateBriefingTemplate(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateBriefingTemplateDto
+  ) {
+    return this.adminService.updateBriefingTemplate(request.actor, id, dto);
+  }
+
+  @Get("notifications")
+  listNotifications(@Req() request: InternalActorRequest) {
+    return this.adminService.listNotifications(request.actor);
+  }
+
+  @Post("notifications/:id/read")
+  markNotificationRead(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.markNotificationRead(request.actor, id);
+  }
+
+  @Post("items/:id/comments")
+  addContentComment(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: CreateContentCommentDto
+  ) {
+    return this.adminService.addContentComment(request.actor, id, dto);
+  }
+
+  @Get("items/:id/artwork-versions")
+  getArtworkVersions(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.getArtworkVersions(request.actor, id);
+  }
+
+  @Patch("items/:id/metrics")
+  updateContentMetrics(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateContentMetricsDto
+  ) {
+    return this.adminService.updateContentMetrics(request.actor, id, dto);
   }
 
   @Get("clients/:id")

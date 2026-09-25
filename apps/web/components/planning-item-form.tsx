@@ -16,6 +16,7 @@ import {
   updatePlanningItem
 } from "../app/actions";
 import type {
+  BriefingTemplate,
   CalendarPostingDay,
   CommemorativeDate,
   ContentItem,
@@ -103,13 +104,15 @@ export function PlanningItemForm({
   postingDays,
   occupiedDates,
   item,
-  commemorativeDates = []
+  commemorativeDates = [],
+  templates = []
 }: {
   calendarId: string;
   postingDays: CalendarPostingDay[];
   occupiedDates: string[];
   item?: ContentItem;
   commemorativeDates?: CommemorativeDate[];
+  templates?: BriefingTemplate[];
 }) {
   const editing = Boolean(item);
   const currentDate = item ? saoPauloDateKey(item.scheduledAt) : "";
@@ -132,6 +135,11 @@ export function PlanningItemForm({
   const [postingDate, setPostingDate] = useState(
     currentDate || dateKey(availableDays[0]?.scheduledDate ?? "")
   );
+  const [theme, setTheme] = useState(item?.theme ?? "");
+  const [headline, setHeadline] = useState(item?.headline ?? "");
+  const [subheadline, setSubheadline] = useState(item?.subheadline ?? "");
+  const [caption, setCaption] = useState(item?.caption ?? "");
+  const [designerNotes, setDesignerNotes] = useState(item?.designerNotes ?? "");
   const selectedCommemorativeDates = useMemo(() => {
     if (!postingDate) {
       return [];
@@ -147,6 +155,23 @@ export function PlanningItemForm({
         (date.year === null || date.year === year)
     );
   }, [commemorativeDates, postingDate]);
+
+  function applyTemplate(templateId: string) {
+    const template = templates.find((entry) => entry.id === templateId);
+
+    if (!template) {
+      return;
+    }
+
+    setContentType(template.contentType);
+    setPublishToFeed(template.publishToFeed);
+    setPublishToStories(template.publishToStories);
+    setTheme(template.theme ?? "");
+    setHeadline(template.headline ?? "");
+    setSubheadline(template.subheadline ?? "");
+    setCaption(template.caption ?? "");
+    setDesignerNotes(template.designerNotes ?? "");
+  }
 
   function selectType(value: ContentType) {
     setContentType(value);
@@ -331,6 +356,26 @@ export function PlanningItemForm({
             </span>
           </div>
 
+          {templates.length > 0 ? (
+            <label className="field planning-template-select">
+              <span>Começar com um modelo</span>
+              <select
+                defaultValue=""
+                onChange={(event) => applyTemplate(event.target.value)}
+              >
+                <option value="">Selecione um modelo opcional</option>
+                {templates
+                  .filter((template) => template.active)
+                  .map((template) => (
+                    <option value={template.id} key={template.id}>
+                      {template.name}
+                      {template.niche ? ` · ${template.niche}` : ""}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ) : null}
+
           <div className="planning-fields-grid">
             <label className="field field-span-2">
               <span>Nome interno da peça</span>
@@ -346,7 +391,8 @@ export function PlanningItemForm({
               <span>Tema</span>
               <input
                 name="theme"
-                defaultValue={item?.theme ?? ""}
+                value={theme}
+                onChange={(event) => setTheme(event.target.value)}
                 placeholder="Ex.: Independência, liberdade e conectividade"
                 required
               />
@@ -356,7 +402,8 @@ export function PlanningItemForm({
               <span>Headline</span>
               <input
                 name="headline"
-                defaultValue={item?.headline ?? ""}
+                value={headline}
+                onChange={(event) => setHeadline(event.target.value)}
                 placeholder="A liberdade de estar conectado"
                 required
               />
@@ -366,7 +413,8 @@ export function PlanningItemForm({
               <span>Subheadline</span>
               <input
                 name="subheadline"
-                defaultValue={item?.subheadline ?? ""}
+                value={subheadline}
+                onChange={(event) => setSubheadline(event.target.value)}
                 placeholder="Complemento opcional da mensagem"
               />
             </label>
@@ -376,7 +424,8 @@ export function PlanningItemForm({
               <textarea
                 name="caption"
                 rows={7}
-                defaultValue={item?.caption ?? ""}
+                value={caption}
+                onChange={(event) => setCaption(event.target.value)}
                 placeholder="Legenda que será submetida para aprovação..."
                 required
               />
@@ -387,7 +436,8 @@ export function PlanningItemForm({
               <textarea
                 name="designerNotes"
                 rows={4}
-                defaultValue={item?.designerNotes ?? ""}
+                value={designerNotes}
+                onChange={(event) => setDesignerNotes(event.target.value)}
                 placeholder="Referências visuais, elementos obrigatórios, observações..."
               />
             </label>

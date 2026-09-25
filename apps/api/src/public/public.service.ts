@@ -10,6 +10,7 @@ import {
   ContentStatus,
   ReviewAction
 } from "@approve/database";
+import { sendWorkflowEmail } from "../auth/smtp-mailer";
 import { PrismaService } from "../prisma.service";
 import { ReviewContentDto } from "./public.dto";
 
@@ -43,6 +44,9 @@ export class PublicService {
           include: {
             formatPreset: true,
             assets: {
+              where: {
+                active: true
+              },
               orderBy: {
                 sortOrder: "asc"
               },
@@ -55,6 +59,22 @@ export class PublicService {
             reviews: {
               orderBy: { createdAt: "desc" },
               take: 3
+            },
+            comments: {
+              where: {
+                OR: [
+                  { authorType: "CLIENT" },
+                  { visibleToClient: true }
+                ]
+              },
+              orderBy: { createdAt: "asc" },
+              select: {
+                id: true,
+                authorType: true,
+                authorName: true,
+                message: true,
+                createdAt: true
+              }
             }
           }
         }
@@ -86,7 +106,19 @@ export class PublicService {
       },
       select: {
         id: true,
-        stage: true
+        stage: true,
+        title: true,
+        client: {
+          select: {
+            assignedDesignerId: true,
+            assignedDesigner: {
+              select: {
+                name: true,
+                email: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -177,6 +209,49 @@ export class PublicService {
       })
     ]);
 
+    if (message) {
+      await this.prisma.contentComment.create({
+        data: {
+          contentItemId: item.id,
+          authorType: "CLIENT",
+          authorName: dto.reviewerName?.trim() || "Cliente",
+          message,
+          visibleToClient: true
+        }
+      });
+    }
+
+    if (!approved && calendar.client.assignedDesignerId) {
+      await this.prisma.notification.create({
+        data: {
+          designerId: calendar.client.assignedDesignerId,
+          type: "CHANGE",
+          title:
+            phase === ApprovalPhase.PLANNING
+              ? "Ajuste solicitado no planejamento"
+              : "Ajuste solicitado na arte",
+          message: `O cliente solicitou alteração em "${item.title}".`,
+          link: `/calendars/${calendar.id}`
+        }
+      });
+    }
+
+    if (!approved) {
+      await sendWorkflowEmail({
+        to: calendar.client.assignedDesigner?.email,
+        subject:
+          phase === ApprovalPhase.PLANNING
+            ? "Ajuste solicitado no planejamento"
+            : "Ajuste solicitado na arte",
+        lines: [
+          `O cliente solicitou alteração em "${item.title}".`,
+          message ? `Feedback: ${message}` : "",
+          "",
+          `Abra o calendário: ${(process.env.APP_URL ?? "http://localhost:4334").replace(/\/$/, "")}/calendars/${calendar.id}`
+        ].filter(Boolean)
+      });
+    }
+
     await this.syncCalendarAfterReview(calendar.id, phase);
 
     return { ok: true };
@@ -210,6 +285,24 @@ export class PublicService {
         return;
       }
 
+      const calendar = await this.prisma.calendar.findUnique({
+        where: { id: calendarId },
+        select: {
+          title: true,
+          client: {
+            select: {
+              assignedDesignerId: true,
+              assignedDesigner: {
+                select: {
+                  email: true,
+                  name: true
+                }
+              }
+            }
+          }
+        }
+      });
+
       await this.prisma.$transaction([
         this.prisma.calendar.update({
           where: { id: calendarId },
@@ -226,6 +319,29 @@ export class PublicService {
           }
         })
       ]);
+
+      if (calendar?.client.assignedDesignerId) {
+        await this.prisma.notification.create({
+          data: {
+            designerId: calendar.client.assignedDesignerId,
+            type: "ACTION",
+            title: "Pré-calendário aprovado",
+            message: `"${calendar.title}" está liberado para produção das artes.`,
+            link: `/calendars/${calendarId}`
+          }
+        });
+      }
+
+      await sendWorkflowEmail({
+        to: calendar?.client.assignedDesigner?.email,
+        subject: `Pré-calendário aprovado · ${calendar?.title ?? "Calendário"}`,
+        lines: [
+          `Olá, ${calendar?.client.assignedDesigner?.name ?? "designer"}.`,
+          "",
+          `O pré-calendário "${calendar?.title ?? "Calendário"}" foi aprovado pelo cliente e está liberado para produção.`,
+          `Acesse: ${(process.env.APP_URL ?? "http://localhost:4334").replace(/\/$/, "")}/calendars/${calendarId}`
+        ]
+      });
 
       return;
     }
@@ -265,5 +381,46 @@ export class PublicService {
         }
       })
     ]);
+
+    const managers = await this.prisma.designer.findMany({
+      where: {
+        active: true,
+        role: {
+          in: ["ADMIN", "DEV"]
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true
+      }
+    });
+
+    if (managers.length > 0) {
+      await this.prisma.notification.createMany({
+        data: managers.map((manager) => ({
+          designerId: manager.id,
+          type: "PUBLISHING",
+          title: "Artes aprovadas · pronto para programar",
+          message: "O calendário foi aprovado e entrou na fila de programação.",
+          link: `/calendars/${calendarId}`
+        }))
+      });
+    }
+
+    await Promise.all(
+      managers.map((manager) =>
+        sendWorkflowEmail({
+          to: manager.email,
+          subject: "Calendário pronto para programação",
+          lines: [
+            `Olá, ${manager.name}.`,
+            "",
+            "Todas as artes do calendário foram aprovadas pelo cliente.",
+            `Acesse a fila: ${(process.env.APP_URL ?? "http://localhost:4334").replace(/\/$/, "")}/calendars/${calendarId}`
+          ]
+        })
+      )
+    );
   }
 }

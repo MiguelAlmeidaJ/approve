@@ -151,6 +151,18 @@ function DateForm({
         </label>
 
         <label className="field field-span-2">
+          <span>Tags de nicho / região</span>
+          <input
+            name="tags"
+            defaultValue={date?.tags ?? ""}
+            placeholder="Ex.: veterinária, pet, saúde animal, Cabo Frio"
+          />
+          <small className="field-helper">
+            O gerador automático usa essas tags para priorizar a data para clientes relacionados.
+          </small>
+        </label>
+
+        <label className="field field-span-2">
           <span>Observação / oportunidade de pauta</span>
           <textarea
             name="description"
@@ -393,6 +405,11 @@ export default async function CommemorativeDatesPage({
                         type="hidden"
                         name="description"
                         value={date.description ?? ""}
+                      />
+                      <input
+                        type="hidden"
+                        name="tags"
+                        value={date.tags ?? ""}
                       />
                       <input
                         type="hidden"

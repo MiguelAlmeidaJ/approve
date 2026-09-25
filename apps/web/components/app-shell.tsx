@@ -1,11 +1,15 @@
 import Link from "next/link";
 import {
+  FiBell,
   FiCalendar,
+  FiClipboard,
   FiHome,
   FiLogOut,
+  FiPieChart,
   FiSettings,
   FiSliders,
   FiStar,
+  FiTool,
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
@@ -19,6 +23,10 @@ export type AppSection =
   | "clients"
   | "team"
   | "dates"
+  | "production"
+  | "templates"
+  | "notifications"
+  | "reports"
   | "formats"
   | "config";
 
@@ -80,6 +88,26 @@ export function AppShell({
           </Link>
 
           <Link
+            href="/producao"
+            className={
+              activeSection === "production" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiTool className="nav-icon" aria-hidden="true" />
+            Produção
+          </Link>
+
+          <Link
+            href="/notificacoes"
+            className={
+              activeSection === "notifications" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiBell className="nav-icon" aria-hidden="true" />
+            Notificações
+          </Link>
+
+          <Link
             href="/clients"
             className={
               activeSection === "clients" ? "nav-link active" : "nav-link"
@@ -101,6 +129,18 @@ export function AppShell({
             </Link>
           ) : null}
 
+          {canSeeFormats ? (
+            <Link
+              href="/modelos"
+              className={
+                activeSection === "templates" ? "nav-link active" : "nav-link"
+              }
+            >
+              <FiClipboard className="nav-icon" aria-hidden="true" />
+              Modelos
+            </Link>
+          ) : null}
+
           <Link
             href="/datas-comemorativas"
             className={
@@ -109,6 +149,16 @@ export function AppShell({
           >
             <FiStar className="nav-icon" aria-hidden="true" />
             Datas
+          </Link>
+
+          <Link
+            href="/relatorios"
+            className={
+              activeSection === "reports" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiPieChart className="nav-icon" aria-hidden="true" />
+            Relatórios
           </Link>
 
           {canSeeFormats ? (

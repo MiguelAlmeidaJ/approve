@@ -557,6 +557,21 @@ export default async function ApprovalPage({
                     <p>{latestArtworkReview.message}</p>
                   </div>
                 ) : null}
+
+                {selectedItem.comments && selectedItem.comments.length > 0 ? (
+                  <div className="public-comment-thread">
+                    <strong>Conversa sobre esta peça</strong>
+                    {selectedItem.comments.map((comment) => (
+                      <div
+                        className={`public-comment public-comment-${comment.authorType.toLowerCase()}`}
+                        key={comment.id}
+                      >
+                        <span>{comment.authorName || "Equipe"}</span>
+                        <p>{comment.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="instagram-post-icons">
