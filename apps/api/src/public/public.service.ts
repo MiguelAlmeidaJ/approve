@@ -4,6 +4,9 @@ import {
   NotFoundException
 } from "@nestjs/common";
 import {
+  ApprovalPhase,
+  CalendarStage,
+  ContentStage,
   ContentStatus,
   ReviewAction
 } from "@approve/database";
@@ -19,6 +22,9 @@ export class PublicService {
       where: {
         shareToken: token,
         archivedAt: null,
+        stage: {
+          notIn: [CalendarStage.PLANNING, CalendarStage.ARCHIVED]
+        },
         client: {
           active: true
         }
@@ -33,11 +39,6 @@ export class PublicService {
           }
         },
         contentItems: {
-          where: {
-            status: {
-              not: ContentStatus.DRAFT
-            }
-          },
           orderBy: [{ scheduledAt: "asc" }, { sortOrder: "asc" }],
           include: {
             formatPreset: true,
@@ -53,7 +54,7 @@ export class PublicService {
             },
             reviews: {
               orderBy: { createdAt: "desc" },
-              take: 1
+              take: 3
             }
           }
         }
@@ -76,29 +77,56 @@ export class PublicService {
       where: {
         shareToken: token,
         archivedAt: null,
+        stage: {
+          in: [CalendarStage.PRE_APPROVAL, CalendarStage.FINAL_APPROVAL]
+        },
         client: {
           active: true
         }
       },
-      select: { id: true }
+      select: {
+        id: true,
+        stage: true
+      }
     });
 
     if (!calendar) {
-      throw new NotFoundException("Calendário público não encontrado.");
+      throw new NotFoundException(
+        "Este calendário não está aguardando aprovação."
+      );
     }
+
+    const phase =
+      calendar.stage === CalendarStage.PRE_APPROVAL
+        ? ApprovalPhase.PLANNING
+        : ApprovalPhase.ARTWORK;
 
     const item = await this.prisma.contentItem.findFirst({
       where: {
         id: contentItemId,
-        calendarId: calendar.id,
-        status: {
-          not: ContentStatus.DRAFT
-        }
+        calendarId: calendar.id
       }
     });
 
     if (!item) {
       throw new NotFoundException("Conteúdo não encontrado neste calendário.");
+    }
+
+    const allowed =
+      phase === ApprovalPhase.PLANNING
+        ? [
+            ContentStage.PRE_APPROVAL_PENDING,
+            ContentStage.PRE_CHANGES_REQUESTED
+          ].includes(item.stage)
+        : [
+            ContentStage.ART_APPROVAL_PENDING,
+            ContentStage.ART_CHANGES_REQUESTED
+          ].includes(item.stage);
+
+    if (!allowed) {
+      throw new BadRequestException(
+        "Esta peça não está aguardando aprovação nesta etapa."
+      );
     }
 
     const message = dto.message?.trim();
@@ -109,22 +137,39 @@ export class PublicService {
       );
     }
 
-    const status =
-      dto.action === ReviewAction.APPROVED
-        ? ContentStatus.APPROVED
-        : ContentStatus.CHANGES_REQUESTED;
+    const approved = dto.action === ReviewAction.APPROVED;
+    const now = new Date();
 
-    const [, review] = await this.prisma.$transaction([
+    await this.prisma.$transaction([
       this.prisma.contentItem.update({
         where: { id: item.id },
-        data: {
-          status,
-          reviewedAt: new Date()
-        }
+        data:
+          phase === ApprovalPhase.PLANNING
+            ? {
+                stage: approved
+                  ? ContentStage.PRE_APPROVED
+                  : ContentStage.PRE_CHANGES_REQUESTED,
+                status: approved
+                  ? ContentStatus.APPROVED
+                  : ContentStatus.CHANGES_REQUESTED,
+                reviewedAt: now,
+                planningApprovedAt: approved ? now : null
+              }
+            : {
+                stage: approved
+                  ? ContentStage.ART_APPROVED
+                  : ContentStage.ART_CHANGES_REQUESTED,
+                status: approved
+                  ? ContentStatus.APPROVED
+                  : ContentStatus.CHANGES_REQUESTED,
+                reviewedAt: now,
+                artworkApprovedAt: approved ? now : null
+              }
       }),
       this.prisma.reviewHistory.create({
         data: {
           contentItemId: item.id,
+          phase,
           action: dto.action,
           message: message || null,
           reviewerName: dto.reviewerName?.trim() || null
@@ -132,7 +177,93 @@ export class PublicService {
       })
     ]);
 
-    return review;
+    await this.syncCalendarAfterReview(calendar.id, phase);
+
+    return { ok: true };
   }
 
+  private async syncCalendarAfterReview(
+    calendarId: string,
+    phase: ApprovalPhase
+  ) {
+    const items = await this.prisma.contentItem.findMany({
+      where: { calendarId },
+      select: {
+        stage: true
+      }
+    });
+
+    if (phase === ApprovalPhase.PLANNING) {
+      const stillPending = items.some(
+        (item) => item.stage === ContentStage.PRE_APPROVAL_PENDING
+      );
+
+      if (stillPending) {
+        return;
+      }
+
+      const hasChanges = items.some(
+        (item) => item.stage === ContentStage.PRE_CHANGES_REQUESTED
+      );
+
+      if (hasChanges) {
+        return;
+      }
+
+      await this.prisma.$transaction([
+        this.prisma.calendar.update({
+          where: { id: calendarId },
+          data: { stage: CalendarStage.PRODUCTION }
+        }),
+        this.prisma.contentItem.updateMany({
+          where: {
+            calendarId,
+            stage: ContentStage.PRE_APPROVED
+          },
+          data: {
+            stage: ContentStage.DESIGN_PENDING,
+            status: ContentStatus.DRAFT
+          }
+        })
+      ]);
+
+      return;
+    }
+
+    const stillPending = items.some(
+      (item) => item.stage === ContentStage.ART_APPROVAL_PENDING
+    );
+
+    if (stillPending) {
+      return;
+    }
+
+    const hasChanges = items.some(
+      (item) => item.stage === ContentStage.ART_CHANGES_REQUESTED
+    );
+
+    if (hasChanges) {
+      await this.prisma.calendar.update({
+        where: { id: calendarId },
+        data: { stage: CalendarStage.PRODUCTION }
+      });
+      return;
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.calendar.update({
+        where: { id: calendarId },
+        data: { stage: CalendarStage.SCHEDULING }
+      }),
+      this.prisma.contentItem.updateMany({
+        where: {
+          calendarId,
+          stage: ContentStage.ART_APPROVED
+        },
+        data: {
+          stage: ContentStage.READY_TO_SCHEDULE
+        }
+      })
+    ]);
+  }
 }

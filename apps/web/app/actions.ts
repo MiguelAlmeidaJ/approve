@@ -388,6 +388,200 @@ export async function restoreCalendar(calendarId: string) {
   revalidatePath(`/calendars/${calendarId}`);
 }
 
+export async function createPlanningItem(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const postingDate = required(formData, "postingDate");
+  const postingTime = required(formData, "postingTime");
+  const publishToFeed = formData.get("publishToFeed") === "on";
+  const publishToStories = formData.get("publishToStories") === "on";
+
+  if (!publishToFeed && !publishToStories) {
+    throw new Error("Selecione Feed, Stories ou ambos.");
+  }
+
+  const scheduledAt = new Date(
+    `${postingDate}T${postingTime}:00-03:00`,
+  ).toISOString();
+
+  await adminPost(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/planning-items`,
+    {
+      title: required(formData, "title"),
+      theme: required(formData, "theme"),
+      headline: required(formData, "headline"),
+      subheadline: String(formData.get("subheadline") ?? "").trim() || undefined,
+      designerNotes:
+        String(formData.get("designerNotes") ?? "").trim() || undefined,
+      postingDate,
+      scheduledAt,
+      contentType: required(formData, "contentType"),
+      publishToFeed,
+      publishToStories,
+      caption: required(formData, "caption"),
+      channel: "INSTAGRAM",
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function updatePlanningItem(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const postingDate = required(formData, "postingDate");
+  const postingTime = required(formData, "postingTime");
+  const publishToFeed = formData.get("publishToFeed") === "on";
+  const publishToStories = formData.get("publishToStories") === "on";
+
+  if (!publishToFeed && !publishToStories) {
+    throw new Error("Selecione Feed, Stories ou ambos.");
+  }
+
+  const scheduledAt = new Date(
+    `${postingDate}T${postingTime}:00-03:00`,
+  ).toISOString();
+
+  await adminPatch(
+    `/api/admin/items/${encodeURIComponent(itemId)}/planning`,
+    {
+      title: required(formData, "title"),
+      theme: required(formData, "theme"),
+      headline: required(formData, "headline"),
+      subheadline: String(formData.get("subheadline") ?? "").trim() || undefined,
+      designerNotes:
+        String(formData.get("designerNotes") ?? "").trim() || undefined,
+      postingDate,
+      scheduledAt,
+      contentType: required(formData, "contentType"),
+      publishToFeed,
+      publishToStories,
+      caption: required(formData, "caption"),
+      channel: "INSTAGRAM",
+    },
+  );
+
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function submitPlanning(calendarId: string) {
+  await requireRole("ADMIN", "DEV");
+
+  await adminPost(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/submit-planning`,
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function attachArtwork(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  const assetPaths = formData
+    .getAll("assetPath")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  if (assetPaths.length === 0) {
+    throw new Error("Selecione ao menos uma arte no Nextcloud.");
+  }
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/artwork`,
+    {
+      formatId: required(formData, "formatId"),
+      assetPaths,
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function submitArtwork(calendarId: string) {
+  const designer = await requireDesigner();
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  await adminPost(
+    `/api/admin/calendars/${encodeURIComponent(calendarId)}/submit-artwork`,
+  );
+
+  revalidatePath("/");
+  revalidatePath("/calendars");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function markContentScheduled(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/scheduled`,
+    {
+      externalScheduleId:
+        String(formData.get("externalScheduleId") ?? "").trim() || undefined,
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function markContentPublished(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/published`,
+  );
+
+  revalidatePath("/");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
+export async function markContentSchedulingError(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+
+  await adminPost(
+    `/api/admin/items/${encodeURIComponent(itemId)}/scheduling-error`,
+    {
+      message: required(formData, "message"),
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath(`/calendars/${calendarId}`);
+  redirect(`/calendars/${calendarId}`);
+}
+
 export async function createContentItem(formData: FormData) {
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");

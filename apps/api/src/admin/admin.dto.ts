@@ -246,3 +246,74 @@ export class CreateContentItemDto {
   @IsEnum(Channel)
   channel?: Channel;
 }
+
+
+export class CreatePlanningItemDto {
+  @IsString()
+  @MinLength(2)
+  title!: string;
+
+  @IsString()
+  @MinLength(2)
+  theme!: string;
+
+  @IsString()
+  @MinLength(2)
+  headline!: string;
+
+  @IsOptional()
+  @IsString()
+  subheadline?: string;
+
+  @IsOptional()
+  @IsString()
+  designerNotes?: string;
+
+  @IsDateString()
+  scheduledAt!: string;
+
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  postingDate!: string;
+
+  @IsEnum(ContentType)
+  contentType!: ContentType;
+
+  @IsBoolean()
+  publishToFeed!: boolean;
+
+  @IsBoolean()
+  publishToStories!: boolean;
+
+  @IsString()
+  @MinLength(2)
+  caption!: string;
+
+  @IsOptional()
+  @IsEnum(Channel)
+  channel?: Channel;
+}
+
+export class UpdatePlanningItemDto extends CreatePlanningItemDto {}
+
+export class AttachArtworkDto {
+  @IsString()
+  formatId!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  assetPaths!: string[];
+}
+
+export class MarkScheduledDto {
+  @IsOptional()
+  @IsString()
+  externalScheduleId?: string;
+}
+
+export class MarkSchedulingErrorDto {
+  @IsString()
+  @MinLength(2)
+  message!: string;
+}

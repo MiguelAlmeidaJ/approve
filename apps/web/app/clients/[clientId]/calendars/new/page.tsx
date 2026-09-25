@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { requireDesigner } from "../../../../../lib/auth";
+import { requireRole } from "../../../../../lib/auth";
 import { canAccessClient, getClient } from "../../../../../lib/api";
 
 export default async function LegacyNewCalendarPage({
@@ -8,7 +8,7 @@ export default async function LegacyNewCalendarPage({
   params: Promise<{ clientId: string }>;
 }) {
   const { clientId } = await params;
-  const designer = await requireDesigner();
+  const designer = await requireRole("ADMIN", "DEV");
   const client = await getClient(clientId);
 
   if (!client || !canAccessClient(designer, client)) {

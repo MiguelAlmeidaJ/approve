@@ -40,11 +40,29 @@ export default async function ClientPortalPage() {
       ) : (
         <section className="client-portal-calendar-grid">
           {client.calendars.map((calendar) => {
-            const approved = calendar.contentItems.filter(
-              (item) => item.status === "APPROVED"
+            const approved = calendar.contentItems.filter((item) =>
+              [
+                "PRE_APPROVED",
+                "DESIGN_PENDING",
+                "DESIGN_IN_PROGRESS",
+                "ART_APPROVED",
+                "READY_TO_SCHEDULE",
+                "SCHEDULED",
+                "PUBLISHED"
+              ].includes(item.stage)
             ).length;
             const total = calendar.contentItems.length;
-            const progress = total === 0 ? 0 : Math.round((approved / total) * 100);
+            const progress =
+              total === 0 ? 0 : Math.round((approved / total) * 100);
+            const stageLabel = {
+              PLANNING: "Planejamento",
+              PRE_APPROVAL: "Pré-aprovação",
+              PRODUCTION: "Em produção",
+              FINAL_APPROVAL: "Aprovação das artes",
+              SCHEDULING: "Programação",
+              COMPLETED: "Concluído",
+              ARCHIVED: "Arquivado"
+            }[calendar.stage];
 
             return (
               <Link
@@ -61,7 +79,9 @@ export default async function ClientPortalPage() {
                     }).format(new Date(calendar.periodStart))}
                   </span>
                   <h2>{calendar.title}</h2>
-                  <p>{total} peça(s) · {approved} aprovada(s)</p>
+                  <p>
+                    {stageLabel} · {total} peça(s)
+                  </p>
                 </div>
 
                 <div className="client-portal-progress">

@@ -1,154 +1,149 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  FiAlertCircle,
+  FiArrowLeft,
   FiCalendar,
+  FiCheck,
+  FiCheckCircle,
   FiClock,
+  FiEdit3,
+  FiExternalLink,
   FiImage,
   FiLayers,
-  FiLink,
-  FiMonitor,
   FiPlay,
-  FiSmartphone
+  FiRefreshCw,
+  FiSend,
+  FiSmartphone,
+  FiUploadCloud
 } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
-import {
-  archiveCalendar,
-  moveContentItem,
-  restoreCalendar,
-  rotateCalendarToken
-} from "../../actions";
 import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
-  ContentItem,
-  getCalendar
+  getCalendar,
+  type CalendarStage,
+  type ContentItem,
+  type ContentStage
 } from "../../../lib/api";
+import {
+  archiveCalendar,
+  markContentPublished,
+  markContentScheduled,
+  restoreCalendar,
+  rotateCalendarToken,
+  submitArtwork,
+  submitPlanning
+} from "../../actions";
 
-const statusLabel = {
-  DRAFT: "Rascunho",
-  PENDING_APPROVAL: "Aguardando",
-  APPROVED: "Aprovado",
-  CHANGES_REQUESTED: "Alteração"
-} as const;
+const workflowSteps: Array<{
+  key: "PLANNING" | "PRE_APPROVAL" | "PRODUCTION" | "FINAL_APPROVAL" | "SCHEDULING";
+  label: string;
+  short: string;
+}> = [
+  { key: "PLANNING", label: "Planejamento", short: "Briefing" },
+  { key: "PRE_APPROVAL", label: "Pré-aprovação", short: "Cliente" },
+  { key: "PRODUCTION", label: "Produção", short: "Designer" },
+  { key: "FINAL_APPROVAL", label: "Aprovação da arte", short: "Cliente" },
+  { key: "SCHEDULING", label: "Programação", short: "mLabs" }
+];
 
-const typeLabel = {
-  POST: "Post",
-  CAROUSEL: "Carrossel",
-  REEL: "Reels",
-  STORY: "Stories"
-} as const;
+const contentStageLabel: Record<ContentStage, string> = {
+  PLANNING: "Em planejamento",
+  PRE_APPROVAL_PENDING: "Aguardando pré-aprovação",
+  PRE_APPROVED: "Planejamento aprovado",
+  PRE_CHANGES_REQUESTED: "Ajuste no planejamento",
+  DESIGN_PENDING: "Aguardando designer",
+  DESIGN_IN_PROGRESS: "Arte em produção",
+  ART_APPROVAL_PENDING: "Aguardando aprovação da arte",
+  ART_CHANGES_REQUESTED: "Ajuste de arte",
+  ART_APPROVED: "Arte aprovada",
+  READY_TO_SCHEDULE: "Pronto para programar",
+  SCHEDULED: "Programado",
+  PUBLISHED: "Publicado",
+  SCHEDULING_ERROR: "Erro na programação"
+};
 
-const typeIcon = {
-  POST: FiImage,
-  CAROUSEL: FiLayers,
-  REEL: FiPlay,
-  STORY: FiSmartphone
-} as const;
-
-function saoPauloDateKey(value: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "America/Sao_Paulo"
-  }).formatToParts(new Date(value));
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  return `${year}-${month}-${day}`;
+function stageIndex(stage: CalendarStage) {
+  if (stage === "COMPLETED") {
+    return workflowSteps.length;
+  }
+  if (stage === "ARCHIVED") {
+    return -1;
+  }
+  return workflowSteps.findIndex((step) => step.key === stage);
 }
 
-function saoPauloTime(value: string) {
-  const parts = new Intl.DateTimeFormat("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "America/Sao_Paulo"
-  }).formatToParts(new Date(value));
-  const hour = parts.find((part) => part.type === "hour")?.value ?? "12";
-  const minute = parts.find((part) => part.type === "minute")?.value ?? "00";
-
-  return `${hour}:${minute}`;
-}
-
-function formatPostingDay(value: string) {
+function formatDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     weekday: "short",
     day: "2-digit",
     month: "short",
-    timeZone: "UTC"
+    timeZone: "America/Sao_Paulo"
   })
     .format(new Date(value))
     .replaceAll(".", "");
 }
 
-function formatDate(value: string) {
+function formatTime(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "short",
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "America/Sao_Paulo"
   }).format(new Date(value));
 }
 
-function PreviewArt({
-  item,
-  index,
-  className = ""
-}: {
-  item: ContentItem;
-  index: number;
-  className?: string;
-}) {
-  const primaryAsset = item.assets?.[0];
-
-  if (primaryAsset) {
-    const src = `/api/media/${primaryAsset.id}`;
-
-    return (
-      <div className={`preview-art has-image ${className}`}>
-        {primaryAsset.mimeType?.startsWith("video/") ? (
-          <video src={src} muted playsInline preload="metadata" />
-        ) : (
-          <img src={src} alt={item.title} />
-        )}
-      </div>
-    );
+function statusTone(stage: ContentStage) {
+  if (
+    [
+      "PRE_CHANGES_REQUESTED",
+      "ART_CHANGES_REQUESTED",
+      "SCHEDULING_ERROR"
+    ].includes(stage)
+  ) {
+    return "danger";
   }
 
-  if (item.assetUrl) {
-    return (
-      <div className={`preview-art has-image ${className}`}>
-        <img src={item.assetUrl} alt={item.title} />
-      </div>
-    );
+  if (
+    [
+      "PRE_APPROVED",
+      "ART_APPROVED",
+      "READY_TO_SCHEDULE",
+      "SCHEDULED",
+      "PUBLISHED"
+    ].includes(stage)
+  ) {
+    return "success";
   }
 
-  const Icon = typeIcon[item.contentType];
+  if (
+    ["PRE_APPROVAL_PENDING", "ART_APPROVAL_PENDING"].includes(stage)
+  ) {
+    return "warning";
+  }
 
-  return (
-    <div className={`preview-art art-tone-${index % 3} ${className}`}>
-      <span className="art-kicker">
-        <Icon aria-hidden="true" />
-        {typeLabel[item.contentType]}
-      </span>
-      <strong>{item.title}</strong>
-      <i />
-    </div>
-  );
+  return "neutral";
+}
+
+function TypeIcon({ item }: { item: ContentItem }) {
+  if (item.contentType === "CAROUSEL") {
+    return <FiLayers aria-hidden="true" />;
+  }
+  if (item.contentType === "REEL") {
+    return <FiPlay aria-hidden="true" />;
+  }
+  if (item.contentType === "STORY") {
+    return <FiSmartphone aria-hidden="true" />;
+  }
+  return <FiImage aria-hidden="true" />;
 }
 
 export default async function CalendarPage({
-  params,
-  searchParams
+  params
 }: {
   params: Promise<{ calendarId: string }>;
-  searchParams: Promise<{ item?: string }>;
 }) {
   const { calendarId } = await params;
-  const { item: selectedId } = await searchParams;
   const designer = await requireDesigner();
   const calendar = await getCalendar(calendarId);
 
@@ -156,393 +151,516 @@ export default async function CalendarPage({
     notFound();
   }
 
-  const selectedIndex = calendar.contentItems.findIndex(
-    (item) => item.id === selectedId
-  );
-  const selectedItem =
-    selectedIndex >= 0 ? calendar.contentItems[selectedIndex] : null;
-  const approved = calendar.contentItems.filter(
-    (item) => item.status === "APPROVED"
-  ).length;
+  const isManager = designer.role === "ADMIN" || designer.role === "DEV";
+  const currentIndex = stageIndex(calendar.stage);
   const appUrl = process.env.APP_URL ?? "http://localhost:4334";
   const shareUrl = `${appUrl.replace(/\/$/, "")}/p/${calendar.shareToken}`;
-  const occupiedByDate = new Map(
-    calendar.contentItems.map((contentItem) => [
-      saoPauloDateKey(contentItem.scheduledAt),
-      contentItem
-    ])
-  );
-  const freeDays = calendar.postingDays.filter(
-    (day) => !occupiedByDate.has(day.scheduledDate.slice(0, 10))
+  const planningChanges = calendar.contentItems.filter(
+    (item) => item.stage === "PRE_CHANGES_REQUESTED"
   ).length;
+  const artChanges = calendar.contentItems.filter(
+    (item) => item.stage === "ART_CHANGES_REQUESTED"
+  ).length;
+  const readyArtwork = calendar.contentItems.filter(
+    (item) =>
+      item.stage === "DESIGN_IN_PROGRESS" ||
+      item.stage === "ART_APPROVED"
+  ).length;
+  const canSubmitArtwork =
+    calendar.stage === "PRODUCTION" &&
+    calendar.contentItems.length > 0 &&
+    calendar.contentItems.every(
+      (item) =>
+        item.stage === "ART_APPROVED" ||
+        (item.assets?.length ?? 0) > 0
+    );
 
   return (
     <AppShell designer={designer} activeSection="calendars">
-      <header className="calendar-header">
+      <header className="calendar-workflow-header">
         <div>
-          <Link
-            href={`/clients/${calendar.client.id}`}
-            className="back-link"
-          >
-            ← {calendar.client.name}
+          <Link href={`/clients/${calendar.client.id}`} className="back-link">
+            <FiArrowLeft aria-hidden="true" />
+            {calendar.client.name}
           </Link>
-          <span className="micro-label">PLANEJAMENTO · INSTAGRAM</span>
+          <span className="micro-label">FLUXO DE CONTEÚDO</span>
           <h1>{calendar.title}</h1>
           <p>
-            As datas de publicação já estão definidas. Adicione as peças usando
-            os formatos padronizados e escolha Feed, Stories ou ambos.
+            Planejamento, produção, aprovação e programação em uma única
+            esteira.
           </p>
         </div>
 
-        <div className="calendar-actions">
-          {calendar.archivedAt ? null : (
-            <Link
-              href={`/calendars/${calendar.id}/edit`}
-              className="button button-ghost"
-            >
-              Editar calendário
-            </Link>
-          )}
-          {calendar.archivedAt ? null : (
-            <Link
-              href={`/calendars/${calendar.id}/content/new`}
-              className="button button-primary"
-            >
-              + Adicionar conteúdo
-            </Link>
-          )}
-        </div>
-      </header>
+        <div className="calendar-workflow-actions">
+          {isManager &&
+          !calendar.archivedAt &&
+          calendar.stage === "PLANNING" ? (
+            <>
+              <Link
+                href={`/calendars/${calendar.id}/edit`}
+                className="button button-ghost"
+              >
+                <FiEdit3 aria-hidden="true" />
+                Editar calendário
+              </Link>
+              <Link
+                href={`/calendars/${calendar.id}/planning/new`}
+                className="button button-primary"
+              >
+                + Nova publicação
+              </Link>
+            </>
+          ) : null}
 
-      {calendar.archivedAt ? (
-        <section className="calendar-archived-banner">
-          <div>
-            <strong>Calendário arquivado</strong>
-            <span>
-              Ele não aparece mais para o cliente e não aceita novas peças.
-            </span>
-          </div>
-          <form action={restoreCalendar.bind(null, calendar.id)}>
-            <button type="submit" className="button button-dark">
-              Restaurar calendário
-            </button>
-          </form>
-        </section>
-      ) : null}
-
-      <section className="calendar-overview-panel">
-        <div className="calendar-kpi-grid">
-          <article>
-            <span>Peças</span>
-            <strong>{calendar.contentItems.length}</strong>
-          </article>
-          <article>
-            <span>Aprovadas</span>
-            <strong>{approved}</strong>
-          </article>
-          <article>
-            <span>Dias livres</span>
-            <strong>{freeDays}</strong>
-          </article>
-          <article>
-            <span>Dias planejados</span>
-            <strong>{calendar.postingDays.length}</strong>
-          </article>
-        </div>
-
-        <div className="calendar-public-access">
-          <div>
-            <span className="micro-label">LINK PÚBLICO</span>
-            <strong>Visualização e aprovação sem login</strong>
-            <code>{shareUrl}</code>
-          </div>
-          <div className="calendar-public-actions">
+          {!calendar.archivedAt &&
+          calendar.stage !== "PLANNING" &&
+          calendar.stage !== "PRODUCTION" ? (
             <a
               href={shareUrl}
               target="_blank"
               rel="noreferrer"
-              className="button button-dark"
+              className="button button-ghost"
             >
-              <FiLink aria-hidden="true" />
-              Abrir link público
+              <FiExternalLink aria-hidden="true" />
+              Link do cliente
             </a>
-            {calendar.archivedAt ? null : (
-              <form action={rotateCalendarToken.bind(null, calendar.id)}>
-                <button type="submit" className="button button-ghost">
-                  Renovar link
+          ) : null}
+        </div>
+      </header>
+
+      <section className="workflow-stepper">
+        {workflowSteps.map((step, index) => {
+          const completed =
+            calendar.stage === "COMPLETED" || index < currentIndex;
+          const active = index === currentIndex;
+
+          return (
+            <div
+              className={[
+                "workflow-step",
+                active ? "active" : "",
+                completed ? "completed" : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              key={step.key}
+            >
+              <span className="workflow-step-dot">
+                {completed ? <FiCheck aria-hidden="true" /> : index + 1}
+              </span>
+              <div>
+                <strong>{step.label}</strong>
+                <small>{step.short}</small>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      {calendar.archivedAt ? (
+        <section className="workflow-callout neutral">
+          <div>
+            <span className="micro-label">ARQUIVADO</span>
+            <h2>Este calendário está arquivado</h2>
+            <p>Restaure-o para continuar o fluxo de trabalho.</p>
+          </div>
+          {isManager ? (
+            <form action={restoreCalendar.bind(null, calendar.id)}>
+              <button type="submit" className="button button-dark">
+                Restaurar calendário
+              </button>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
+
+      {!calendar.archivedAt && calendar.stage === "PLANNING" ? (
+        <section className="workflow-callout">
+          <div>
+            <span className="micro-label">ETAPA 01 · PLANEJAMENTO</span>
+            <h2>Monte o pré-calendário</h2>
+            <p>
+              Defina tema, headline, subheadline, legenda, data e tipo de cada
+              publicação. A produção só começa após a aprovação do cliente.
+            </p>
+          </div>
+          {isManager && calendar.contentItems.length > 0 ? (
+            <form action={submitPlanning.bind(null, calendar.id)}>
+              <button type="submit" className="button button-primary">
+                <FiSend aria-hidden="true" />
+                Enviar pré-calendário
+              </button>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
+
+      {!calendar.archivedAt && calendar.stage === "PRE_APPROVAL" ? (
+        <section className="workflow-callout warning">
+          <div>
+            <span className="micro-label">ETAPA 02 · CLIENTE</span>
+            <h2>
+              {planningChanges > 0
+                ? `${planningChanges} ajuste(s) solicitado(s)`
+                : "Pré-calendário em aprovação"}
+            </h2>
+            <p>
+              {planningChanges > 0
+                ? "Edite as peças sinalizadas e reenvie o planejamento. As demais aprovações são preservadas."
+                : "O cliente está revisando o briefing antes da produção das artes."}
+            </p>
+          </div>
+          <div className="workflow-callout-actions">
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="button button-ghost"
+            >
+              <FiExternalLink aria-hidden="true" />
+              Abrir prévia do cliente
+            </a>
+            {isManager && planningChanges > 0 ? (
+              <form action={submitPlanning.bind(null, calendar.id)}>
+                <button type="submit" className="button button-primary">
+                  <FiRefreshCw aria-hidden="true" />
+                  Reenviar pré-calendário
                 </button>
               </form>
-            )}
+            ) : null}
           </div>
-        </div>
+        </section>
+      ) : null}
+
+      {!calendar.archivedAt && calendar.stage === "PRODUCTION" ? (
+        <section className="workflow-callout production">
+          <div>
+            <span className="micro-label">ETAPA 03 · PRODUÇÃO</span>
+            <h2>
+              {artChanges > 0
+                ? `${artChanges} arte(s) precisam de ajuste`
+                : "Briefing aprovado. Hora de produzir."}
+            </h2>
+            <p>
+              O designer responsável pode anexar as artes direto do Nextcloud.
+              Quando todas estiverem prontas, envie o conjunto para o cliente.
+            </p>
+          </div>
+          <div className="workflow-callout-actions">
+            <span className="workflow-progress-note">
+              {readyArtwork}/{calendar.contentItems.length} com arte
+            </span>
+            {canSubmitArtwork ? (
+              <form action={submitArtwork.bind(null, calendar.id)}>
+                <button type="submit" className="button button-primary">
+                  <FiSend aria-hidden="true" />
+                  Enviar artes para aprovação
+                </button>
+              </form>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {!calendar.archivedAt && calendar.stage === "FINAL_APPROVAL" ? (
+        <section className="workflow-callout warning">
+          <div>
+            <span className="micro-label">ETAPA 04 · APROVAÇÃO FINAL</span>
+            <h2>Artes aguardando o cliente</h2>
+            <p>
+              O link público agora exibe a experiência visual do feed para a
+              aprovação final das peças.
+            </p>
+          </div>
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="button button-primary"
+          >
+            <FiExternalLink aria-hidden="true" />
+            Abrir aprovação das artes
+          </a>
+        </section>
+      ) : null}
+
+      {!calendar.archivedAt &&
+      ["SCHEDULING", "COMPLETED"].includes(calendar.stage) ? (
+        <section className="workflow-callout success">
+          <div>
+            <span className="micro-label">
+              {calendar.stage === "COMPLETED"
+                ? "FLUXO CONCLUÍDO"
+                : "ETAPA 05 · PROGRAMAÇÃO"}
+            </span>
+            <h2>
+              {calendar.stage === "COMPLETED"
+                ? "Calendário publicado"
+                : "Conteúdos prontos para programação"}
+            </h2>
+            <p>
+              A fila abaixo está preparada para a integração com a mLabs. Até a
+              conexão da API ser configurada, o status de programação pode ser
+              registrado manualmente.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="workflow-summary">
+        <article>
+          <small>Publicações</small>
+          <strong>{calendar.contentItems.length}</strong>
+        </article>
+        <article>
+          <small>Dias planejados</small>
+          <strong>{calendar.postingDays.length}</strong>
+        </article>
+        <article>
+          <small>Ajustes solicitados</small>
+          <strong>{planningChanges + artChanges}</strong>
+        </article>
+        <article>
+          <small>Responsável</small>
+          <strong className="workflow-summary-name">
+            {calendar.client.assignedDesigner?.name ?? "Sem designer"}
+          </strong>
+        </article>
       </section>
 
-      <section className="calendar-schedule-section">
-        <div className="calendar-section-heading">
+      <section className="workflow-content-section">
+        <div className="workflow-section-heading">
           <div>
-            <span className="micro-label">AGENDA</span>
-            <h2>Dias de publicação</h2>
+            <span className="micro-label">PUBLICAÇÕES</span>
+            <h2>Conteúdo do calendário</h2>
           </div>
-          <span>{freeDays} dia(s) disponível(is)</span>
-        </div>
-
-        <div className="calendar-schedule-grid">
-          {calendar.postingDays.map((day) => {
-            const dayKey = day.scheduledDate.slice(0, 10);
-            const content = occupiedByDate.get(dayKey);
-
-            return (
-              <article
-                className={
-                  content
-                    ? "calendar-schedule-day occupied"
-                    : "calendar-schedule-day"
-                }
-                key={day.id}
-              >
-                <span className="calendar-schedule-icon">
-                  <FiCalendar aria-hidden="true" />
-                </span>
-                <div>
-                  <strong>{formatPostingDay(day.scheduledDate)}</strong>
-                  <small>
-                    {content ? content.title : "Disponível para conteúdo"}
-                  </small>
-                </div>
-                <span className="calendar-day-state">
-                  {content ? "Ocupado" : "Livre"}
-                </span>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="feed-board">
-        <div className="calendar-section-heading">
-          <div>
-            <span className="micro-label">CONTEÚDO</span>
-            <h2>Peças do calendário</h2>
-          </div>
-          <span>
-            {calendar.contentItems.length} peça(s) · {approved} aprovada(s)
-          </span>
+          <span>{calendar.contentItems.length} peça(s)</span>
         </div>
 
         {calendar.contentItems.length === 0 ? (
-          <div className="feed-empty">
-            <span>+</span>
-            <h2>O calendário está vazio</h2>
-            <p>
-              Os dias já estão planejados. Agora adicione a primeira peça.
-            </p>
-            {calendar.archivedAt ? null : (
+          <div className="workflow-empty">
+            <FiCalendar aria-hidden="true" />
+            <strong>O pré-calendário ainda está vazio.</strong>
+            <p>Adicione a primeira publicação para iniciar o fluxo.</p>
+            {isManager && calendar.stage === "PLANNING" ? (
               <Link
-                href={`/calendars/${calendar.id}/content/new`}
+                href={`/calendars/${calendar.id}/planning/new`}
                 className="button button-primary"
               >
-                Adicionar conteúdo
+                + Nova publicação
               </Link>
-            )}
+            ) : null}
           </div>
         ) : (
-          <div className="feed-grid">
-            {calendar.contentItems.map((item, index) => (
-              <Link
-                href={`/calendars/${calendar.id}?item=${item.id}`}
-                className="feed-card"
-                key={item.id}
-              >
-                <div className="feed-card-number">
-                  {String(index + 1).padStart(2, "0")}
-                </div>
-                <PreviewArt item={item} index={index} />
-                <div className="feed-card-info">
-                  <div>
-                    <strong>{item.title}</strong>
-                    <span>{formatDate(item.scheduledAt)}</span>
-                    <span className="content-destination-inline">
-                      {item.publishToFeed ? (
-                        <i><FiMonitor /> Feed</i>
-                      ) : null}
-                      {item.publishToStories ? (
-                        <i><FiSmartphone /> Stories</i>
-                      ) : null}
+          <div className="workflow-item-list">
+            {calendar.contentItems.map((item) => {
+              const latestReview = item.reviews?.[0];
+              const canEditPlanning =
+                isManager &&
+                ["PLANNING", "PRE_APPROVAL"].includes(calendar.stage);
+              const canAttachArtwork =
+                calendar.stage === "PRODUCTION" &&
+                [
+                  "DESIGN_PENDING",
+                  "DESIGN_IN_PROGRESS",
+                  "ART_CHANGES_REQUESTED"
+                ].includes(item.stage);
+
+              return (
+                <article className="workflow-item-card" key={item.id}>
+                  <div className="workflow-item-date">
+                    <strong>{formatDate(item.scheduledAt)}</strong>
+                    <span>
+                      <FiClock aria-hidden="true" />
+                      {formatTime(item.scheduledAt)}
                     </span>
                   </div>
-                  <span
-                    className={`status-dot status-${item.status.toLowerCase()}`}
-                    title={statusLabel[item.status]}
-                  />
-                </div>
-              </Link>
-            ))}
+
+                  <div className="workflow-item-type">
+                    <span>
+                      <TypeIcon item={item} />
+                    </span>
+                    <div>
+                      <strong>{item.contentType}</strong>
+                      <small>
+                        {item.publishToFeed ? "Feed" : ""}
+                        {item.publishToFeed && item.publishToStories
+                          ? " + "
+                          : ""}
+                        {item.publishToStories ? "Stories" : ""}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div className="workflow-item-copy">
+                    <strong>{item.title}</strong>
+                    <span>{item.theme || "Tema não informado"}</span>
+                    {item.headline ? <p>{item.headline}</p> : null}
+                  </div>
+
+                  {item.assets?.[0] ? (
+                    <div className="workflow-item-art">
+                      {item.assets[0].mimeType?.startsWith("video/") ? (
+                        <span>
+                          <FiPlay aria-hidden="true" />
+                          Vídeo anexado
+                        </span>
+                      ) : (
+                        <img
+                          src={`/api/media/${item.assets[0].id}`}
+                          alt=""
+                        />
+                      )}
+                      {item.assets.length > 1 ? (
+                        <small>{item.assets.length} arquivos</small>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="workflow-item-art empty">
+                      <FiUploadCloud aria-hidden="true" />
+                      <span>Sem arte</span>
+                    </div>
+                  )}
+
+                  <div className="workflow-item-state">
+                    <span
+                      className={`workflow-status ${statusTone(item.stage)}`}
+                    >
+                      {contentStageLabel[item.stage]}
+                    </span>
+                    {latestReview?.message ? (
+                      <small title={latestReview.message}>
+                        “{latestReview.message}”
+                      </small>
+                    ) : null}
+                  </div>
+
+                  <div className="workflow-item-actions">
+                    {canEditPlanning ? (
+                      <Link
+                        href={`/calendars/${calendar.id}/planning/${item.id}/edit`}
+                        className="button button-ghost button-small"
+                      >
+                        <FiEdit3 aria-hidden="true" />
+                        Editar briefing
+                      </Link>
+                    ) : null}
+
+                    {canAttachArtwork ? (
+                      <Link
+                        href={`/calendars/${calendar.id}/content/${item.id}/artwork`}
+                        className="button button-primary button-small"
+                      >
+                        <FiUploadCloud aria-hidden="true" />
+                        {item.assets.length > 0
+                          ? "Substituir arte"
+                          : "Anexar arte"}
+                      </Link>
+                    ) : null}
+
+                    {isManager &&
+                    ["READY_TO_SCHEDULE", "SCHEDULING_ERROR"].includes(
+                      item.stage
+                    ) ? (
+                      <form action={markContentScheduled}>
+                        <input
+                          type="hidden"
+                          name="calendarId"
+                          value={calendar.id}
+                        />
+                        <input type="hidden" name="itemId" value={item.id} />
+                        <button
+                          type="submit"
+                          className="button button-primary button-small"
+                        >
+                          <FiCheckCircle aria-hidden="true" />
+                          Marcar programado
+                        </button>
+                      </form>
+                    ) : null}
+
+                    {isManager && item.stage === "SCHEDULED" ? (
+                      <form action={markContentPublished}>
+                        <input
+                          type="hidden"
+                          name="calendarId"
+                          value={calendar.id}
+                        />
+                        <input type="hidden" name="itemId" value={item.id} />
+                        <button
+                          type="submit"
+                          className="button button-dark button-small"
+                        >
+                          <FiCheck aria-hidden="true" />
+                          Marcar publicado
+                        </button>
+                      </form>
+                    ) : null}
+
+                    {item.publishingError ? (
+                      <span className="workflow-publishing-error">
+                        <FiAlertCircle aria-hidden="true" />
+                        {item.publishingError}
+                      </span>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      {calendar.archivedAt ? null : (
-        <section className="calendar-danger-zone">
+      {calendar.stage !== "PLANNING" && !calendar.archivedAt ? (
+        <section className="calendar-public-link-card">
           <div>
-            <span className="micro-label">ARQUIVAR</span>
-            <strong>Encerrar este planejamento</strong>
+            <span className="micro-label">LINK PÚBLICO DO CLIENTE</span>
+            <strong>{shareUrl}</strong>
             <p>
-              O calendário sai das listas ativas e deixa de aparecer para o
-              cliente. Você poderá restaurá-lo depois.
+              O mesmo link acompanha o calendário durante as fases de
+              pré-aprovação e aprovação das artes.
             </p>
           </div>
-          <form action={archiveCalendar.bind(null, calendar.id)}>
-            <button type="submit" className="button button-ghost danger">
-              Arquivar calendário
-            </button>
-          </form>
+          {isManager ? (
+            <form action={rotateCalendarToken.bind(null, calendar.id)}>
+              <button type="submit" className="button button-ghost">
+                Renovar link
+              </button>
+            </form>
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      {selectedItem ? (
-        <div className="modal-layer">
-          <Link
-            href={`/calendars/${calendar.id}`}
-            className="modal-backdrop"
-            aria-label="Fechar detalhes"
-          />
-          <article className="content-modal">
-            <div className="content-modal-head">
-              <div>
-                <span className="micro-label">
-                  {typeLabel[selectedItem.contentType]} · PEÇA{" "}
-                  {String(selectedIndex + 1).padStart(2, "0")}
-                </span>
-                <h2>{selectedItem.title}</h2>
-              </div>
-              <Link
-                href={`/calendars/${calendar.id}`}
-                className="modal-close"
-                aria-label="Fechar"
-              >
-                ×
-              </Link>
-            </div>
-
-            <div className="content-modal-body">
-              <PreviewArt
-                item={selectedItem}
-                index={selectedIndex}
-                className="modal-art"
-              />
-
-              <div className="modal-copy">
-                <div className="modal-meta">
-                  <span>{typeLabel[selectedItem.contentType]}</span>
-                  <span>{selectedItem.format}</span>
-                  <span>{formatDate(selectedItem.scheduledAt)}</span>
-                </div>
-
-                <div className="modal-destinations">
-                  {selectedItem.publishToFeed ? (
-                    <span><FiMonitor /> Feed</span>
-                  ) : null}
-                  {selectedItem.publishToStories ? (
-                    <span><FiSmartphone /> Stories</span>
-                  ) : null}
-                </div>
-
-                <div className="caption-panel">
-                  <span className="micro-label">LEGENDA</span>
-                  <p>{selectedItem.caption}</p>
-                </div>
-
-                {calendar.archivedAt ? null : (
-                  <div className="content-reschedule-panel">
-                    <div>
-                      <span className="micro-label">REMANEJAR</span>
-                      <strong>Alterar dia de publicação</strong>
-                      <p>
-                        Só aparecem os dias livres do planejamento. O conteúdo,
-                        a arte e o status de aprovação são preservados.
-                      </p>
-                    </div>
-                    <form action={moveContentItem}>
-                      <input
-                        type="hidden"
-                        name="calendarId"
-                        value={calendar.id}
-                      />
-                      <input
-                        type="hidden"
-                        name="itemId"
-                        value={selectedItem.id}
-                      />
-                      <label className="field">
-                        <span>Novo dia</span>
-                        <select
-                          name="postingDate"
-                          defaultValue={saoPauloDateKey(
-                            selectedItem.scheduledAt
-                          )}
-                          required
-                        >
-                          {calendar.postingDays.map((day) => {
-                            const dayKey = day.scheduledDate.slice(0, 10);
-                            const occupyingItem = occupiedByDate.get(dayKey);
-                            const isCurrent =
-                              occupyingItem?.id === selectedItem.id;
-                            const unavailable =
-                              Boolean(occupyingItem) && !isCurrent;
-
-                            return (
-                              <option
-                                value={dayKey}
-                                disabled={unavailable}
-                                key={day.id}
-                              >
-                                {formatPostingDay(day.scheduledDate)}
-                                {isCurrent
-                                  ? " · atual"
-                                  : unavailable
-                                    ? " · ocupado"
-                                    : " · livre"}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </label>
-                      <label className="field">
-                        <span>Horário</span>
-                        <div className="input-with-icon">
-                          <FiClock aria-hidden="true" />
-                          <input
-                            type="time"
-                            name="postingTime"
-                            defaultValue={saoPauloTime(
-                              selectedItem.scheduledAt
-                            )}
-                            required
-                          />
-                        </div>
-                      </label>
-                      <button
-                        type="submit"
-                        className="button button-ghost button-wide"
-                      >
-                        Remanejar publicação
-                      </button>
-                    </form>
-                  </div>
-                )}
-
-                <div className="status-line">
-                  <span
-                    className={`status-pill status-${selectedItem.status.toLowerCase()}`}
-                  >
-                    {statusLabel[selectedItem.status]}
-                  </span>
-                  <span>Atualizado pelo fluxo de aprovação do cliente.</span>
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
+      {isManager ? (
+        <section className="calendar-danger-zone">
+          <div>
+            <span className="micro-label">
+              {calendar.archivedAt ? "RESTAURAR" : "ARQUIVAR"}
+            </span>
+            <strong>
+              {calendar.archivedAt
+                ? "Reabrir este calendário"
+                : "Encerrar este calendário"}
+            </strong>
+            <p>
+              O histórico de planejamento, aprovações e artes permanece
+              armazenado.
+            </p>
+          </div>
+          {calendar.archivedAt ? (
+            <form action={restoreCalendar.bind(null, calendar.id)}>
+              <button type="submit" className="button button-dark">
+                Restaurar calendário
+              </button>
+            </form>
+          ) : (
+            <form action={archiveCalendar.bind(null, calendar.id)}>
+              <button type="submit" className="button button-danger-outline">
+                Arquivar calendário
+              </button>
+            </form>
+          )}
+        </section>
       ) : null}
     </AppShell>
   );

@@ -10,16 +10,21 @@ import {
 import type { InternalActorRequest } from "../common/internal-actor";
 import {
   AssignClientDto,
+  AttachArtworkDto,
   CreateCalendarDto,
   CreateClientDto,
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  CreatePlanningItemDto,
+  MarkScheduledDto,
+  MarkSchedulingErrorDto,
   MoveContentItemDto,
   SetActiveDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
+  UpdatePlanningItemDto,
   UpdateUserDto
 } from "./admin.dto";
 import { AdminService } from "./admin.service";
@@ -175,6 +180,75 @@ export class AdminController {
     @Param("id") id: string
   ) {
     return this.adminService.restoreCalendar(request.actor, id);
+  }
+
+  @Post("calendars/:id/planning-items")
+  createPlanningItem(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: CreatePlanningItemDto
+  ) {
+    return this.adminService.createPlanningItem(request.actor, id, dto);
+  }
+
+  @Patch("items/:id/planning")
+  updatePlanningItem(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdatePlanningItemDto
+  ) {
+    return this.adminService.updatePlanningItem(request.actor, id, dto);
+  }
+
+  @Post("calendars/:id/submit-planning")
+  submitPlanning(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.submitPlanning(request.actor, id);
+  }
+
+  @Post("items/:id/artwork")
+  attachArtwork(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: AttachArtworkDto
+  ) {
+    return this.adminService.attachArtwork(request.actor, id, dto);
+  }
+
+  @Post("calendars/:id/submit-artwork")
+  submitArtwork(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.submitArtwork(request.actor, id);
+  }
+
+  @Post("items/:id/scheduled")
+  markScheduled(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: MarkScheduledDto
+  ) {
+    return this.adminService.markScheduled(request.actor, id, dto);
+  }
+
+  @Post("items/:id/published")
+  markPublished(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.markPublished(request.actor, id);
+  }
+
+  @Post("items/:id/scheduling-error")
+  markSchedulingError(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: MarkSchedulingErrorDto
+  ) {
+    return this.adminService.markSchedulingError(request.actor, id, dto);
   }
 
   @Post("items")

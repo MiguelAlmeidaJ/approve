@@ -10,14 +10,17 @@ export function PublicReviewActions({
   token,
   itemId,
   defaultName,
-  approved
+  approved,
+  phase = "artwork"
 }: {
   token: string;
   itemId: string;
   defaultName?: string;
   approved: boolean;
+  phase?: "planning" | "artwork";
 }) {
   const [mode, setMode] = useState<ReviewMode>(null);
+  const planning = phase === "planning";
 
   async function handleSubmit(formData: FormData) {
     await submitReview(formData);
@@ -34,7 +37,13 @@ export function PublicReviewActions({
           disabled={approved}
         >
           <FiCheck aria-hidden="true" />
-          {approved ? "Conteúdo aprovado" : "Aprovar"}
+          {approved
+            ? planning
+              ? "Briefing aprovado"
+              : "Conteúdo aprovado"
+            : planning
+              ? "Aprovar briefing"
+              : "Aprovar"}
         </button>
         <button
           type="button"
@@ -42,7 +51,7 @@ export function PublicReviewActions({
           onClick={() => setMode("changes")}
         >
           <FiEdit3 aria-hidden="true" />
-          Enviar para alteração
+          {planning ? "Solicitar ajuste" : "Enviar para alteração"}
         </button>
       </div>
 
@@ -63,17 +72,31 @@ export function PublicReviewActions({
             <header>
               <div>
                 <span className="micro-label">
-                  {mode === "approve" ? "APROVAR CONTEÚDO" : "SOLICITAR ALTERAÇÃO"}
+                  {mode === "approve"
+                    ? planning
+                      ? "APROVAR BRIEFING"
+                      : "APROVAR CONTEÚDO"
+                    : planning
+                      ? "AJUSTAR PLANEJAMENTO"
+                      : "SOLICITAR ALTERAÇÃO"}
                 </span>
                 <h2 id="review-dialog-title">
                   {mode === "approve"
-                    ? "Confirmar aprovação"
-                    : "Enviar para alteração"}
+                    ? planning
+                      ? "Confirmar briefing"
+                      : "Confirmar aprovação"
+                    : planning
+                      ? "Solicitar ajuste"
+                      : "Enviar para alteração"}
                 </h2>
                 <p>
                   {mode === "approve"
-                    ? "Informe seu nome para registrar a aprovação."
-                    : "Informe seu nome e descreva o que precisa ser ajustado."}
+                    ? planning
+                      ? "Informe seu nome para registrar a aprovação do planejamento."
+                      : "Informe seu nome para registrar a aprovação."
+                    : planning
+                      ? "Informe seu nome e descreva o que precisa mudar no briefing."
+                      : "Informe seu nome e descreva o que precisa ser ajustado."}
                 </p>
               </div>
               <button
@@ -113,7 +136,11 @@ export function PublicReviewActions({
                     name="message"
                     rows={4}
                     maxLength={4000}
-                    placeholder="Explique o que precisa ser ajustado..."
+                    placeholder={
+                      planning
+                        ? "Explique o que precisa mudar no planejamento..."
+                        : "Explique o que precisa ser ajustado..."
+                    }
                     required
                   />
                 </label>
@@ -141,7 +168,9 @@ export function PublicReviewActions({
                     <FiEdit3 aria-hidden="true" />
                   )}
                   {mode === "approve"
-                    ? "Confirmar aprovação"
+                    ? planning
+                      ? "Aprovar briefing"
+                      : "Confirmar aprovação"
                     : "Enviar solicitação"}
                 </button>
               </div>

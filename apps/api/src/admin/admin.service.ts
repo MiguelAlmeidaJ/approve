@@ -5,7 +5,9 @@ import {
   NotFoundException
 } from "@nestjs/common";
 import {
+  CalendarStage,
   Channel,
+  ContentStage,
   ContentStatus,
   ContentType,
   UserRole
@@ -16,15 +18,20 @@ import { NextcloudService } from "../nextcloud/nextcloud.service";
 import { PrismaService } from "../prisma.service";
 import {
   AssignClientDto,
+  AttachArtworkDto,
   CreateCalendarDto,
   CreateClientDto,
   CreateContentFormatDto,
   CreateContentItemDto,
   CreateDesignerDto,
+  CreatePlanningItemDto,
+  MarkScheduledDto,
+  MarkSchedulingErrorDto,
   MoveContentItemDto,
   UpdateCalendarDto,
   UpdateClientDto,
   UpdateContentFormatDto,
+  UpdatePlanningItemDto,
   UpdateUserDto
 } from "./admin.dto";
 
@@ -766,6 +773,7 @@ export class AdminService {
   }
 
   async createCalendar(actor: InternalActor, dto: CreateCalendarDto) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const client = await this.assertClientAccess(actor, dto.clientId);
 
     if (!client.active) {
@@ -805,6 +813,7 @@ export class AdminService {
     calendarId: string,
     dto: UpdateCalendarDto
   ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active) {
@@ -816,6 +825,16 @@ export class AdminService {
     if (calendar.archivedAt) {
       throw new BadRequestException(
         "Restaure o calendário antes de editá-lo."
+      );
+    }
+
+    if (
+      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+        calendar.stage
+      )
+    ) {
+      throw new BadRequestException(
+        "O calendário só pode ter período e dias alterados antes do início da produção."
       );
     }
 
@@ -864,6 +883,7 @@ export class AdminService {
   }
 
   async archiveCalendar(actor: InternalActor, calendarId: string) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (calendar.archivedAt) {
@@ -873,80 +893,247 @@ export class AdminService {
     return this.prisma.calendar.update({
       where: { id: calendarId },
       data: {
-        archivedAt: new Date()
+        archivedAt: new Date(),
+        stage: CalendarStage.ARCHIVED
       }
     });
   }
 
   async restoreCalendar(actor: InternalActor, calendarId: string) {
-    await this.assertCalendarAccess(actor, calendarId);
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+    const stage = this.inferCalendarStage(calendar.contentItems);
 
     return this.prisma.calendar.update({
       where: { id: calendarId },
       data: {
-        archivedAt: null
+        archivedAt: null,
+        stage
       }
     });
   }
 
-  async createContentItem(
+  async createPlanningItem(
     actor: InternalActor,
-    dto: CreateContentItemDto
+    calendarId: string,
+    dto: CreatePlanningItemDto
   ) {
-    const calendar = await this.assertCalendarAccess(actor, dto.calendarId);
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
 
-    if (!calendar.client.active) {
+    if (!calendar.client.active || calendar.archivedAt) {
       throw new BadRequestException(
-        "Reative o cliente antes de adicionar conteúdos."
+        "O cliente e o calendário precisam estar ativos para criar o planejamento."
       );
     }
 
-    if (calendar.archivedAt) {
+    if (calendar.stage !== CalendarStage.PLANNING) {
       throw new BadRequestException(
-        "Restaure o calendário antes de adicionar conteúdos."
+        "Novas peças só podem ser adicionadas enquanto o pré-calendário está em planejamento."
       );
     }
 
-    const postingDay = calendar.postingDays.find(
-      (day) => dateKey(day.scheduledDate) === dto.postingDate
+    const scheduledAt = this.validatePlanningSchedule(
+      calendar,
+      dto.postingDate,
+      dto.scheduledAt
     );
 
-    if (!postingDay) {
-      throw new BadRequestException(
-        "Escolha um dos dias de publicação definidos para este calendário."
-      );
+    this.ensurePlacement(dto.publishToFeed, dto.publishToStories);
+
+    return this.prisma.contentItem.create({
+      data: {
+        calendarId,
+        title: dto.title.trim(),
+        theme: dto.theme.trim(),
+        headline: dto.headline.trim(),
+        subheadline: dto.subheadline?.trim() || null,
+        designerNotes: dto.designerNotes?.trim() || null,
+        scheduledAt,
+        channel: dto.channel ?? Channel.INSTAGRAM,
+        contentType: dto.contentType,
+        format: "A definir na produção",
+        publishToFeed: dto.publishToFeed,
+        publishToStories: dto.publishToStories,
+        caption: dto.caption.trim(),
+        status: ContentStatus.DRAFT,
+        stage: ContentStage.PLANNING
+      }
+    });
+  }
+
+  async updatePlanningItem(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: UpdatePlanningItemDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        calendarId: true,
+        stage: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
     }
 
-    const occupiedItem = calendar.contentItems.find(
-      (item) => saoPauloDateKey(item.scheduledAt) === dto.postingDate
-    );
-
-    if (occupiedItem) {
-      throw new BadRequestException(
-        "Este dia já possui conteúdo. Escolha outro dia planejado."
-      );
-    }
-
-    const scheduledAt = new Date(dto.scheduledAt);
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
 
     if (
-      Number.isNaN(scheduledAt.getTime()) ||
-      saoPauloDateKey(scheduledAt) !== dto.postingDate
+      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+        calendar.stage
+      )
     ) {
       throw new BadRequestException(
-        "A data e o horário precisam corresponder ao dia de publicação selecionado."
+        "O briefing não pode ser alterado depois que a produção das artes começou."
       );
     }
 
-    if (!dto.publishToFeed && !dto.publishToStories) {
+    const scheduledAt = this.validatePlanningSchedule(
+      calendar,
+      dto.postingDate,
+      dto.scheduledAt,
+      contentItemId
+    );
+
+    this.ensurePlacement(dto.publishToFeed, dto.publishToStories);
+
+    return this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: {
+        title: dto.title.trim(),
+        theme: dto.theme.trim(),
+        headline: dto.headline.trim(),
+        subheadline: dto.subheadline?.trim() || null,
+        designerNotes: dto.designerNotes?.trim() || null,
+        scheduledAt,
+        channel: dto.channel ?? Channel.INSTAGRAM,
+        contentType: dto.contentType,
+        publishToFeed: dto.publishToFeed,
+        publishToStories: dto.publishToStories,
+        caption: dto.caption.trim(),
+        stage:
+          calendar.stage === CalendarStage.PRE_APPROVAL
+            ? ContentStage.PRE_APPROVAL_PENDING
+            : ContentStage.PLANNING,
+        status:
+          calendar.stage === CalendarStage.PRE_APPROVAL
+            ? ContentStatus.PENDING_APPROVAL
+            : ContentStatus.DRAFT,
+        planningApprovedAt: null,
+        reviewedAt: null
+      }
+    });
+  }
+
+  async submitPlanning(actor: InternalActor, calendarId: string) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (!calendar.client.active || calendar.archivedAt) {
       throw new BadRequestException(
-        "Selecione Feed, Stories ou ambos para a publicação."
+        "O cliente e o calendário precisam estar ativos para enviar o pré-calendário."
       );
     }
 
-    if (dto.contentType !== ContentType.CAROUSEL && dto.assetPaths.length > 1) {
+    if (
+      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+        calendar.stage
+      )
+    ) {
       throw new BadRequestException(
-        "Post, Reels e Stories aceitam uma arte por peça. Use Carrossel para selecionar várias."
+        "Este calendário já avançou para a etapa de produção."
+      );
+    }
+
+    if (calendar.contentItems.length === 0) {
+      throw new BadRequestException(
+        "Adicione pelo menos uma publicação antes de enviar o pré-calendário."
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.calendar.update({
+        where: { id: calendarId },
+        data: { stage: CalendarStage.PRE_APPROVAL }
+      }),
+      this.prisma.contentItem.updateMany({
+        where: {
+          calendarId,
+          stage: {
+            in: [
+              ContentStage.PLANNING,
+              ContentStage.PRE_APPROVAL_PENDING,
+              ContentStage.PRE_CHANGES_REQUESTED
+            ]
+          }
+        },
+        data: {
+          stage: ContentStage.PRE_APPROVAL_PENDING,
+          status: ContentStatus.PENDING_APPROVAL,
+          reviewedAt: null
+        }
+      })
+    ]);
+
+    return this.getCalendar(actor, calendarId);
+  }
+
+  async attachArtwork(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: AttachArtworkDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        calendarId: true,
+        contentType: true,
+        publishToFeed: true,
+        publishToStories: true,
+        stage: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+
+    if (!calendar.client.active || calendar.archivedAt) {
+      throw new BadRequestException(
+        "O cliente e o calendário precisam estar ativos para produzir a arte."
+      );
+    }
+
+    if (calendar.stage !== CalendarStage.PRODUCTION) {
+      throw new BadRequestException(
+        "As artes só podem ser anexadas depois da aprovação do pré-calendário."
+      );
+    }
+
+    if (
+      ![
+        ContentStage.DESIGN_PENDING,
+        ContentStage.DESIGN_IN_PROGRESS,
+        ContentStage.ART_CHANGES_REQUESTED
+      ].includes(item.stage)
+    ) {
+      throw new BadRequestException(
+        "Esta peça não está disponível para produção de arte."
+      );
+    }
+
+    if (item.contentType !== ContentType.CAROUSEL && dto.assetPaths.length > 1) {
+      throw new BadRequestException(
+        "Apenas carrosséis aceitam mais de uma mídia."
       );
     }
 
@@ -957,22 +1144,18 @@ export class AdminService {
       }
     });
 
-    if (!format) {
-      throw new BadRequestException("Formato não encontrado ou inativo.");
-    }
-
-    if (format.contentType !== dto.contentType) {
+    if (!format || format.contentType !== item.contentType) {
       throw new BadRequestException(
-        "O formato selecionado não corresponde ao tipo de conteúdo."
+        "Selecione um formato ativo compatível com o tipo da peça."
       );
     }
 
     if (
-      (dto.publishToFeed && !format.supportsFeed) ||
-      (dto.publishToStories && !format.supportsStories)
+      (item.publishToFeed && !format.supportsFeed) ||
+      (item.publishToStories && !format.supportsStories)
     ) {
       throw new BadRequestException(
-        "O formato selecionado não suporta os destinos escolhidos."
+        "O formato selecionado não suporta os destinos aprovados no planejamento."
       );
     }
 
@@ -998,40 +1181,220 @@ export class AdminService {
       );
     }
 
-    return this.prisma.contentItem.create({
-      data: {
-        calendarId: dto.calendarId,
-        formatId: format.id,
-        title: dto.title.trim(),
-        scheduledAt,
-        channel: dto.channel ?? Channel.INSTAGRAM,
-        contentType: dto.contentType,
-        format: `${format.name} · ${format.width}x${format.height}`,
-        publishToFeed: dto.publishToFeed,
-        publishToStories: dto.publishToStories,
-        caption: dto.caption.trim(),
-        assetUrl: dto.assetUrl?.trim() || null,
-        status: ContentStatus.PENDING_APPROVAL,
-        assets: {
-          create: assets.map((asset, index) => ({
-            filePath: asset.storedPath,
-            fileName: asset.name,
-            fileId: asset.fileId,
-            mimeType: asset.mimeType,
-            etag: asset.etag,
-            sortOrder: index
-          }))
-        }
-      },
-      include: {
-        formatPreset: true,
-        assets: {
-          orderBy: {
-            sortOrder: "asc"
+    await this.prisma.$transaction([
+      this.prisma.contentAsset.deleteMany({
+        where: { contentItemId }
+      }),
+      this.prisma.contentItem.update({
+        where: { id: contentItemId },
+        data: {
+          formatId: format.id,
+          format: `${format.name} · ${format.width}x${format.height}`,
+          stage: ContentStage.DESIGN_IN_PROGRESS,
+          status: ContentStatus.DRAFT,
+          artworkApprovedAt: null,
+          reviewedAt: null,
+          assets: {
+            create: assets.map((asset, index) => ({
+              filePath: asset.storedPath,
+              fileName: asset.name,
+              fileId: asset.fileId,
+              mimeType: asset.mimeType,
+              etag: asset.etag,
+              sortOrder: index
+            }))
           }
+        }
+      })
+    ]);
+
+    return this.getCalendar(actor, item.calendarId);
+  }
+
+  async submitArtwork(actor: InternalActor, calendarId: string) {
+    const calendar = await this.assertCalendarAccess(actor, calendarId);
+
+    if (!calendar.client.active || calendar.archivedAt) {
+      throw new BadRequestException(
+        "O cliente e o calendário precisam estar ativos para enviar as artes."
+      );
+    }
+
+    if (calendar.stage !== CalendarStage.PRODUCTION) {
+      throw new BadRequestException(
+        "O calendário não está na etapa de produção."
+      );
+    }
+
+    const items = await this.prisma.contentItem.findMany({
+      where: { calendarId },
+      include: {
+        assets: {
+          select: { id: true }
         }
       }
     });
+
+    const withoutArtwork = items.find(
+      (item) =>
+        item.stage !== ContentStage.ART_APPROVED &&
+        item.assets.length === 0
+    );
+
+    if (withoutArtwork) {
+      throw new BadRequestException(
+        `A peça "${withoutArtwork.title}" ainda não possui arte.`
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.calendar.update({
+        where: { id: calendarId },
+        data: { stage: CalendarStage.FINAL_APPROVAL }
+      }),
+      this.prisma.contentItem.updateMany({
+        where: {
+          calendarId,
+          stage: {
+            not: ContentStage.ART_APPROVED
+          }
+        },
+        data: {
+          stage: ContentStage.ART_APPROVAL_PENDING,
+          status: ContentStatus.PENDING_APPROVAL,
+          reviewedAt: null
+        }
+      })
+    ]);
+
+    return this.getCalendar(actor, calendarId);
+  }
+
+  async markScheduled(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: MarkScheduledDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: { id: true, calendarId: true, stage: true }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    if (
+      ![
+        ContentStage.READY_TO_SCHEDULE,
+        ContentStage.SCHEDULING_ERROR
+      ].includes(item.stage)
+    ) {
+      throw new BadRequestException(
+        "Somente conteúdos aprovados podem ser marcados como programados."
+      );
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: {
+        stage: ContentStage.SCHEDULED,
+        externalScheduleId: dto.externalScheduleId?.trim() || null,
+        publishingError: null
+      }
+    });
+
+    await this.syncCalendarPublishingStage(item.calendarId);
+    return updated;
+  }
+
+  async markPublished(actor: InternalActor, contentItemId: string) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: { id: true, calendarId: true, stage: true }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    if (
+      ![
+        ContentStage.SCHEDULED,
+        ContentStage.READY_TO_SCHEDULE
+      ].includes(item.stage)
+    ) {
+      throw new BadRequestException(
+        "Este conteúdo ainda não está pronto para publicação."
+      );
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: {
+        stage: ContentStage.PUBLISHED,
+        publishedAt: new Date(),
+        publishingError: null
+      }
+    });
+
+    await this.syncCalendarPublishingStage(item.calendarId);
+    return updated;
+  }
+
+  async markSchedulingError(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: MarkSchedulingErrorDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: { id: true, calendarId: true, stage: true }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    if (
+      ![
+        ContentStage.READY_TO_SCHEDULE,
+        ContentStage.SCHEDULED,
+        ContentStage.SCHEDULING_ERROR
+      ].includes(item.stage)
+    ) {
+      throw new BadRequestException(
+        "Este conteúdo ainda não entrou na fila de programação."
+      );
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: {
+        stage: ContentStage.SCHEDULING_ERROR,
+        publishingError: dto.message.trim()
+      }
+    });
+
+    await this.syncCalendarPublishingStage(item.calendarId);
+    return updated;
+  }
+
+  async createContentItem(
+    actor: InternalActor,
+    dto: CreateContentItemDto
+  ) {
+    await this.assertCalendarAccess(actor, dto.calendarId);
+
+    throw new BadRequestException(
+      "O cadastro direto de arte foi substituído pelo fluxo de pré-calendário. Crie o briefing, aprove o planejamento e depois anexe a arte na etapa de produção."
+    );
   }
 
   async moveContentItem(
@@ -1039,6 +1402,7 @@ export class AdminService {
     contentItemId: string,
     dto: MoveContentItemDto
   ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
       select: {
@@ -1062,6 +1426,16 @@ export class AdminService {
     if (calendar.archivedAt) {
       throw new BadRequestException(
         "Restaure o calendário antes de remanejar conteúdos."
+      );
+    }
+
+    if (
+      ![CalendarStage.PLANNING, CalendarStage.PRE_APPROVAL].includes(
+        calendar.stage
+      )
+    ) {
+      throw new BadRequestException(
+        "A data só pode ser remanejada antes do início da produção."
       );
     }
 
@@ -1100,7 +1474,17 @@ export class AdminService {
 
     return this.prisma.contentItem.update({
       where: { id: contentItemId },
-      data: { scheduledAt },
+      data: {
+        scheduledAt,
+        ...(calendar.stage === CalendarStage.PRE_APPROVAL
+          ? {
+              stage: ContentStage.PRE_APPROVAL_PENDING,
+              status: ContentStatus.PENDING_APPROVAL,
+              planningApprovedAt: null,
+              reviewedAt: null
+            }
+          : {})
+      },
       include: {
         formatPreset: true,
         assets: {
@@ -1113,6 +1497,7 @@ export class AdminService {
   }
 
   async rotateCalendarToken(actor: InternalActor, calendarId: string) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active) {
@@ -1184,7 +1569,8 @@ export class AdminService {
         contentItems: {
           select: {
             id: true,
-            scheduledAt: true
+            scheduledAt: true,
+            stage: true
           }
         }
       }
@@ -1195,6 +1581,134 @@ export class AdminService {
     }
 
     return calendar;
+  }
+
+  private validatePlanningSchedule(
+    calendar: {
+      postingDays: Array<{ scheduledDate: Date }>;
+      contentItems: Array<{ id: string; scheduledAt: Date }>;
+    },
+    postingDate: string,
+    scheduledAtValue: string,
+    ignoreItemId?: string
+  ) {
+    const postingDay = calendar.postingDays.find(
+      (day) => dateKey(day.scheduledDate) === postingDate
+    );
+
+    if (!postingDay) {
+      throw new BadRequestException(
+        "Escolha um dos dias definidos no calendário."
+      );
+    }
+
+    const occupied = calendar.contentItems.find(
+      (item) =>
+        item.id !== ignoreItemId &&
+        saoPauloDateKey(item.scheduledAt) === postingDate
+    );
+
+    if (occupied) {
+      throw new BadRequestException(
+        "Este dia já possui uma publicação planejada."
+      );
+    }
+
+    const scheduledAt = new Date(scheduledAtValue);
+
+    if (
+      Number.isNaN(scheduledAt.getTime()) ||
+      saoPauloDateKey(scheduledAt) !== postingDate
+    ) {
+      throw new BadRequestException(
+        "A data e o horário precisam corresponder ao dia selecionado."
+      );
+    }
+
+    return scheduledAt;
+  }
+
+  private ensurePlacement(feed: boolean, stories: boolean) {
+    if (!feed && !stories) {
+      throw new BadRequestException(
+        "Selecione Feed, Stories ou ambos."
+      );
+    }
+  }
+
+  private inferCalendarStage(
+    items: Array<{ stage: ContentStage }>
+  ): CalendarStage {
+    if (items.length === 0) {
+      return CalendarStage.PLANNING;
+    }
+
+    if (items.every((item) => item.stage === ContentStage.PUBLISHED)) {
+      return CalendarStage.COMPLETED;
+    }
+
+    if (
+      items.some((item) =>
+        [
+          ContentStage.READY_TO_SCHEDULE,
+          ContentStage.SCHEDULED,
+          ContentStage.SCHEDULING_ERROR,
+          ContentStage.PUBLISHED
+        ].includes(item.stage)
+      )
+    ) {
+      return CalendarStage.SCHEDULING;
+    }
+
+    if (
+      items.some((item) => item.stage === ContentStage.ART_APPROVAL_PENDING)
+    ) {
+      return CalendarStage.FINAL_APPROVAL;
+    }
+
+    if (
+      items.some((item) =>
+        [
+          ContentStage.DESIGN_PENDING,
+          ContentStage.DESIGN_IN_PROGRESS,
+          ContentStage.ART_CHANGES_REQUESTED,
+          ContentStage.ART_APPROVED
+        ].includes(item.stage)
+      )
+    ) {
+      return CalendarStage.PRODUCTION;
+    }
+
+    if (
+      items.some((item) =>
+        [
+          ContentStage.PRE_APPROVAL_PENDING,
+          ContentStage.PRE_APPROVED,
+          ContentStage.PRE_CHANGES_REQUESTED
+        ].includes(item.stage)
+      )
+    ) {
+      return CalendarStage.PRE_APPROVAL;
+    }
+
+    return CalendarStage.PLANNING;
+  }
+
+  private async syncCalendarPublishingStage(calendarId: string) {
+    const items = await this.prisma.contentItem.findMany({
+      where: { calendarId },
+      select: { stage: true }
+    });
+
+    const stage = items.length > 0 &&
+      items.every((item) => item.stage === ContentStage.PUBLISHED)
+      ? CalendarStage.COMPLETED
+      : CalendarStage.SCHEDULING;
+
+    await this.prisma.calendar.update({
+      where: { id: calendarId },
+      data: { stage }
+    });
   }
 
   private async ensureDesigner(id: string) {

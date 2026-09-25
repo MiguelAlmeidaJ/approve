@@ -47,14 +47,42 @@ export default async function DashboardPage() {
     client.calendars.filter((calendar) => !calendar.archivedAt)
   );
   const pieces = calendars.flatMap((calendar) => calendar.contentItems);
-  const waiting = pieces.filter(
-    (item) => item.status === "PENDING_APPROVAL"
+  const preApproval = pieces.filter(
+    (item) => item.stage === "PRE_APPROVAL_PENDING"
   ).length;
-  const approved = pieces.filter((item) => item.status === "APPROVED").length;
-  const changes = pieces.filter(
-    (item) => item.status === "CHANGES_REQUESTED"
+  const production = pieces.filter((item) =>
+    [
+      "DESIGN_PENDING",
+      "DESIGN_IN_PROGRESS",
+      "ART_CHANGES_REQUESTED"
+    ].includes(item.stage)
   ).length;
-  const reviewed = approved + changes;
+  const artApproval = pieces.filter(
+    (item) => item.stage === "ART_APPROVAL_PENDING"
+  ).length;
+  const readyToSchedule = pieces.filter((item) =>
+    ["READY_TO_SCHEDULE", "SCHEDULING_ERROR"].includes(item.stage)
+  ).length;
+  const approved = pieces.filter((item) =>
+    [
+      "ART_APPROVED",
+      "READY_TO_SCHEDULE",
+      "SCHEDULED",
+      "PUBLISHED"
+    ].includes(item.stage)
+  ).length;
+  const changes = pieces.filter((item) =>
+    ["PRE_CHANGES_REQUESTED", "ART_CHANGES_REQUESTED"].includes(item.stage)
+  ).length;
+  const reviewed = pieces.filter((item) =>
+    [
+      "ART_APPROVED",
+      "READY_TO_SCHEDULE",
+      "SCHEDULED",
+      "PUBLISHED",
+      "ART_CHANGES_REQUESTED"
+    ].includes(item.stage)
+  ).length;
   const approvalRate =
     reviewed > 0 ? Math.round((approved / reviewed) * 100) : 0;
 
@@ -97,15 +125,15 @@ export default async function DashboardPage() {
         )}
       </header>
 
-      <section className="dashboard-kpi-grid" aria-label="Resumo da operação">
+      <section className="dashboard-kpi-grid" aria-label="Esteira da operação">
         <article>
           <span className="dashboard-kpi-icon">
-            <FiUsers aria-hidden="true" />
+            <FiClock aria-hidden="true" />
           </span>
           <div>
-            <small>Clientes ativos</small>
-            <strong>{activeClients.length}</strong>
-            <p>{clients.length - activeClients.length} inativo(s)</p>
+            <small>Pré-aprovação</small>
+            <strong>{preApproval}</strong>
+            <p>Briefings aguardando o cliente</p>
           </div>
         </article>
 
@@ -114,20 +142,20 @@ export default async function DashboardPage() {
             <FiCalendar aria-hidden="true" />
           </span>
           <div>
-            <small>Calendários ativos</small>
-            <strong>{calendars.length}</strong>
-            <p>{pieces.length} peça(s) no fluxo</p>
+            <small>Em produção</small>
+            <strong>{production}</strong>
+            <p>Peças na fila do design</p>
           </div>
         </article>
 
         <article className="attention">
           <span className="dashboard-kpi-icon">
-            <FiClock aria-hidden="true" />
+            <FiAlertCircle aria-hidden="true" />
           </span>
           <div>
-            <small>Aguardando aprovação</small>
-            <strong>{waiting}</strong>
-            <p>Conteúdos esperando o cliente</p>
+            <small>Aprovação de arte</small>
+            <strong>{artApproval}</strong>
+            <p>Artes esperando o cliente</p>
           </div>
         </article>
 
@@ -136,9 +164,9 @@ export default async function DashboardPage() {
             <FiCheckCircle aria-hidden="true" />
           </span>
           <div>
-            <small>Aprovadas</small>
-            <strong>{approved}</strong>
-            <p>{approvalRate}% das decisões foram aprovação</p>
+            <small>Prontos para programar</small>
+            <strong>{readyToSchedule}</strong>
+            <p>Fila preparada para mLabs</p>
           </div>
         </article>
       </section>
@@ -175,8 +203,13 @@ export default async function DashboardPage() {
                   )[0];
 
                 const pending = latest
-                  ? latest.contentItems.filter(
-                      (item) => item.status === "PENDING_APPROVAL"
+                  ? latest.contentItems.filter((item) =>
+                      [
+                        "PRE_APPROVAL_PENDING",
+                        "ART_APPROVAL_PENDING",
+                        "PRE_CHANGES_REQUESTED",
+                        "ART_CHANGES_REQUESTED"
+                      ].includes(item.stage)
                     ).length
                   : 0;
 
@@ -227,7 +260,7 @@ export default async function DashboardPage() {
             <div>
               <span className="micro-label">APROVAÇÕES</span>
               <h2>Fluxo de revisão</h2>
-              <p>Visão rápida das decisões dos clientes.</p>
+              <p>Visão rápida da esteira de aprovação e produção.</p>
             </div>
           </div>
 
@@ -252,17 +285,17 @@ export default async function DashboardPage() {
           <div className="dashboard-status-list">
             <div>
               <span className="status-dot waiting" />
-              <p>Aguardando aprovação</p>
-              <strong>{waiting}</strong>
+              <p>Pré-calendário em aprovação</p>
+              <strong>{preApproval}</strong>
             </div>
             <div>
               <span className="status-dot approved" />
-              <p>Aprovadas</p>
-              <strong>{approved}</strong>
+              <p>Artes em aprovação</p>
+              <strong>{artApproval}</strong>
             </div>
             <div>
               <span className="status-dot changes" />
-              <p>Com alteração solicitada</p>
+              <p>Alterações solicitadas</p>
               <strong>{changes}</strong>
             </div>
           </div>
@@ -295,11 +328,19 @@ export default async function DashboardPage() {
         ) : (
           <div className="dashboard-calendar-list">
             {recentCalendars.map(({ client, calendar }) => {
-              const pending = calendar.contentItems.filter(
-                (item) => item.status === "PENDING_APPROVAL"
+              const pending = calendar.contentItems.filter((item) =>
+                [
+                  "PRE_APPROVAL_PENDING",
+                  "ART_APPROVAL_PENDING"
+                ].includes(item.stage)
               ).length;
-              const approvedItems = calendar.contentItems.filter(
-                (item) => item.status === "APPROVED"
+              const approvedItems = calendar.contentItems.filter((item) =>
+                [
+                  "ART_APPROVED",
+                  "READY_TO_SCHEDULE",
+                  "SCHEDULED",
+                  "PUBLISHED"
+                ].includes(item.stage)
               ).length;
 
               return (
@@ -318,8 +359,8 @@ export default async function DashboardPage() {
                     </small>
                   </div>
                   <div className="dashboard-calendar-stat">
-                    <small>Peças</small>
-                    <strong>{calendar.contentItems.length}</strong>
+                    <small>Etapa</small>
+                    <strong>{calendar.stage.replaceAll("_", " ")}</strong>
                   </div>
                   <div className="dashboard-calendar-stat">
                     <small>Pendentes</small>

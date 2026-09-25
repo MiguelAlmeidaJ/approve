@@ -6,6 +6,32 @@ export type ContentType = "POST" | "CAROUSEL" | "REEL" | "STORY";
 export type ContentStatus =
   "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "CHANGES_REQUESTED";
 
+export type CalendarStage =
+  | "PLANNING"
+  | "PRE_APPROVAL"
+  | "PRODUCTION"
+  | "FINAL_APPROVAL"
+  | "SCHEDULING"
+  | "COMPLETED"
+  | "ARCHIVED";
+
+export type ContentStage =
+  | "PLANNING"
+  | "PRE_APPROVAL_PENDING"
+  | "PRE_APPROVED"
+  | "PRE_CHANGES_REQUESTED"
+  | "DESIGN_PENDING"
+  | "DESIGN_IN_PROGRESS"
+  | "ART_APPROVAL_PENDING"
+  | "ART_CHANGES_REQUESTED"
+  | "ART_APPROVED"
+  | "READY_TO_SCHEDULE"
+  | "SCHEDULED"
+  | "PUBLISHED"
+  | "SCHEDULING_ERROR";
+
+export type ApprovalPhase = "PLANNING" | "ARTWORK";
+
 export type ContentFormat = {
   id: string;
   name: string;
@@ -43,6 +69,10 @@ export type NextcloudFileItem = {
 export type ContentItem = {
   id: string;
   title: string;
+  theme: string | null;
+  headline: string | null;
+  subheadline: string | null;
+  designerNotes: string | null;
   scheduledAt: string;
   channel: string;
   contentType: ContentType;
@@ -55,10 +85,17 @@ export type ContentItem = {
   assetUrl: string | null;
   assets: ContentAsset[];
   status: ContentStatus;
+  stage: ContentStage;
   reviewedAt: string | null;
+  planningApprovedAt: string | null;
+  artworkApprovedAt: string | null;
+  externalScheduleId: string | null;
+  publishedAt: string | null;
+  publishingError: string | null;
   reviews?: Array<{
     id: string;
     action: "APPROVED" | "CHANGES_REQUESTED";
+    phase: ApprovalPhase;
     message: string | null;
     reviewerName: string | null;
     createdAt: string;
@@ -95,6 +132,7 @@ export type Calendar = {
   periodStart: string;
   periodEnd: string;
   shareToken: string;
+  stage: CalendarStage;
   archivedAt: string | null;
   postingDays: CalendarPostingDay[];
   contentItems: ContentItem[];
@@ -151,9 +189,11 @@ export type ClientPortal = {
     periodStart: string;
     periodEnd: string;
     shareToken: string;
+    stage: CalendarStage;
     contentItems: Array<{
       id: string;
       status: ContentStatus;
+      stage: ContentStage;
     }>;
   }>;
 };

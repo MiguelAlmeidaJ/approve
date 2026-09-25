@@ -8,54 +8,45 @@ import {
   FiChevronRight,
   FiSearch
 } from "react-icons/fi";
-import type { Client } from "../lib/api";
+import type { CalendarStage, Client } from "../lib/api";
 
 const PAGE_SIZE = 8;
 
-type CalendarState =
-  | "all"
-  | "active"
-  | "pending"
-  | "approved"
-  | "changes"
-  | "archived";
+type CalendarFilter =
+  | "ACTIVE"
+  | "ALL"
+  | "PLANNING"
+  | "PRE_APPROVAL"
+  | "PRODUCTION"
+  | "FINAL_APPROVAL"
+  | "SCHEDULING"
+  | "COMPLETED"
+  | "ARCHIVED";
 
-function getCalendarState(client: Client, calendarId: string) {
-  const calendar = client.calendars.find((item) => item.id === calendarId);
+const stageLabel: Record<CalendarStage, string> = {
+  PLANNING: "Planejamento",
+  PRE_APPROVAL: "Pré-aprovação",
+  PRODUCTION: "Produção",
+  FINAL_APPROVAL: "Aprovação da arte",
+  SCHEDULING: "Programação",
+  COMPLETED: "Concluído",
+  ARCHIVED: "Arquivado"
+};
 
-  if (!calendar) {
-    return "pending";
-  }
-
-  if (calendar.archivedAt) {
-    return "archived";
-  }
-
-  if (calendar.contentItems.length === 0) {
-    return "pending";
-  }
-
-  if (
-    calendar.contentItems.some(
-      (item) => item.status === "CHANGES_REQUESTED"
-    )
-  ) {
-    return "changes";
-  }
-
-  if (
-    calendar.contentItems.every((item) => item.status === "APPROVED")
-  ) {
-    return "approved";
-  }
-
-  return "pending";
-}
+const stageProgress: Record<CalendarStage, number> = {
+  PLANNING: 12,
+  PRE_APPROVAL: 30,
+  PRODUCTION: 50,
+  FINAL_APPROVAL: 70,
+  SCHEDULING: 88,
+  COMPLETED: 100,
+  ARCHIVED: 100
+};
 
 export function CalendarsList({ clients }: { clients: Client[] }) {
   const [query, setQuery] = useState("");
   const [clientId, setClientId] = useState("all");
-  const [state, setState] = useState<CalendarState>("active");
+  const [state, setState] = useState<CalendarFilter>("ACTIVE");
   const [page, setPage] = useState(1);
 
   const calendars = useMemo(
@@ -63,8 +54,7 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
       clients.flatMap((client) =>
         client.calendars.map((calendar) => ({
           ...calendar,
-          client,
-          state: getCalendarState(client, calendar.id)
+          client
         }))
       ),
     [clients]
@@ -82,9 +72,9 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
       const matchesClient =
         clientId === "all" || calendar.client.id === clientId;
       const matchesState =
-        state === "all" ||
-        (state === "active" && calendar.state !== "archived") ||
-        calendar.state === state;
+        state === "ALL" ||
+        (state === "ACTIVE" && calendar.stage !== "ARCHIVED") ||
+        calendar.stage === state;
 
       return matchesQuery && matchesClient && matchesState;
     });
@@ -139,17 +129,20 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           className="filter-select"
           value={state}
           onChange={(event) => {
-            setState(event.target.value as CalendarState);
+            setState(event.target.value as CalendarFilter);
             resetPage();
           }}
-          aria-label="Filtrar por status"
+          aria-label="Filtrar por etapa"
         >
-          <option value="active">Ativos</option>
-          <option value="all">Todos os status</option>
-          <option value="pending">Em aprovação</option>
-          <option value="approved">Concluídos</option>
-          <option value="changes">Com alterações</option>
-          <option value="archived">Arquivados</option>
+          <option value="ACTIVE">Fluxos ativos</option>
+          <option value="ALL">Todas as etapas</option>
+          <option value="PLANNING">Planejamento</option>
+          <option value="PRE_APPROVAL">Pré-aprovação</option>
+          <option value="PRODUCTION">Produção</option>
+          <option value="FINAL_APPROVAL">Aprovação da arte</option>
+          <option value="SCHEDULING">Programação</option>
+          <option value="COMPLETED">Concluídos</option>
+          <option value="ARCHIVED">Arquivados</option>
         </select>
 
         <span className="list-result-count">
@@ -164,15 +157,16 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
       ) : (
         <div className="calendar-list-simple">
           {visible.map((calendar) => {
-            const approved = calendar.contentItems.filter(
-              (item) => item.status === "APPROVED"
-            ).length;
+            const total = calendar.contentItems.length;
+            const currentStage = calendar.archivedAt
+              ? "ARCHIVED"
+              : calendar.stage;
 
             return (
               <Link
                 href={`/calendars/${calendar.id}`}
                 className={
-                  calendar.archivedAt
+                  currentStage === "ARCHIVED"
                     ? "calendar-row calendar-row-archived"
                     : "calendar-row"
                 }
@@ -194,33 +188,31 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
                 </div>
 
                 <div className="calendar-row-main">
-                  <h3>
-                    {calendar.title}
-                    {calendar.archivedAt ? (
-                      <span className="archive-chip">Arquivado</span>
-                    ) : null}
-                  </h3>
+                  <h3>{calendar.title}</h3>
                   <p>
-                    {calendar.client.name} · {calendar.contentItems.length} peça(s)
+                    {calendar.client.name} · {total} publicação(ões)
                   </p>
+                </div>
+
+                <div className="calendar-stage-cell">
+                  <span className={`calendar-stage-chip stage-${currentStage.toLowerCase()}`}>
+                    {stageLabel[currentStage]}
+                  </span>
+                  <small>
+                    {calendar.client.assignedDesigner?.name ??
+                      "Sem designer responsável"}
+                  </small>
                 </div>
 
                 <div className="calendar-progress">
                   <div>
                     <span
                       style={{
-                        width:
-                          calendar.contentItems.length === 0
-                            ? "0%"
-                            : `${Math.round(
-                                (approved / calendar.contentItems.length) * 100
-                              )}%`
+                        width: `${stageProgress[currentStage]}%`
                       }}
                     />
                   </div>
-                  <small>
-                    {approved}/{calendar.contentItems.length}
-                  </small>
+                  <small>{stageProgress[currentStage]}%</small>
                 </div>
 
                 <FiArrowRight className="arrow-link" aria-hidden="true" />
