@@ -114,14 +114,14 @@ export class PublicService {
 
     const allowed =
       phase === ApprovalPhase.PLANNING
-        ? [
+        ? ([
             ContentStage.PRE_APPROVAL_PENDING,
             ContentStage.PRE_CHANGES_REQUESTED
-          ].includes(item.stage)
-        : [
+          ] as ContentStage[]).includes(item.stage)
+        : ([
             ContentStage.ART_APPROVAL_PENDING,
             ContentStage.ART_CHANGES_REQUESTED
-          ].includes(item.stage);
+          ] as ContentStage[]).includes(item.stage);
 
     if (!allowed) {
       throw new BadRequestException(
