@@ -63,6 +63,9 @@ export type ContentAsset = {
   mimeType: string | null;
   etag: string | null;
   sortOrder: number;
+  version: number;
+  active: boolean;
+  createdAt: string;
 };
 
 export type NextcloudFileItem = {
