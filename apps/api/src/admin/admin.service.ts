@@ -316,6 +316,7 @@ export class AdminService {
         city: dto.city?.trim() || null,
         state: dto.state?.trim().toUpperCase() || null,
         description: dto.description?.trim() || null,
+        tags: dto.tags?.trim() || null,
         clientId: dto.clientId?.trim() || null,
         active: dto.active ?? true
       },
@@ -378,6 +379,7 @@ export class AdminService {
         city: dto.city?.trim() || null,
         state: dto.state?.trim().toUpperCase() || null,
         description: dto.description?.trim() || null,
+        tags: dto.tags?.trim() || null,
         clientId: dto.clientId?.trim() || null,
         active: dto.active ?? true
       },
