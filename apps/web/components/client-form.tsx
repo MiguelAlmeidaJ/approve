@@ -6,6 +6,7 @@ import {
   FiKey,
   FiLock,
   FiPhone,
+  FiRepeat,
   FiShield,
   FiUser,
   FiUserCheck
@@ -26,6 +27,18 @@ export function ClientForm({
   cancelHref: string;
 }) {
   const isEditing = Boolean(client);
+  const selectedPostingWeekdays = new Set(
+    client?.postingWeekdays?.map((item) => item.weekday) ?? [1, 3, 5]
+  );
+  const weekdays = [
+    { value: 1, label: "Seg", full: "Segunda" },
+    { value: 2, label: "Ter", full: "Terça" },
+    { value: 3, label: "Qua", full: "Quarta" },
+    { value: 4, label: "Qui", full: "Quinta" },
+    { value: 5, label: "Sex", full: "Sexta" },
+    { value: 6, label: "Sáb", full: "Sábado" },
+    { value: 0, label: "Dom", full: "Domingo" }
+  ];
 
   return (
     <div className="client-editor-layout">
@@ -104,6 +117,42 @@ export function ClientForm({
               </small>
             </label>
           </div>
+        </section>
+
+        <section className="client-form-section client-posting-rhythm-section">
+          <div className="client-form-section-head">
+            <span className="client-form-icon">
+              <FiRepeat aria-hidden="true" />
+            </span>
+            <div>
+              <strong>Dias de publicação</strong>
+              <small>
+                Padrão semanal usado para preencher novos calendários deste cliente.
+              </small>
+            </div>
+          </div>
+
+          <div className="client-weekday-selector" role="group" aria-label="Dias de publicação">
+            {weekdays.map((weekday) => (
+              <label className="client-weekday-option" key={weekday.value}>
+                <input
+                  type="checkbox"
+                  name="postingWeekday"
+                  value={weekday.value}
+                  defaultChecked={selectedPostingWeekdays.has(weekday.value)}
+                />
+                <span>
+                  <strong>{weekday.label}</strong>
+                  <small>{weekday.full}</small>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <p className="client-rhythm-help">
+            Ao criar um calendário, esses dias já virão selecionados. Ainda será
+            possível ajustar datas específicas em cada mês.
+          </p>
         </section>
 
         <section className="client-form-section">

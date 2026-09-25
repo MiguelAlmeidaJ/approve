@@ -1,11 +1,13 @@
 import {
   Channel,
+  CommemorativeScope,
   ContentType,
   UserRole
 } from "@approve/database";
 import {
   ArrayMaxSize,
   ArrayMinSize,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -16,6 +18,7 @@ import {
   IsString,
   IsUrl,
   Matches,
+  Max,
   Min,
   MinLength
 } from "class-validator";
@@ -51,6 +54,15 @@ export class CreateClientDto {
   @IsOptional()
   @IsString()
   assignedDesignerId?: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(7)
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(6, { each: true })
+  postingWeekdays!: number[];
 }
 
 export class UpdateClientDto {
@@ -77,6 +89,15 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   nextcloudPath?: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(7)
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(6, { each: true })
+  postingWeekdays!: number[];
 }
 
 export class SetActiveDto {
@@ -317,3 +338,52 @@ export class MarkSchedulingErrorDto {
   @MinLength(2)
   message!: string;
 }
+
+
+export class CreateCommemorativeDateDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(31)
+  day!: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  month!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(2000)
+  @Max(2100)
+  year?: number;
+
+  @IsOptional()
+  @IsEnum(CommemorativeScope)
+  scope?: CommemorativeScope;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  clientId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
+}
+
+export class UpdateCommemorativeDateDto extends CreateCommemorativeDateDto {}

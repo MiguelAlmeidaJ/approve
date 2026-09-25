@@ -4,7 +4,10 @@ import { FiArrowLeft } from "react-icons/fi";
 import { AppShell } from "../../../../../../components/app-shell";
 import { PlanningItemForm } from "../../../../../../components/planning-item-form";
 import { requireRole } from "../../../../../../lib/auth";
-import { getCalendar } from "../../../../../../lib/api";
+import {
+  getCalendar,
+  getCommemorativeDates
+} from "../../../../../../lib/api";
 
 function saoPauloDateKey(value: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -28,7 +31,10 @@ export default async function EditPlanningItemPage({
 }) {
   const { calendarId, itemId } = await params;
   const designer = await requireRole("ADMIN", "DEV");
-  const calendar = await getCalendar(calendarId);
+  const [calendar, commemorativeDates] = await Promise.all([
+    getCalendar(calendarId),
+    getCommemorativeDates()
+  ]);
 
   if (!calendar) {
     notFound();
@@ -71,6 +77,11 @@ export default async function EditPlanningItemPage({
           saoPauloDateKey(entry.scheduledAt)
         )}
         item={item}
+        commemorativeDates={commemorativeDates.filter(
+          (date) =>
+            date.active &&
+            (date.clientId === null || date.clientId === calendar.client.id)
+        )}
       />
     </AppShell>
   );

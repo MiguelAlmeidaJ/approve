@@ -17,6 +17,7 @@ import {
 } from "../app/actions";
 import type {
   CalendarPostingDay,
+  CommemorativeDate,
   ContentItem,
   ContentType
 } from "../lib/api";
@@ -101,12 +102,14 @@ export function PlanningItemForm({
   calendarId,
   postingDays,
   occupiedDates,
-  item
+  item,
+  commemorativeDates = []
 }: {
   calendarId: string;
   postingDays: CalendarPostingDay[];
   occupiedDates: string[];
   item?: ContentItem;
+  commemorativeDates?: CommemorativeDate[];
 }) {
   const editing = Boolean(item);
   const currentDate = item ? saoPauloDateKey(item.scheduledAt) : "";
@@ -129,6 +132,21 @@ export function PlanningItemForm({
   const [postingDate, setPostingDate] = useState(
     currentDate || dateKey(availableDays[0]?.scheduledDate ?? "")
   );
+  const selectedCommemorativeDates = useMemo(() => {
+    if (!postingDate) {
+      return [];
+    }
+
+    const [year, month, day] = postingDate.split("-").map(Number);
+
+    return commemorativeDates.filter(
+      (date) =>
+        date.active &&
+        date.month === month &&
+        date.day === day &&
+        (date.year === null || date.year === year)
+    );
+  }, [commemorativeDates, postingDate]);
 
   function selectType(value: ContentType) {
     setContentType(value);
@@ -248,6 +266,24 @@ export function PlanningItemForm({
                       key={day.id}
                     >
                       {formatDate(day.scheduledDate)}
+                      {(() => {
+                        const [year, month, dateDay] = value
+                          .split("-")
+                          .map(Number);
+                        const labels = commemorativeDates
+                          .filter(
+                            (date) =>
+                              date.active &&
+                              date.month === month &&
+                              date.day === dateDay &&
+                              (date.year === null || date.year === year)
+                          )
+                          .map((date) => date.name);
+
+                        return labels.length > 0
+                          ? ` · ${labels.join(" / ")}`
+                          : "";
+                      })()}
                       {unavailable ? " · ocupado" : ""}
                     </option>
                   );
@@ -270,6 +306,18 @@ export function PlanningItemForm({
               </div>
             </label>
           </div>
+
+          {selectedCommemorativeDates.length > 0 ? (
+            <div className="planning-date-opportunity">
+              <strong>Oportunidade de pauta</strong>
+              {selectedCommemorativeDates.map((date) => (
+                <span key={date.id}>
+                  {date.name}
+                  {date.description ? ` — ${date.description}` : ""}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 

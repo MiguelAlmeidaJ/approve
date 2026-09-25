@@ -8,6 +8,7 @@ export {
   CalendarStage,
   ContentStage,
   ApprovalPhase,
+  CommemorativeScope,
   ReviewAction,
   AssetProvider
 } from "@prisma/client";
