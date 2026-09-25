@@ -24,6 +24,7 @@ import {
   MarkScheduledDto,
   MarkSchedulingErrorDto,
   MoveContentItemDto,
+  ResolveContentAnnotationDto,
   SetActiveDto,
   UpdateBriefingTemplateDto,
   UpdateCalendarDto,
