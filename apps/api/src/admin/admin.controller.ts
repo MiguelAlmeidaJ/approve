@@ -34,6 +34,7 @@ import {
   UpdateContentFormatDto,
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
+  UpdateContentProductionStageDto,
   UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -365,6 +366,19 @@ export class AdminController {
     @Param("id") id: string
   ) {
     return this.adminService.submitPlanning(request.actor, id);
+  }
+
+  @Patch("items/:id/production-stage")
+  updateContentProductionStage(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateContentProductionStageDto
+  ) {
+    return this.adminService.updateContentProductionStage(
+      request.actor,
+      id,
+      dto
+    );
   }
 
   @Post("items/:id/artwork")
