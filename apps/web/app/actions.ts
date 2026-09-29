@@ -673,6 +673,33 @@ export async function submitPlanning(calendarId: string) {
   redirect(`/calendars/${calendarId}`);
 }
 
+export async function assignOperationalDemand(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const id = required(formData, "id");
+  const source = required(formData, "source");
+  const designerId = required(formData, "designerId");
+  const calendarId = String(formData.get("calendarId") ?? "").trim();
+
+  if (source === "calendar") {
+    await adminPatch(`/api/admin/items/${encodeURIComponent(id)}/designer`, {
+      designerId
+    });
+  } else if (source === "standalone") {
+    await adminPatch(
+      `/api/admin/standalone-artworks/${encodeURIComponent(id)}/designer`,
+      { designerId }
+    );
+  } else {
+    throw new Error("Origem de demanda inválida.");
+  }
+
+  revalidatePath("/producao");
+  revalidatePath("/capacidade");
+  revalidatePath("/produtividade");
+  revalidatePath("/artes-avulsas");
+  if (calendarId) revalidatePath(`/calendars/${calendarId}`);
+}
+
 export async function updateContentProductionStage(formData: FormData) {
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
