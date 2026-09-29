@@ -47,6 +47,7 @@ import {
   UpdateContentFormatDto,
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
+  UpdateContentProductionStageDto,
   UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -1426,6 +1427,88 @@ export class AdminService {
     });
 
     return this.getCalendar(actor, calendarId);
+  }
+
+  async updateContentProductionStage(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: UpdateContentProductionStageDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        title: true,
+        calendarId: true,
+        stage: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+
+    if (!calendar.client.active || calendar.archivedAt) {
+      throw new BadRequestException(
+        "O cliente e o calendário precisam estar ativos para movimentar a demanda."
+      );
+    }
+
+    if (calendar.stage !== CalendarStage.PRODUCTION) {
+      throw new BadRequestException(
+        "Só é possível movimentar peças enquanto o calendário está em produção."
+      );
+    }
+
+    const movableStages = [
+      ContentStage.DESIGN_PENDING,
+      ContentStage.DESIGN_IN_PROGRESS,
+      ContentStage.ART_CHANGES_REQUESTED
+    ] as ContentStage[];
+
+    if (!movableStages.includes(item.stage)) {
+      throw new BadRequestException(
+        "Esta peça não pode ser movimentada manualmente nesta etapa."
+      );
+    }
+
+    if (
+      !([
+        ContentStage.DESIGN_PENDING,
+        ContentStage.DESIGN_IN_PROGRESS
+      ] as ContentStage[]).includes(dto.stage)
+    ) {
+      throw new BadRequestException(
+        "O Kanban permite mover peças de calendário apenas entre aguardando e em produção."
+      );
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: {
+        stage: dto.stage,
+        ...(dto.stage === ContentStage.DESIGN_PENDING
+          ? { productionDesignerId: null }
+          : { productionDesignerId: actor.id })
+      },
+      select: {
+        id: true,
+        title: true,
+        stage: true,
+        calendarId: true
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "CONTENT_PRODUCTION_STAGE_CHANGED",
+      entityType: "ContentItem",
+      entityId: contentItemId,
+      summary: `Peça "${updated.title}" movida no Kanban para ${updated.stage}.`
+    });
+
+    return updated;
   }
 
   async attachArtwork(
