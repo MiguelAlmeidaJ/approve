@@ -10,6 +10,7 @@ import {
 import type { InternalActorRequest } from "../common/internal-actor";
 import {
   AssignClientDto,
+  AssignDemandDesignerDto,
   AttachArtworkDto,
   CreateBriefingTemplateDto,
   CreateCalendarDto,
@@ -185,6 +186,19 @@ export class AdminController {
     @Body() dto: CreateStandaloneArtworkDto
   ) {
     return this.adminService.createStandaloneArtwork(request.actor, dto);
+  }
+
+  @Patch("standalone-artworks/:id/designer")
+  assignStandaloneArtworkDesigner(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: AssignDemandDesignerDto
+  ) {
+    return this.adminService.assignStandaloneArtworkDesigner(
+      request.actor,
+      id,
+      dto
+    );
   }
 
   @Patch("standalone-artworks/:id/status")
@@ -366,6 +380,19 @@ export class AdminController {
     @Param("id") id: string
   ) {
     return this.adminService.submitPlanning(request.actor, id);
+  }
+
+  @Patch("items/:id/designer")
+  assignContentDemandDesigner(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: AssignDemandDesignerDto
+  ) {
+    return this.adminService.assignContentDemandDesigner(
+      request.actor,
+      id,
+      dto
+    );
   }
 
   @Patch("items/:id/production-stage")
