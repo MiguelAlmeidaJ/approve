@@ -11,6 +11,15 @@ export type NotificationType =
   | "DEADLINE"
   | "PUBLISHING";
 export type ContentType = "POST" | "CAROUSEL" | "REEL" | "STORY";
+export type StandaloneArtworkStatus =
+  | "REQUESTED"
+  | "IN_PRODUCTION"
+  | "IN_APPROVAL"
+  | "CHANGES_REQUESTED"
+  | "APPROVED"
+  | "DELIVERED"
+  | "CANCELLED";
+export type ArtworkPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type ContentStatus =
   "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "CHANGES_REQUESTED";
@@ -233,6 +242,55 @@ export type Notification = {
 };
 
 
+export type StandaloneArtwork = {
+  id: string;
+  clientId: string;
+  designerId: string;
+  title: string;
+  briefing: string;
+  contentType: ContentType;
+  formatLabel: string | null;
+  quantity: number;
+  effortPoints: number;
+  priority: ArtworkPriority;
+  status: StandaloneArtworkStatus;
+  dueAt: string | null;
+  nextcloudPath: string | null;
+  revisionCount: number;
+  startedAt: string | null;
+  approvedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  client: {
+    id: string;
+    name: string;
+    nextcloudPath: string | null;
+  };
+  designer: {
+    id: string;
+    name: string;
+    email: string;
+  };
+};
+
+export type ProductivityRow = {
+  designer: {
+    id: string;
+    name: string;
+    weeklyCapacityPoints: number;
+  };
+  periodStart: string;
+  periodEnd: string;
+  calendarPieces: number;
+  standalonePieces: number;
+  totalPieces: number;
+  calendarPoints: number;
+  standalonePoints: number;
+  totalPoints: number;
+  revisions: number;
+};
+
 export type AuditLog = {
   id: string;
   actorDesignerId: string | null;
@@ -419,6 +477,16 @@ export async function getBriefingTemplates(): Promise<BriefingTemplate[]> {
 
 export async function getNotifications(): Promise<Notification[]> {
   return (await adminGet<Notification[]>("/api/admin/notifications")) ?? [];
+}
+
+export async function getStandaloneArtworks(): Promise<StandaloneArtwork[]> {
+  return (
+    (await adminGet<StandaloneArtwork[]>("/api/admin/standalone-artworks")) ?? []
+  );
+}
+
+export async function getProductivity(): Promise<ProductivityRow[]> {
+  return (await adminGet<ProductivityRow[]>("/api/admin/productivity")) ?? [];
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
