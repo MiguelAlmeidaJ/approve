@@ -82,11 +82,13 @@ Os links de aprovação usam `shareToken`, mas não são anônimos: também exig
 
 ~~~bash
 pnpm install --frozen-lockfile
-pnpm db:deploy
-pnpm build
-pnpm start:pm2
-pm2 save
+pnpm update:pm2
 ~~~
+
+O comando `pnpm update:pm2` para somente os processos do Approve, aplica as
+migrations, executa o build completo, inicia ou recarrega a API e o web com as
+portas definidas no `.env` e salva o estado do PM2. Parar os processos antes do
+build também evita o bloqueio do binário do Prisma no Windows.
 
 ## Próximos passos
 

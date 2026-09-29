@@ -21,8 +21,10 @@
     "db:deploy": "dotenv -e .env -- pnpm --filter @approve/database run deploy",
     "db:seed": "dotenv -e .env -- pnpm --filter @approve/database seed",
     "user:create-dev": "dotenv -e .env -- pnpm --filter @approve/database create:dev",
-    "start:pm2": "dotenv -e .env -- pm2 start ecosystem.config.cjs",
-    "stop:pm2": "pm2 delete ecosystem.config.cjs"
+    "start:pm2": "dotenv -e .env -- pm2 startOrReload ecosystem.config.cjs --update-env",
+    "stop:pm2": "pm2 stop ecosystem.config.cjs",
+    "delete:pm2": "pm2 delete ecosystem.config.cjs",
+    "update:pm2": "dotenv -e .env -- node scripts/update-pm2.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",
