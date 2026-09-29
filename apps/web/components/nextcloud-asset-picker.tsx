@@ -9,6 +9,7 @@ import {
   FiImage,
   FiLoader,
   FiPlus,
+  FiUpload,
   FiVideo,
   FiX
 } from "react-icons/fi";
@@ -22,16 +23,17 @@ export type SelectedNextcloudAsset = Pick<
 function parentPath(path: string) {
   const parts = path.split("/").filter(Boolean);
   parts.pop();
-
   return parts.length === 0 ? "/" : `/${parts.join("/")}`;
 }
 
-function filePreviewUrl(clientId: string, path: string) {
-  const params = new URLSearchParams({
-    clientId,
-    path
-  });
+function joinPath(base: string, name: string) {
+  const cleanBase = base === "/" ? "" : base.replace(/\/$/, "");
+  const cleanName = name.trim().replace(/^\/+|\/+$/g, "");
+  return cleanName ? `${cleanBase}/${cleanName}` || "/" : base;
+}
 
+function filePreviewUrl(clientId: string, path: string) {
+  const params = new URLSearchParams({ clientId, path });
   return `/api/nextcloud/file?${params.toString()}`;
 }
 
@@ -59,17 +61,16 @@ export function NextcloudAssetPicker({
   const [items, setItems] = useState<NextcloudFileItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadFolder, setUploadFolder] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const controller = new AbortController();
-    const params = new URLSearchParams({
-      clientId,
-      path
-    });
+    const params = new URLSearchParams({ clientId, path });
 
     setLoading(true);
     setError("");
@@ -80,7 +81,6 @@ export function NextcloudAssetPicker({
     })
       .then(async (response) => {
         const payload = await response.json().catch(() => null);
-
         if (!response.ok) {
           const message =
             payload?.message ??
@@ -90,17 +90,11 @@ export function NextcloudAssetPicker({
             Array.isArray(message) ? message.join(" ") : String(message)
           );
         }
-
         return payload as NextcloudFileItem[];
       })
-      .then((payload) => {
-        setItems(payload.filter(isSupported));
-      })
+      .then((payload) => setItems(payload.filter(isSupported)))
       .catch((reason: unknown) => {
-        if (controller.signal.aborted) {
-          return;
-        }
-
+        if (controller.signal.aborted) return;
         setError(
           reason instanceof Error
             ? reason.message
@@ -108,13 +102,11 @@ export function NextcloudAssetPicker({
         );
       })
       .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setLoading(false);
       });
 
     return () => controller.abort();
-  }, [clientId, open, path]);
+  }, [clientId, open, path, refreshKey]);
 
   const selectedPaths = useMemo(
     () => new Set(selected.map((asset) => asset.path)),
@@ -141,9 +133,52 @@ export function NextcloudAssetPicker({
     };
 
     onChange(multiple ? [...selected, nextAsset].slice(0, 10) : [nextAsset]);
+    if (!multiple) setOpen(false);
+  }
 
-    if (!multiple) {
-      setOpen(false);
+  async function uploadFile(file: File) {
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const body = new FormData();
+      body.set("clientId", clientId);
+      body.set("path", joinPath(path, uploadFolder));
+      body.set("file", file, file.name);
+
+      const response = await fetch("/api/nextcloud/upload", {
+        method: "POST",
+        body
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          payload?.message ?? payload?.error ?? "Falha ao enviar a arte.";
+        throw new Error(
+          Array.isArray(message) ? message.join(" ") : String(message)
+        );
+      }
+
+      const item = payload as NextcloudFileItem;
+      const nextAsset: SelectedNextcloudAsset = {
+        name: item.name,
+        path: item.path,
+        mimeType: item.mimeType,
+        fileId: item.fileId,
+        etag: item.etag
+      };
+
+      onChange(multiple ? [...selected, nextAsset].slice(0, 10) : [nextAsset]);
+      setRefreshKey((value) => value + 1);
+
+      if (!multiple) setOpen(false);
+    } catch (reason) {
+      setUploadError(
+        reason instanceof Error ? reason.message : "Falha ao enviar a arte."
+      );
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -156,8 +191,8 @@ export function NextcloudAssetPicker({
             <strong>Artes no Nextcloud</strong>
             <small>
               {multiple
-                ? "Selecione até 10 arquivos para o carrossel."
-                : "Selecione uma imagem ou vídeo."}
+                ? "Selecione ou envie até 10 arquivos para o carrossel."
+                : "Selecione ou envie uma imagem ou vídeo."}
             </small>
           </span>
         </div>
@@ -177,10 +212,7 @@ export function NextcloudAssetPicker({
             <article key={asset.path}>
               <div className="nextcloud-selected-preview">
                 {asset.mimeType?.startsWith("image/") ? (
-                  <img
-                    src={filePreviewUrl(clientId, asset.path)}
-                    alt=""
-                  />
+                  <img src={filePreviewUrl(clientId, asset.path)} alt="" />
                 ) : (
                   <FiVideo aria-hidden="true" />
                 )}
@@ -194,9 +226,7 @@ export function NextcloudAssetPicker({
               <button
                 type="button"
                 onClick={() =>
-                  onChange(
-                    selected.filter((item) => item.path !== asset.path)
-                  )
+                  onChange(selected.filter((item) => item.path !== asset.path))
                 }
                 aria-label={`Remover ${asset.name}`}
               >
@@ -254,6 +284,43 @@ export function NextcloudAssetPicker({
               <span>{selected.length} selecionado(s)</span>
             </div>
 
+            <div className="nextcloud-upload-strip">
+              <div>
+                <strong>Enviar uma nova arte</strong>
+                <small>
+                  A arte será salva dentro da pasta do cliente configurada no cadastro.
+                </small>
+              </div>
+              <label className="nextcloud-upload-folder">
+                <span>Pasta nova (opcional)</span>
+                <input
+                  type="text"
+                  value={uploadFolder}
+                  onChange={(event) => setUploadFolder(event.target.value)}
+                  placeholder="Ex.: Artes finais"
+                  disabled={uploading}
+                />
+              </label>
+              <label className="button button-primary nextcloud-upload-button">
+                <FiUpload aria-hidden="true" />
+                {uploading ? "Enviando..." : "Enviar arquivo"}
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  disabled={uploading}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void uploadFile(file);
+                    event.currentTarget.value = "";
+                  }}
+                />
+              </label>
+            </div>
+
+            {uploadError ? (
+              <div className="nextcloud-upload-error">{uploadError}</div>
+            ) : null}
+
             <div className="nextcloud-browser-body">
               {loading ? (
                 <div className="nextcloud-browser-state">
@@ -285,9 +352,7 @@ export function NextcloudAssetPicker({
                           "nextcloud-file-card",
                           item.isDirectory ? "directory" : "",
                           checked ? "selected" : ""
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
+                        ].filter(Boolean).join(" ")}
                         onClick={() => toggleFile(item)}
                         key={item.path}
                       >
@@ -309,9 +374,7 @@ export function NextcloudAssetPicker({
                         <span className="nextcloud-file-name">
                           <strong>{item.name}</strong>
                           <small>
-                            {item.isDirectory
-                              ? "Pasta"
-                              : item.mimeType ?? "Arquivo"}
+                            {item.isDirectory ? "Pasta" : item.mimeType ?? "Arquivo"}
                           </small>
                         </span>
                         {checked ? (
@@ -330,7 +393,7 @@ export function NextcloudAssetPicker({
               <span>
                 {multiple
                   ? "No carrossel, a ordem de seleção define a ordem dos slides."
-                  : "A arte continuará armazenada somente no Nextcloud."}
+                  : "A arte fica armazenada no Nextcloud e é vinculada ao calendário."}
               </span>
               <button
                 type="button"
