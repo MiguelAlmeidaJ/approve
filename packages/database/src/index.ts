@@ -12,7 +12,9 @@ export {
   CommentAuthorType,
   NotificationType,
   ReviewAction,
-  AssetProvider
+  AssetProvider,
+  StandaloneArtworkStatus,
+  ArtworkPriority
 } from "@prisma/client";
 
 export type {
@@ -26,5 +28,6 @@ export type {
   CalendarPostingDay,
   ContentItem,
   ContentAsset,
-  ReviewHistory
+  ReviewHistory,
+  StandaloneArtwork
 } from "@prisma/client";
