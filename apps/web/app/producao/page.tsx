@@ -5,12 +5,17 @@ import {
   FiCheckCircle,
   FiClock,
   FiImage,
+  FiLayers,
   FiRefreshCw,
   FiTool
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
 import { requireDesigner } from "../../lib/auth";
-import { getAccessibleClients, type ContentItem } from "../../lib/api";
+import {
+  getAccessibleClients,
+  getStandaloneArtworks,
+  type ContentItem
+} from "../../lib/api";
 
 const productionStages = [
   "DESIGN_PENDING",
@@ -18,30 +23,57 @@ const productionStages = [
   "ART_CHANGES_REQUESTED"
 ] as const;
 
-function stageLabel(stage: ContentItem["stage"]) {
+function calendarStageLabel(stage: ContentItem["stage"]) {
   if (stage === "ART_CHANGES_REQUESTED") return "Alteração solicitada";
   if (stage === "DESIGN_IN_PROGRESS") return "Em produção";
   return "Aguardando produção";
 }
 
-function dueLabel(value: string | null) {
-  if (!value) return "Sem prazo";
-  const date = new Date(value);
-  const today = new Date();
-  const diff = Math.ceil(
-    (date.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
-  );
+function standaloneStageLabel(status: string) {
+  if (status === "REQUESTED") return "Solicitada";
+  if (status === "IN_PRODUCTION") return "Em produção";
+  if (status === "IN_APPROVAL") return "Em aprovação";
+  if (status === "CHANGES_REQUESTED") return "Alteração solicitada";
+  if (status === "APPROVED") return "Aprovada";
+  return status;
+}
 
-  if (diff < 0) return `${Math.abs(diff)} dia(s) atrasado`;
-  if (diff === 0) return "Vence hoje";
-  if (diff === 1) return "Vence amanhã";
-  return `${diff} dias`;
+function slaState(value: string | null) {
+  if (!value) return { key: "no-deadline", label: "Sem prazo", order: 3 };
+  const diff = new Date(value).getTime() - Date.now();
+  const hours = Math.ceil(diff / (60 * 60 * 1000));
+
+  if (hours < 0) {
+    return {
+      key: "overdue",
+      label: `${Math.ceil(Math.abs(hours) / 24)} dia(s) atrasado`,
+      order: 0
+    };
+  }
+
+  if (hours <= 24) {
+    return {
+      key: "risk",
+      label: hours <= 1 ? "Vence em até 1h" : `Vence em ${hours}h`,
+      order: 1
+    };
+  }
+
+  return {
+    key: "on-time",
+    label: hours <= 48 ? `Vence em ${hours}h` : `${Math.ceil(hours / 24)} dias`,
+    order: 2
+  };
 }
 
 export default async function ProductionPage() {
   const designer = await requireDesigner();
-  const clients = await getAccessibleClients(designer);
-  const queue = clients.flatMap((client) =>
+  const [clients, standalone] = await Promise.all([
+    getAccessibleClients(designer),
+    getStandaloneArtworks()
+  ]);
+
+  const calendarDemands = clients.flatMap((client) =>
     client.calendars.flatMap((calendar) =>
       calendar.contentItems
         .filter((item) =>
@@ -49,119 +81,156 @@ export default async function ProductionPage() {
             item.stage as (typeof productionStages)[number]
           )
         )
-        .map((item) => ({ client, calendar, item }))
+        .map((item) => ({
+          id: item.id,
+          source: "calendar" as const,
+          clientName: client.name,
+          context: calendar.title,
+          title: item.title,
+          status: calendarStageLabel(item.stage),
+          changes: item.stage === "ART_CHANGES_REQUESTED",
+          inProgress: item.stage === "DESIGN_IN_PROGRESS",
+          points: item.effortPoints || 1,
+          quantity: 1,
+          dueAt: calendar.artworkDueAt,
+          href: `/calendars/${calendar.id}/content/${item.id}/artwork`,
+          action: item.assets.length > 0 ? "Abrir arte" : "Produzir"
+        }))
     )
   );
 
-  const changes = queue.filter(
-    ({ item }) => item.stage === "ART_CHANGES_REQUESTED"
-  ).length;
-  const waiting = queue.filter(
-    ({ item }) => item.stage === "DESIGN_PENDING"
-  ).length;
-  const inProgress = queue.filter(
-    ({ item }) => item.stage === "DESIGN_IN_PROGRESS"
-  ).length;
+  const standaloneDemands = standalone
+    .filter((artwork) => !["DELIVERED", "CANCELLED"].includes(artwork.status))
+    .map((artwork) => ({
+      id: artwork.id,
+      source: "standalone" as const,
+      clientName: artwork.client.name,
+      context: "Arte avulsa",
+      title: artwork.title,
+      status: standaloneStageLabel(artwork.status),
+      changes: artwork.status === "CHANGES_REQUESTED",
+      inProgress: artwork.status === "IN_PRODUCTION",
+      points: artwork.effortPoints,
+      quantity: artwork.quantity,
+      dueAt: artwork.dueAt,
+      href: "/artes-avulsas",
+      action: "Abrir demanda"
+    }));
 
-  const sorted = [...queue].sort((first, second) => {
-    const a = first.calendar.artworkDueAt
-      ? new Date(first.calendar.artworkDueAt).getTime()
-      : Number.MAX_SAFE_INTEGER;
-    const b = second.calendar.artworkDueAt
-      ? new Date(second.calendar.artworkDueAt).getTime()
-      : Number.MAX_SAFE_INTEGER;
-    return a - b;
-  });
+  const queue = [...calendarDemands, ...standaloneDemands]
+    .map((demand) => ({
+      ...demand,
+      sla: slaState(demand.dueAt)
+    }))
+    .sort((a, b) => {
+      if (a.sla.order !== b.sla.order) return a.sla.order - b.sla.order;
+      const ad = a.dueAt ? new Date(a.dueAt).getTime() : Number.MAX_SAFE_INTEGER;
+      const bd = b.dueAt ? new Date(b.dueAt).getTime() : Number.MAX_SAFE_INTEGER;
+      return ad - bd;
+    });
+
+  const overdue = queue.filter((item) => item.sla.key === "overdue").length;
+  const risk = queue.filter((item) => item.sla.key === "risk").length;
+  const changes = queue.filter((item) => item.changes).length;
+  const totalPoints = queue.reduce((sum, item) => sum + item.points, 0);
 
   return (
     <AppShell designer={designer} activeSection="production">
       <header className="page-header production-page-header">
         <div>
-          <span className="micro-label">MINHA FILA</span>
-          <h1>Produção</h1>
+          <span className="micro-label">CENTRAL OPERACIONAL</span>
+          <h1>Central de demandas</h1>
           <p>
-            Priorize artes novas e alterações pelo prazo de cada calendário.
+            Calendários e artes avulsas em uma fila única, priorizada por SLA,
+            alterações e prazo.
           </p>
         </div>
       </header>
 
       <section className="production-summary">
-        <article>
-          <FiImage aria-hidden="true" />
-          <div><small>Aguardando arte</small><strong>{waiting}</strong></div>
+        <article className={overdue ? "danger" : ""}>
+          <FiAlertCircle aria-hidden="true" />
+          <div><small>Atrasadas</small><strong>{overdue}</strong></div>
         </article>
         <article>
-          <FiTool aria-hidden="true" />
-          <div><small>Em produção</small><strong>{inProgress}</strong></div>
+          <FiClock aria-hidden="true" />
+          <div><small>Em risco (24h)</small><strong>{risk}</strong></div>
         </article>
-        <article className="danger">
+        <article className={changes ? "danger" : ""}>
           <FiRefreshCw aria-hidden="true" />
           <div><small>Alterações</small><strong>{changes}</strong></div>
         </article>
         <article className="success">
-          <FiCheckCircle aria-hidden="true" />
-          <div><small>Total na fila</small><strong>{queue.length}</strong></div>
+          <FiTool aria-hidden="true" />
+          <div><small>Pontos na fila</small><strong>{totalPoints}</strong></div>
         </article>
       </section>
 
-      {sorted.length === 0 ? (
+      <div className="demand-source-legend">
+        <span><FiLayers /> Calendário: {calendarDemands.length}</span>
+        <span><FiImage /> Avulsas: {standaloneDemands.length}</span>
+        <span><FiCheckCircle /> Total: {queue.length}</span>
+      </div>
+
+      {queue.length === 0 ? (
         <div className="production-empty">
           <FiCheckCircle aria-hidden="true" />
           <strong>Fila de produção em dia.</strong>
-          <p>Não existem peças aguardando arte ou alteração neste momento.</p>
+          <p>Não existem demandas criativas em aberto neste momento.</p>
         </div>
       ) : (
         <section className="production-queue">
-          {sorted.map(({ client, calendar, item }) => {
-            const overdue =
-              calendar.artworkDueAt &&
-              new Date(calendar.artworkDueAt).getTime() < Date.now();
-
-            return (
-              <article className="production-row" key={item.id}>
-                <div className="production-row-client">
-                  <span>{client.name.slice(0, 2).toUpperCase()}</span>
-                  <div>
-                    <strong>{client.name}</strong>
-                    <small>{calendar.title}</small>
-                  </div>
+          {queue.map((demand) => (
+            <article
+              className={`production-row demand-row sla-${demand.sla.key}`}
+              key={`${demand.source}-${demand.id}`}
+            >
+              <div className="production-row-client">
+                <span>{demand.clientName.slice(0, 2).toUpperCase()}</span>
+                <div>
+                  <strong>{demand.clientName}</strong>
+                  <small>
+                    {demand.source === "calendar" ? "Calendário" : "Avulsa"} · {demand.context}
+                  </small>
                 </div>
+              </div>
 
-                <div className="production-row-content">
-                  <strong>{item.title}</strong>
-                  <span>{item.headline || item.theme || "Briefing aprovado"}</span>
-                </div>
-
-                <span
-                  className={
-                    item.stage === "ART_CHANGES_REQUESTED"
-                      ? "workflow-status danger"
-                      : item.stage === "DESIGN_IN_PROGRESS"
-                        ? "workflow-status warning"
-                        : "workflow-status neutral"
-                  }
-                >
-                  {stageLabel(item.stage)}
+              <div className="production-row-content">
+                <strong>{demand.title}</strong>
+                <span>
+                  {demand.quantity} peça(s) · {demand.points} ponto(s)
                 </span>
+              </div>
 
-                <div className={overdue ? "production-due overdue" : "production-due"}>
-                  {overdue ? <FiAlertCircle /> : <FiClock />}
-                  <span>
-                    <small>Prazo de arte</small>
-                    <strong>{dueLabel(calendar.artworkDueAt)}</strong>
-                  </span>
-                </div>
+              <span
+                className={
+                  demand.changes
+                    ? "workflow-status danger"
+                    : demand.inProgress
+                      ? "workflow-status warning"
+                      : "workflow-status neutral"
+                }
+              >
+                {demand.status}
+              </span>
 
-                <Link
-                  href={`/calendars/${calendar.id}/content/${item.id}/artwork`}
-                  className="button button-primary button-small"
-                >
-                  {item.assets.length > 0 ? "Abrir arte" : "Produzir"}
-                  <FiArrowRight aria-hidden="true" />
-                </Link>
-              </article>
-            );
-          })}
+              <div className={`production-due ${demand.sla.key === "overdue" ? "overdue" : ""}`}>
+                {demand.sla.key === "overdue" ? <FiAlertCircle /> : <FiClock />}
+                <span>
+                  <small>SLA</small>
+                  <strong>{demand.sla.label}</strong>
+                </span>
+              </div>
+
+              <Link
+                href={demand.href}
+                className="button button-primary button-small"
+              >
+                {demand.action}
+                <FiArrowRight aria-hidden="true" />
+              </Link>
+            </article>
+          ))}
         </section>
       )}
     </AppShell>
