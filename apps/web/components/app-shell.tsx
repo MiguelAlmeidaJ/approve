@@ -8,8 +8,10 @@ import {
   FiClipboard,
   FiFolder,
   FiHome,
+  FiImage,
   FiLogOut,
   FiPieChart,
+  FiAward,
   FiSettings,
   FiShield,
   FiSliders,
@@ -32,9 +34,11 @@ export type AppSection =
   | "team"
   | "dates"
   | "production"
+  | "standalone"
   | "templates"
   | "notifications"
   | "reports"
+  | "productivity"
   | "capacity"
   | "audit"
   | "formats"
@@ -109,6 +113,7 @@ export function AppShell({
             open={groupIsActive(activeSection, [
               "calendars",
               "production",
+              "standalone",
               "notifications",
             ])}
           >
@@ -144,6 +149,17 @@ export function AppShell({
               >
                 <FiTool aria-hidden="true" />
                 Produção
+              </Link>
+              <Link
+                href="/artes-avulsas"
+                className={
+                  activeSection === "standalone"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiImage aria-hidden="true" />
+                Artes avulsas
               </Link>
               <Link
                 href="/notificacoes"
@@ -279,7 +295,7 @@ export function AppShell({
 
           <details
             className="sidebar-menu-group"
-            open={groupIsActive(activeSection, ["reports"])}
+            open={groupIsActive(activeSection, ["reports", "productivity"])}
           >
             <summary>
               <span>
@@ -302,6 +318,17 @@ export function AppShell({
               >
                 <FiPieChart aria-hidden="true" />
                 Relatórios
+              </Link>
+              <Link
+                href="/produtividade"
+                className={
+                  activeSection === "productivity"
+                    ? "sidebar-submenu-link active"
+                    : "sidebar-submenu-link"
+                }
+              >
+                <FiAward aria-hidden="true" />
+                Produtividade
               </Link>
             </div>
           </details>
