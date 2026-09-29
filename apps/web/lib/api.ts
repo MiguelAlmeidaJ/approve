@@ -116,6 +116,7 @@ export type ContentItem = {
   planningReady: boolean;
   artworkVersion: number;
   effortPoints: number;
+  productionDesignerId: string | null;
   metricReach: number | null;
   metricImpressions: number | null;
   metricLikes: number | null;
