@@ -2,6 +2,7 @@ import {
   ArtworkPriority,
   Channel,
   CommemorativeScope,
+  ContentStage,
   ContentType,
   StandaloneArtworkStatus,
   UserRole
@@ -799,4 +800,10 @@ export class UpdateStandaloneArtworkStatusDto {
   @IsOptional()
   @IsString()
   nextcloudPath?: string;
+}
+
+
+export class UpdateContentProductionStageDto {
+  @IsEnum(ContentStage)
+  stage!: ContentStage;
 }
