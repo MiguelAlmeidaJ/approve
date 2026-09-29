@@ -151,7 +151,7 @@ export class NextcloudService {
         authorization: this.authorization(),
         "content-type": mimeType || "application/octet-stream"
       },
-      body: buffer,
+      body: Uint8Array.from(buffer).buffer,
       cache: "no-store"
     });
 
