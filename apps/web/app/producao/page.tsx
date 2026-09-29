@@ -330,6 +330,9 @@ export default async function ProductionPage({
 
   const allCards = [...calendarCards, ...standaloneCards];
   const cards = allCards.filter((card) => {
+    if (designer.role === "DESIGNER" && card.designerId !== designer.id) {
+      return false;
+    }
     if (filters.client && card.clientId !== filters.client) return false;
     if (filters.designer && card.designerId !== filters.designer) return false;
     if (filters.source && card.source !== filters.source) return false;
