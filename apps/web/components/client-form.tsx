@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {
   FiAtSign,
+  FiBarChart2,
+  FiClock,
   FiBriefcase,
   FiCompass,
   FiFolder,
@@ -266,6 +268,120 @@ export function ClientForm({
               />
             </label>
           </div>
+        </section>
+
+        <section className="client-form-section client-contract-section">
+          <div className="client-form-section-head">
+            <span className="client-form-icon">
+              <FiBarChart2 aria-hidden="true" />
+            </span>
+            <div>
+              <strong>Contrato e SLA</strong>
+              <small>
+                Limites mensais e prazos padrão usados pela operação.
+              </small>
+            </div>
+          </div>
+
+          <div className="client-contract-grid">
+            <label className="field">
+              <span>Posts / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyPostLimit"
+                defaultValue={client?.monthlyPostLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+            <label className="field">
+              <span>Carrosséis / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyCarouselLimit"
+                defaultValue={client?.monthlyCarouselLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+            <label className="field">
+              <span>Reels / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyReelLimit"
+                defaultValue={client?.monthlyReelLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+            <label className="field">
+              <span>Stories / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyStoryLimit"
+                defaultValue={client?.monthlyStoryLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+            <label className="field">
+              <span>Artes avulsas / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyStandaloneLimit"
+                defaultValue={client?.monthlyStandaloneLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+            <label className="field">
+              <span>Pontos / mês</span>
+              <input
+                type="number"
+                min="0"
+                name="monthlyPointsLimit"
+                defaultValue={client?.monthlyPointsLimit ?? ""}
+                placeholder="Sem limite"
+              />
+            </label>
+          </div>
+
+          <div className="client-sla-grid">
+            <label className="field">
+              <span><FiClock aria-hidden="true" /> SLA para arte do calendário</span>
+              <div className="input-with-suffix">
+                <input
+                  type="number"
+                  min="1"
+                  max="720"
+                  name="defaultArtworkSlaHours"
+                  defaultValue={client?.defaultArtworkSlaHours ?? 72}
+                  required
+                />
+                <span>horas</span>
+              </div>
+            </label>
+            <label className="field">
+              <span><FiClock aria-hidden="true" /> SLA para arte avulsa</span>
+              <div className="input-with-suffix">
+                <input
+                  type="number"
+                  min="1"
+                  max="720"
+                  name="defaultStandaloneSlaHours"
+                  defaultValue={client?.defaultStandaloneSlaHours ?? 48}
+                  required
+                />
+                <span>horas</span>
+              </div>
+            </label>
+          </div>
+
+          <p className="client-rhythm-help">
+            Campos de limite vazios significam sem franquia definida. Quando a
+            arte avulsa não tiver prazo manual, o SLA acima define o vencimento
+            automaticamente.
+          </p>
         </section>
 
         <section className="client-form-section">
