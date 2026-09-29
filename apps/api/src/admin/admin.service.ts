@@ -1477,7 +1477,7 @@ export class AdminService {
       throw new NotFoundException("Conteúdo não encontrado.");
     }
 
-    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId, item.id);
 
     if (!calendar.client.active || calendar.archivedAt) {
       throw new BadRequestException(
@@ -1613,7 +1613,7 @@ export class AdminService {
       throw new NotFoundException("Conteúdo não encontrado.");
     }
 
-    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId, item.id);
 
     if (!calendar.client.active || calendar.archivedAt) {
       throw new BadRequestException(
@@ -1701,7 +1701,7 @@ export class AdminService {
       throw new NotFoundException("Conteúdo não encontrado.");
     }
 
-    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId, item.id);
 
     if (!calendar.client.active || calendar.archivedAt) {
       throw new BadRequestException(
@@ -2176,17 +2176,36 @@ export class AdminService {
 
   private async assertCalendarAccess(
     actor: InternalActor,
-    calendarId: string
+    calendarId: string,
+    contentItemId?: string
   ) {
     const calendar = await this.prisma.calendar.findFirst({
       where: {
         id: calendarId,
         ...(actor.role === UserRole.DESIGNER
-          ? {
-              client: {
-                assignedDesignerId: actor.id
+          ? contentItemId
+            ? {
+                OR: [
+                  {
+                    client: {
+                      assignedDesignerId: actor.id
+                    }
+                  },
+                  {
+                    contentItems: {
+                      some: {
+                        id: contentItemId,
+                        productionDesignerId: actor.id
+                      }
+                    }
+                  }
+                ]
               }
-            }
+            : {
+                client: {
+                  assignedDesignerId: actor.id
+                }
+              }
           : {})
       },
       include: {
