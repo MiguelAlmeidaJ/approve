@@ -94,6 +94,54 @@ export class CreateClientDto {
   @IsString()
   mlabsProfileId?: string;
 
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyPostLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyCarouselLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyReelLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyStoryLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyStandaloneLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  monthlyPointsLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  defaultArtworkSlaHours?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  defaultStandaloneSlaHours?: number;
+
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(7)
@@ -164,6 +212,55 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   mlabsProfileId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyPostLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyCarouselLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyReelLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyStoryLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  monthlyStandaloneLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  monthlyPointsLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  defaultArtworkSlaHours?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  defaultStandaloneSlaHours?: number;
+
 
   @IsArray()
   @ArrayMinSize(1)
