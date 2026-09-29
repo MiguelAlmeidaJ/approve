@@ -210,6 +210,29 @@ export type CommemorativeDate = {
   } | null;
 };
 
+export type ContractUsage = {
+  clientId: string;
+  clientName: string;
+  periodStart: string;
+  periodEnd: string;
+  usage: {
+    post: number;
+    carousel: number;
+    reel: number;
+    story: number;
+    standalone: number;
+    points: number;
+  };
+  limits: {
+    post: number | null;
+    carousel: number | null;
+    reel: number | null;
+    story: number | null;
+    standalone: number | null;
+    points: number | null;
+  };
+};
+
 export type UserListItem = DesignerListItem;
 
 export type BriefingTemplate = {
@@ -350,6 +373,14 @@ export type Client = {
   hashtags: string | null;
   references: string | null;
   mlabsProfileId: string | null;
+  monthlyPostLimit: number | null;
+  monthlyCarouselLimit: number | null;
+  monthlyReelLimit: number | null;
+  monthlyStoryLimit: number | null;
+  monthlyStandaloneLimit: number | null;
+  monthlyPointsLimit: number | null;
+  defaultArtworkSlaHours: number;
+  defaultStandaloneSlaHours: number;
   active: boolean;
   credential?: {
     email: string;
@@ -377,6 +408,15 @@ export type CalendarWithClient = Calendar & {
     hashtags: string | null;
     references: string | null;
     mlabsProfileId: string | null;
+    monthlyPostLimit: number | null;
+    monthlyCarouselLimit: number | null;
+    monthlyReelLimit: number | null;
+    monthlyStoryLimit: number | null;
+    monthlyStandaloneLimit: number | null;
+    monthlyPointsLimit: number | null;
+    defaultArtworkSlaHours: number;
+    defaultStandaloneSlaHours: number;
+
 
     active: boolean;
     credential?: {
@@ -508,6 +548,12 @@ export async function getCommemorativeDates(): Promise<CommemorativeDate[]> {
 
 export function getClient(id: string) {
   return adminGet<Client>(`/api/admin/clients/${encodeURIComponent(id)}`);
+}
+
+export function getClientContractUsage(id: string) {
+  return adminGet<ContractUsage>(
+    `/api/admin/clients/${encodeURIComponent(id)}/contract-usage`
+  );
 }
 
 export function getCalendar(id: string) {
