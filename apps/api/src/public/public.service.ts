@@ -422,6 +422,7 @@ export class PublicService {
         where: { id: calendarId },
         select: {
           title: true,
+          artworkDueAt: true,
           client: {
             select: {
               assignedDesignerId: true,
@@ -442,14 +443,12 @@ export class PublicService {
           where: { id: calendarId },
           data: {
             stage: CalendarStage.PRODUCTION,
-            ...(calendar
+            ...(calendar && !calendar.artworkDueAt
               ? {
-                  artworkDueAt: {
-                    set: new Date(
-                      Date.now() +
-                        calendar.client.defaultArtworkSlaHours * 60 * 60 * 1000
-                    )
-                  }
+                  artworkDueAt: new Date(
+                    Date.now() +
+                      calendar.client.defaultArtworkSlaHours * 60 * 60 * 1000
+                  )
                 }
               : {})
           }
