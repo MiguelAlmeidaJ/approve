@@ -6,11 +6,9 @@ import {
   FiPlus,
   FiRefreshCw
 } from "react-icons/fi";
-import {
-  createStandaloneArtwork,
-  updateStandaloneArtworkStatus
-} from "../actions";
+import { createStandaloneArtwork } from "../actions";
 import { AppShell } from "../../components/app-shell";
+import { StandaloneArtworkStatusForm } from "../../components/standalone-artwork-status";
 import { requireDesigner } from "../../lib/auth";
 import {
   getAccessibleClients,
@@ -254,18 +252,12 @@ export default async function StandaloneArtworksPage() {
                       </div>
                     ) : null}
 
-                    <form action={updateStandaloneArtworkStatus} className="standalone-status-form">
-                      <input type="hidden" name="id" value={artwork.id} />
-                      <input type="hidden" name="nextcloudPath" value={artwork.nextcloudPath ?? ""} />
-                      <select name="status" defaultValue={artwork.status}>
-                        {Object.entries(statusLabels).map(([value, label]) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                      <button type="submit" className="button button-ghost">
-                        Atualizar
-                      </button>
-                    </form>
+                    <StandaloneArtworkStatusForm
+                      id={artwork.id}
+                      clientId={artwork.clientId}
+                      status={artwork.status}
+                      currentPath={artwork.nextcloudPath}
+                    />
                   </article>
                 );
               })}
