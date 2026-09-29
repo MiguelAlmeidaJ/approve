@@ -96,6 +96,23 @@ enum NotificationType {
   PUBLISHING
 }
 
+enum StandaloneArtworkStatus {
+  REQUESTED
+  IN_PRODUCTION
+  IN_APPROVAL
+  CHANGES_REQUESTED
+  APPROVED
+  DELIVERED
+  CANCELLED
+}
+
+enum ArtworkPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 model Designer {
   id                 String            @id @default(cuid())
   name               String
@@ -112,6 +129,8 @@ model Designer {
   notifications      Notification[]
   annotations        ContentAnnotation[]
   auditLogs          AuditLog[]
+  producedContentItems ContentItem[]       @relation("ContentProducer")
+  standaloneArtworks StandaloneArtwork[]
   weeklyCapacityPoints Int               @default(30)
 }
 
@@ -153,6 +172,7 @@ model Client {
   calendars          Calendar[]
   postingWeekdays    ClientPostingWeekday[]
   commemorativeDates CommemorativeDate[]
+  standaloneArtworks StandaloneArtwork[]
 
   @@index([assignedDesignerId])
 }
@@ -288,6 +308,7 @@ model ContentItem {
   planningReady    Boolean       @default(true)
   artworkVersion   Int           @default(0)
   effortPoints     Int           @default(1)
+  productionDesignerId String?
   sortOrder        Int           @default(0)
   reviewedAt       DateTime?
   planningApprovedAt DateTime?
@@ -306,6 +327,7 @@ model ContentItem {
   updatedAt        DateTime      @updatedAt
   calendar         Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   formatPreset     ContentFormat? @relation(fields: [formatId], references: [id], onDelete: SetNull)
+  productionDesigner Designer?    @relation("ContentProducer", fields: [productionDesignerId], references: [id], onDelete: SetNull)
   assets           ContentAsset[]
   reviews          ReviewHistory[]
   comments         ContentComment[]
@@ -313,6 +335,7 @@ model ContentItem {
 
   @@index([calendarId, scheduledAt])
   @@index([formatId])
+  @@index([productionDesignerId])
   @@index([status])
   @@index([stage])
 }
@@ -440,4 +463,34 @@ model AuditLog {
   @@index([actorDesignerId, createdAt])
   @@index([entityType, entityId, createdAt])
   @@index([action, createdAt])
+}
+
+
+model StandaloneArtwork {
+  id          String                  @id @default(cuid())
+  clientId    String
+  designerId  String
+  title       String
+  briefing    String                  @db.Text
+  contentType ContentType             @default(POST)
+  formatLabel String?
+  quantity    Int                     @default(1)
+  effortPoints Int                    @default(1)
+  priority    ArtworkPriority         @default(NORMAL)
+  status      StandaloneArtworkStatus @default(REQUESTED)
+  dueAt       DateTime?
+  nextcloudPath String?               @db.Text
+  revisionCount Int                   @default(0)
+  startedAt   DateTime?
+  approvedAt  DateTime?
+  completedAt DateTime?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  client      Client                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  designer    Designer                @relation(fields: [designerId], references: [id], onDelete: Restrict)
+
+  @@index([clientId, status])
+  @@index([designerId, status])
+  @@index([dueAt])
+  @@index([completedAt])
 }
