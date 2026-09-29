@@ -16,7 +16,9 @@ import { requireDesigner } from "../../lib/auth";
 import {
   getAccessibleClients,
   getDesigners,
-  getStandaloneArtworks
+  getStandaloneArtworks,
+  type Client,
+  type StandaloneArtwork
 } from "../../lib/api";
 
 function calendarColumn(stage: string): OperationalKanbanCard["column"] | null {
@@ -86,6 +88,127 @@ function isCurrentMonth(value: string | null) {
   );
 }
 
+function contractExtras(
+  clients: Client[],
+  standalone: StandaloneArtwork[]
+): Map<string, string[]> {
+  const result = new Map<string, string[]>();
+
+  for (const client of clients) {
+    const entries: Array<{
+      key: string;
+      date: string;
+      points: number;
+      quantity: number;
+      kind: "calendar" | "standalone";
+      contentType?: "POST" | "CAROUSEL" | "REEL" | "STORY";
+    }> = [];
+
+    for (const calendar of client.calendars) {
+      for (const item of calendar.contentItems) {
+        if (!isCurrentMonth(item.scheduledAt)) continue;
+        entries.push({
+          key: `calendar:${item.id}`,
+          date: item.scheduledAt,
+          points: item.effortPoints || 1,
+          quantity: 1,
+          kind: "calendar",
+          contentType: item.contentType
+        });
+      }
+    }
+
+    for (const artwork of standalone) {
+      if (
+        artwork.clientId !== client.id ||
+        artwork.status === "CANCELLED" ||
+        !isCurrentMonth(artwork.createdAt)
+      ) {
+        continue;
+      }
+
+      entries.push({
+        key: `standalone:${artwork.id}`,
+        date: artwork.createdAt,
+        points: artwork.effortPoints,
+        quantity: artwork.quantity,
+        kind: "standalone"
+      });
+    }
+
+    entries.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    let posts = 0;
+    let carousels = 0;
+    let reels = 0;
+    let stories = 0;
+    let standalonePieces = 0;
+    let points = 0;
+
+    for (const entry of entries) {
+      const reasons: string[] = [];
+      points += entry.points;
+
+      if (
+        client.monthlyPointsLimit !== null &&
+        points > client.monthlyPointsLimit
+      ) {
+        reasons.push("Pontos mensais excedidos");
+      }
+
+      if (entry.kind === "standalone") {
+        standalonePieces += entry.quantity;
+        if (
+          client.monthlyStandaloneLimit !== null &&
+          standalonePieces > client.monthlyStandaloneLimit
+        ) {
+          reasons.push("Artes avulsas acima da franquia");
+        }
+      } else if (entry.contentType === "POST") {
+        posts += 1;
+        if (
+          client.monthlyPostLimit !== null &&
+          posts > client.monthlyPostLimit
+        ) {
+          reasons.push("Posts acima da franquia");
+        }
+      } else if (entry.contentType === "CAROUSEL") {
+        carousels += 1;
+        if (
+          client.monthlyCarouselLimit !== null &&
+          carousels > client.monthlyCarouselLimit
+        ) {
+          reasons.push("Carrosséis acima da franquia");
+        }
+      } else if (entry.contentType === "REEL") {
+        reels += 1;
+        if (
+          client.monthlyReelLimit !== null &&
+          reels > client.monthlyReelLimit
+        ) {
+          reasons.push("Reels acima da franquia");
+        }
+      } else if (entry.contentType === "STORY") {
+        stories += 1;
+        if (
+          client.monthlyStoryLimit !== null &&
+          stories > client.monthlyStoryLimit
+        ) {
+          reasons.push("Stories acima da franquia");
+        }
+      }
+
+      if (reasons.length > 0) {
+        result.set(entry.key, reasons);
+      }
+    }
+  }
+
+  return result;
+}
+
 export default async function ProductionPage({
   searchParams
 }: {
@@ -94,6 +217,7 @@ export default async function ProductionPage({
     designer?: string;
     source?: string;
     sla?: string;
+    contract?: string;
   }>;
 }) {
   const designer = await requireDesigner();
@@ -104,6 +228,13 @@ export default async function ProductionPage({
     getStandaloneArtworks(),
     designer.role === "DESIGNER" ? Promise.resolve([]) : getDesigners()
   ]);
+
+  const extras = contractExtras(clients, standalone);
+  const designerName = (id: string | null | undefined) => {
+    if (!id) return null;
+    if (id === designer.id) return designer.name;
+    return designers.find((item) => item.id === id)?.name ?? null;
+  };
 
   const calendarCards: OperationalKanbanCard[] = clients.flatMap((client) =>
     client.calendars
@@ -120,11 +251,16 @@ export default async function ProductionPage({
             return [];
           }
 
+          const assignedDesignerId =
+            item.productionDesignerId ?? client.assignedDesignerId;
+          const extraReasons = extras.get(`calendar:${item.id}`) ?? [];
+
           return [
             {
               id: item.id,
               source: "calendar",
               calendarId: calendar.id,
+              clientId: client.id,
               clientName: client.name,
               context: calendar.title,
               title: item.title,
@@ -134,6 +270,13 @@ export default async function ProductionPage({
               quantity: 1,
               dueAt: calendar.artworkDueAt,
               href: `/calendars/${calendar.id}/content/${item.id}/artwork`,
+              designerId: assignedDesignerId,
+              designerName:
+                designerName(assignedDesignerId) ??
+                client.assignedDesigner?.name ??
+                "Sem responsável",
+              contractExtra: extraReasons.length > 0,
+              extraReasons,
               movable: [
                 "DESIGN_PENDING",
                 "DESIGN_IN_PROGRESS",
@@ -157,10 +300,13 @@ export default async function ProductionPage({
         return [];
       }
 
+      const extraReasons = extras.get(`standalone:${artwork.id}`) ?? [];
+
       return [
         {
           id: artwork.id,
           source: "standalone",
+          clientId: artwork.clientId,
           clientName: artwork.client.name,
           context: "Arte avulsa",
           title: artwork.title,
@@ -172,35 +318,24 @@ export default async function ProductionPage({
           href: "/artes-avulsas",
           priority: artwork.priority,
           nextcloudPath: artwork.nextcloudPath,
+          designerId: artwork.designerId,
+          designerName: artwork.designer.name,
+          contractExtra: extraReasons.length > 0,
+          extraReasons,
           movable: artwork.status !== "DELIVERED"
         }
       ];
     }
   );
 
-  const cards = [...calendarCards, ...standaloneCards].filter((card) => {
-    const client = clients.find((item) => item.name === card.clientName);
-    const standaloneItem =
-      card.source === "standalone"
-        ? standalone.find((item) => item.id === card.id)
-        : null;
-    const calendarItem =
-      card.source === "calendar"
-        ? clients
-            .flatMap((item) => item.calendars)
-            .flatMap((calendar) => calendar.contentItems)
-            .find((item) => item.id === card.id)
-        : null;
-    const ownerId =
-      standaloneItem?.designerId ??
-      calendarItem?.productionDesignerId ??
-      client?.assignedDesignerId ??
-      null;
-
-    if (filters.client && client?.id !== filters.client) return false;
-    if (filters.designer && ownerId !== filters.designer) return false;
+  const allCards = [...calendarCards, ...standaloneCards];
+  const cards = allCards.filter((card) => {
+    if (filters.client && card.clientId !== filters.client) return false;
+    if (filters.designer && card.designerId !== filters.designer) return false;
     if (filters.source && card.source !== filters.source) return false;
     if (filters.sla && deadlineState(card.dueAt) !== filters.sla) return false;
+    if (filters.contract === "extra" && !card.contractExtra) return false;
+    if (filters.contract === "included" && card.contractExtra) return false;
     return true;
   });
 
@@ -211,9 +346,7 @@ export default async function ProductionPage({
     (card) => deadlineState(card.dueAt) === "risk" && card.column !== "DONE"
   ).length;
   const changes = cards.filter((card) => card.column === "CHANGES").length;
-  const activePoints = cards
-    .filter((card) => card.column !== "DONE")
-    .reduce((sum, card) => sum + card.points, 0);
+  const extrasCount = cards.filter((card) => card.contractExtra).length;
 
   return (
     <AppShell designer={designer} activeSection="production">
@@ -222,8 +355,8 @@ export default async function ProductionPage({
           <span className="micro-label">CENTRAL OPERACIONAL</span>
           <h1>Central de demandas</h1>
           <p>
-            Arraste demandas pelo fluxo de trabalho, acompanhe SLA e mantenha
-            calendário e artes avulsas na mesma operação.
+            Arraste demandas, distribua a equipe e identifique automaticamente
+            o que ultrapassou a franquia mensal do cliente.
           </p>
         </div>
       </header>
@@ -241,9 +374,9 @@ export default async function ProductionPage({
           <FiRefreshCw aria-hidden="true" />
           <div><small>Ajustes</small><strong>{changes}</strong></div>
         </article>
-        <article className="success">
+        <article className={extrasCount ? "danger" : "success"}>
           <FiTool aria-hidden="true" />
-          <div><small>Pontos ativos</small><strong>{activePoints}</strong></div>
+          <div><small>Extras do contrato</small><strong>{extrasCount}</strong></div>
         </article>
       </section>
 
@@ -290,6 +423,15 @@ export default async function ProductionPage({
           </select>
         </label>
 
+        <label>
+          <span>Contrato</span>
+          <select name="contract" defaultValue={filters.contract ?? ""}>
+            <option value="">Todos</option>
+            <option value="included">Dentro da franquia</option>
+            <option value="extra">Extra do contrato</option>
+          </select>
+        </label>
+
         <button className="button button-dark" type="submit">Filtrar</button>
         <Link className="button button-ghost" href="/producao">Limpar</Link>
       </form>
@@ -298,9 +440,17 @@ export default async function ProductionPage({
         <span><FiLayers /> Calendário: {calendarCards.length}</span>
         <span>Avulsas: {standaloneCards.length}</span>
         <span><FiCheckCircle /> Exibindo: {cards.length}</span>
+        <span><FiAlertCircle /> Extras: {extrasCount}</span>
       </div>
 
-      <OperationalKanban initialCards={cards} />
+      <OperationalKanban
+        initialCards={cards}
+        designers={designers.map((item) => ({
+          id: item.id,
+          name: item.name
+        }))}
+        canReassign={designer.role !== "DESIGNER"}
+      />
     </AppShell>
   );
 }
