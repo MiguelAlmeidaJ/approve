@@ -1,12 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
   Headers,
   Param,
+  Post,
   Query,
   Req,
-  Res
+  Res,
+  UploadedFile,
+  UseInterceptors
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { Readable } from "node:stream";
 import type { InternalActorRequest } from "../common/internal-actor";
 import { Public } from "../common/public.decorator";
@@ -32,6 +37,41 @@ export class NextcloudController {
       request.actor,
       clientId,
       path
+    );
+  }
+
+  @Post("admin/nextcloud/upload")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: {
+        fileSize: 60 * 1024 * 1024
+      }
+    })
+  )
+  uploadFile(
+    @Req() request: InternalActorRequest,
+    @Body("clientId") clientId: string,
+    @Body("path") path = "/",
+    @UploadedFile()
+    file:
+      | {
+          originalname: string;
+          mimetype: string;
+          buffer: Buffer;
+        }
+      | undefined
+  ) {
+    if (!file) {
+      throw new Error("Arquivo não informado.");
+    }
+
+    return this.nextcloudService.uploadForActor(
+      request.actor,
+      clientId,
+      path,
+      file.originalname,
+      file.mimetype,
+      file.buffer
     );
   }
 
