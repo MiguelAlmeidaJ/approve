@@ -1284,7 +1284,8 @@ export class AdminService {
       select: {
         id: true,
         calendarId: true,
-        stage: true
+        stage: true,
+        productionDesignerId: true
       }
     });
 
@@ -1625,9 +1626,11 @@ export class AdminService {
       where: { id: contentItemId },
       data: {
         stage: dto.stage,
-        ...(dto.stage === ContentStage.DESIGN_PENDING
-          ? { productionDesignerId: null }
-          : { productionDesignerId: actor.id })
+        productionDesignerId:
+          item.productionDesignerId ??
+          (actor.role === UserRole.DESIGNER
+            ? actor.id
+            : calendar.client.assignedDesignerId)
       },
       select: {
         id: true,
@@ -1661,7 +1664,8 @@ export class AdminService {
         publishToFeed: true,
         publishToStories: true,
         stage: true,
-        artworkVersion: true
+        artworkVersion: true,
+        productionDesignerId: true
       }
     });
 
@@ -1767,7 +1771,10 @@ export class AdminService {
           artworkApprovedAt: null,
           reviewedAt: null,
           artworkVersion: nextVersion,
-          productionDesignerId: actor.id,
+          productionDesignerId:
+            actor.role === UserRole.DESIGNER
+              ? actor.id
+              : item.productionDesignerId ?? calendar.client.assignedDesignerId,
           assets: {
             create: assets.map((asset, index) => ({
               filePath: asset.storedPath,
