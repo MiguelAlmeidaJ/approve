@@ -425,6 +425,7 @@ export class PublicService {
           client: {
             select: {
               assignedDesignerId: true,
+              defaultArtworkSlaHours: true,
               assignedDesigner: {
                 select: {
                   email: true,
@@ -439,7 +440,19 @@ export class PublicService {
       await this.prisma.$transaction([
         this.prisma.calendar.update({
           where: { id: calendarId },
-          data: { stage: CalendarStage.PRODUCTION }
+          data: {
+            stage: CalendarStage.PRODUCTION,
+            ...(calendar
+              ? {
+                  artworkDueAt: {
+                    set: new Date(
+                      Date.now() +
+                        calendar.client.defaultArtworkSlaHours * 60 * 60 * 1000
+                    )
+                  }
+                }
+              : {})
+          }
         }),
         this.prisma.contentItem.updateMany({
           where: {
