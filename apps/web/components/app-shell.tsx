@@ -148,7 +148,7 @@ export function AppShell({
                 }
               >
                 <FiTool aria-hidden="true" />
-                Produção
+                Central de demandas
               </Link>
               <Link
                 href="/artes-avulsas"
