@@ -465,7 +465,25 @@ export class NextcloudService {
         id: clientId,
         active: true,
         ...(actor.role === UserRole.DESIGNER
-          ? { assignedDesignerId: actor.id }
+          ? {
+              OR: [
+                { assignedDesignerId: actor.id },
+                {
+                  calendars: {
+                    some: {
+                      contentItems: {
+                        some: { productionDesignerId: actor.id }
+                      }
+                    }
+                  }
+                },
+                {
+                  standaloneArtworks: {
+                    some: { designerId: actor.id }
+                  }
+                }
+              ]
+            }
           : {})
       },
       select: {
