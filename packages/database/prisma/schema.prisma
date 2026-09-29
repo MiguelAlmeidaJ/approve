@@ -163,6 +163,14 @@ model Client {
   hashtags           String?            @db.Text
   references         String?            @db.Text
   mlabsProfileId     String?
+  monthlyPostLimit       Int?
+  monthlyCarouselLimit   Int?
+  monthlyReelLimit       Int?
+  monthlyStoryLimit      Int?
+  monthlyStandaloneLimit Int?
+  monthlyPointsLimit     Int?
+  defaultArtworkSlaHours Int               @default(72)
+  defaultStandaloneSlaHours Int            @default(48)
   active             Boolean           @default(true)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
