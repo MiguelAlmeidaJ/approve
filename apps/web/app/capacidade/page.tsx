@@ -7,13 +7,14 @@ import {
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
 import { requireRole } from "../../lib/auth";
-import { getAccessibleClients, getUsers } from "../../lib/api";
+import { getAccessibleClients, getStandaloneArtworks, getUsers } from "../../lib/api";
 
 export default async function CapacityPage() {
   const manager = await requireRole("ADMIN", "DEV");
-  const [clients, users] = await Promise.all([
+  const [clients, users, standalone] = await Promise.all([
     getAccessibleClients(manager),
-    getUsers()
+    getUsers(),
+    getStandaloneArtworks()
   ]);
   const designers = users.filter(
     (user) => user.role === "DESIGNER" && user.active
@@ -33,23 +34,44 @@ export default async function CapacityPage() {
           )
         )
       );
-      const points = productionItems.reduce(
+      const standaloneItems = standalone.filter(
+        (item) =>
+          item.designerId === designer.id &&
+          !["DELIVERED", "CANCELLED"].includes(item.status)
+      );
+      const calendarPoints = productionItems.reduce(
         (total, item) =>
           total +
           (item.effortPoints || 1) +
           (item.stage === "ART_CHANGES_REQUESTED" ? 1 : 0),
         0
       );
+      const standalonePoints = standaloneItems.reduce(
+        (total, item) => total + item.effortPoints,
+        0
+      );
+      const points = calendarPoints + standalonePoints;
       const capacity = designer.weeklyCapacityPoints ?? 30;
       const percentage = capacity > 0 ? Math.round((points / capacity) * 100) : 0;
 
       return {
         designer,
         clients: ownedClients.length,
-        pieces: productionItems.length,
-        changes: productionItems.filter(
-          (item) => item.stage === "ART_CHANGES_REQUESTED"
-        ).length,
+        pieces:
+          productionItems.length +
+          standaloneItems.reduce((sum, item) => sum + item.quantity, 0),
+        calendarPieces: productionItems.length,
+        standalonePieces: standaloneItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        ),
+        changes:
+          productionItems.filter(
+            (item) => item.stage === "ART_CHANGES_REQUESTED"
+          ).length +
+          standaloneItems.filter(
+            (item) => item.status === "CHANGES_REQUESTED"
+          ).length,
         points,
         capacity,
         percentage
@@ -96,6 +118,9 @@ export default async function CapacityPage() {
             <div className="capacity-metric">
               <small>Fila atual</small>
               <strong>{row.pieces} peças</strong>
+              <span>
+                {row.calendarPieces} calendário · {row.standalonePieces} avulsa(s)
+              </span>
               <span>{row.changes} alteração(ões)</span>
             </div>
 
