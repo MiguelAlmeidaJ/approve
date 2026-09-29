@@ -1,7 +1,9 @@
 import {
+  ArtworkPriority,
   Channel,
   CommemorativeScope,
   ContentType,
+  StandaloneArtworkStatus,
   UserRole
 } from "@approve/database";
 import {
@@ -646,4 +648,58 @@ export class CreateContentAnnotationDto {
 export class ResolveContentAnnotationDto {
   @IsBoolean()
   resolved!: boolean;
+}
+
+
+export class CreateStandaloneArtworkDto {
+  @IsString()
+  clientId!: string;
+
+  @IsString()
+  designerId!: string;
+
+  @IsString()
+  @MinLength(2)
+  title!: string;
+
+  @IsString()
+  @MinLength(2)
+  briefing!: string;
+
+  @IsEnum(ContentType)
+  contentType!: ContentType;
+
+  @IsOptional()
+  @IsString()
+  formatLabel?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  quantity!: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  effortPoints!: number;
+
+  @IsEnum(ArtworkPriority)
+  priority!: ArtworkPriority;
+
+  @IsOptional()
+  @IsDateString()
+  dueAt?: string;
+
+  @IsOptional()
+  @IsString()
+  nextcloudPath?: string;
+}
+
+export class UpdateStandaloneArtworkStatusDto {
+  @IsEnum(StandaloneArtworkStatus)
+  status!: StandaloneArtworkStatus;
+
+  @IsOptional()
+  @IsString()
+  nextcloudPath?: string;
 }
