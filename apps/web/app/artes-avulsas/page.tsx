@@ -49,7 +49,7 @@ export default async function StandaloneArtworksPage() {
   const designer = await requireDesigner();
   const [clients, designers, artworks] = await Promise.all([
     getAccessibleClients(designer),
-    getDesigners(),
+    designer.role === "DESIGNER" ? Promise.resolve([]) : getDesigners(),
     getStandaloneArtworks()
   ]);
 
