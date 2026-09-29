@@ -984,8 +984,9 @@ export async function createStandaloneArtwork(formData: FormData) {
     quantity: Number(required(formData, "quantity")),
     effortPoints: Number(required(formData, "effortPoints")),
     priority: required(formData, "priority"),
-    dueAt:
-      String(formData.get("dueAt") ?? "").trim() || undefined,
+    dueAt: String(formData.get("dueAt") ?? "").trim()
+      ? brazilLocalDateTimeToIso(String(formData.get("dueAt")))
+      : undefined,
     nextcloudPath:
       String(formData.get("nextcloudPath") ?? "").trim() || undefined,
   });
