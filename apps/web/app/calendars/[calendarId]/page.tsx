@@ -196,7 +196,15 @@ export default async function CalendarPage({
     getCommemorativeDates()
   ]);
 
-  if (!calendar || !canAccessClient(designer, calendar.client)) {
+  const hasCalendarAccess =
+    calendar &&
+    (canAccessClient(designer, calendar.client) ||
+      (designer.role === "DESIGNER" &&
+        calendar.contentItems.some(
+          (item) => item.productionDesignerId === designer.id
+        )));
+
+  if (!calendar || !hasCalendarAccess) {
     notFound();
   }
 
