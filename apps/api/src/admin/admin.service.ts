@@ -195,7 +195,25 @@ export class AdminService {
     return this.prisma.client.findMany({
       where:
         actor.role === UserRole.DESIGNER
-          ? { assignedDesignerId: actor.id }
+          ? {
+              OR: [
+                { assignedDesignerId: actor.id },
+                {
+                  calendars: {
+                    some: {
+                      contentItems: {
+                        some: { productionDesignerId: actor.id }
+                      }
+                    }
+                  }
+                },
+                {
+                  standaloneArtworks: {
+                    some: { designerId: actor.id }
+                  }
+                }
+              ]
+            }
           : undefined,
       orderBy: { createdAt: "desc" },
       include: clientInclude
@@ -431,9 +449,18 @@ export class AdminService {
         id,
         ...(actor.role === UserRole.DESIGNER
           ? {
-              client: {
-                assignedDesignerId: actor.id
-              }
+              OR: [
+                {
+                  client: {
+                    assignedDesignerId: actor.id
+                  }
+                },
+                {
+                  contentItems: {
+                    some: { productionDesignerId: actor.id }
+                  }
+                }
+              ]
             }
           : {})
       },
