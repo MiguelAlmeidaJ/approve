@@ -102,6 +102,107 @@ export class NextcloudService {
     };
   }
 
+  async uploadForActor(
+    actor: InternalActor,
+    clientId: string,
+    relativePath: string,
+    fileName: string,
+    mimeType: string,
+    buffer: Buffer
+  ): Promise<NextcloudFileItem> {
+    const client = await this.getAccessibleClient(actor, clientId);
+    const clientDirectory = this.clientDirectory(client);
+    const path = this.normalizeRelativePath(relativePath || "/");
+    const safeName = fileName
+      .replaceAll("\\", "-")
+      .replaceAll("/", "-")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim();
+
+    if (!safeName || safeName === "." || safeName === "..") {
+      throw new BadRequestException("Nome de arquivo inválido.");
+    }
+
+    if (
+      !mimeType?.startsWith("image/") &&
+      !mimeType?.startsWith("video/")
+    ) {
+      throw new BadRequestException(
+        "Envie uma imagem ou vídeo em um formato suportado."
+      );
+    }
+
+    if (!buffer?.length) {
+      throw new BadRequestException("O arquivo enviado está vazio.");
+    }
+
+    await this.ensureRelativeDirectory(clientDirectory, path);
+
+    const relativeFilePath = this.joinRelative(path, safeName);
+    const storedPath = this.clientStoredPath(
+      this.normalizeRelativePath(clientDirectory),
+      relativeFilePath
+    );
+
+    this.assertConfigured();
+    const response = await fetch(this.davUrl(storedPath), {
+      method: "PUT",
+      headers: {
+        authorization: this.authorization(),
+        "content-type": mimeType || "application/octet-stream"
+      },
+      body: buffer,
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new BadGatewayException(
+        `Nextcloud respondeu ${response.status} ao enviar a arte.`
+      );
+    }
+
+    const metadata = await this.getMetadata(clientDirectory, relativeFilePath);
+    const { storedPath: _storedPath, ...item } = metadata;
+    return item;
+  }
+
+  private async ensureRelativeDirectory(
+    clientDirectory: string,
+    relativePath: string
+  ) {
+    const normalized = this.normalizeRelativePath(relativePath);
+
+    if (normalized === "/") {
+      return;
+    }
+
+    this.assertConfigured();
+    const segments = normalized.split("/").filter(Boolean);
+    let current = "";
+
+    for (const segment of segments) {
+      current = `${current}/${segment}`;
+      const storedPath = this.clientStoredPath(
+        this.normalizeRelativePath(clientDirectory),
+        this.normalizeRelativePath(current)
+      );
+      const response = await fetch(this.davUrl(storedPath), {
+        method: "MKCOL",
+        headers: {
+          authorization: this.authorization()
+        },
+        cache: "no-store"
+      });
+
+      // 201 = criada; 405 = já existe.
+      if (!response.ok && response.status !== 405) {
+        throw new BadGatewayException(
+          `Nextcloud respondeu ${response.status} ao preparar a pasta da arte.`
+        );
+      }
+    }
+  }
+
   async getMetadata(
     clientDirectory: string,
     relativePath: string
