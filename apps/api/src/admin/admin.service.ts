@@ -1577,7 +1577,8 @@ export class AdminService {
         id: true,
         title: true,
         calendarId: true,
-        stage: true
+        stage: true,
+        productionDesignerId: true
       }
     });
 
