@@ -204,6 +204,14 @@ export class AdminController {
     return this.adminService.getProductivity(request.actor);
   }
 
+  @Get("clients/:id/contract-usage")
+  getClientContractUsage(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string
+  ) {
+    return this.adminService.getClientContractUsage(request.actor, id);
+  }
+
   @Get("clients/:id")
   getClient(@Req() request: InternalActorRequest, @Param("id") id: string) {
     return this.adminService.getClient(request.actor, id);
