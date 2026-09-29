@@ -875,6 +875,14 @@ export class AdminService {
         hashtags: dto.hashtags?.trim() || null,
         references: dto.references?.trim() || null,
         mlabsProfileId: dto.mlabsProfileId?.trim() || null,
+        monthlyPostLimit: dto.monthlyPostLimit ?? null,
+        monthlyCarouselLimit: dto.monthlyCarouselLimit ?? null,
+        monthlyReelLimit: dto.monthlyReelLimit ?? null,
+        monthlyStoryLimit: dto.monthlyStoryLimit ?? null,
+        monthlyStandaloneLimit: dto.monthlyStandaloneLimit ?? null,
+        monthlyPointsLimit: dto.monthlyPointsLimit ?? null,
+        defaultArtworkSlaHours: dto.defaultArtworkSlaHours ?? 72,
+        defaultStandaloneSlaHours: dto.defaultStandaloneSlaHours ?? 48,
         postingWeekdays: {
           create: dto.postingWeekdays.map((weekday) => ({ weekday }))
         },
@@ -953,6 +961,14 @@ export class AdminService {
         hashtags: dto.hashtags?.trim() || null,
         references: dto.references?.trim() || null,
         mlabsProfileId: dto.mlabsProfileId?.trim() || null,
+        monthlyPostLimit: dto.monthlyPostLimit ?? null,
+        monthlyCarouselLimit: dto.monthlyCarouselLimit ?? null,
+        monthlyReelLimit: dto.monthlyReelLimit ?? null,
+        monthlyStoryLimit: dto.monthlyStoryLimit ?? null,
+        monthlyStandaloneLimit: dto.monthlyStandaloneLimit ?? null,
+        monthlyPointsLimit: dto.monthlyPointsLimit ?? null,
+        defaultArtworkSlaHours: dto.defaultArtworkSlaHours ?? current.defaultArtworkSlaHours,
+        defaultStandaloneSlaHours: dto.defaultStandaloneSlaHours ?? current.defaultStandaloneSlaHours,
         ...(dto.nextcloudPath !== undefined
           ? { nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath) }
           : {}),
@@ -2503,6 +2519,97 @@ export class AdminService {
     });
   }
 
+  async getClientContractUsage(actor: InternalActor, clientId: string) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id: clientId,
+        ...(actor.role === UserRole.DESIGNER
+          ? { assignedDesignerId: actor.id }
+          : {})
+      },
+      select: {
+        id: true,
+        name: true,
+        monthlyPostLimit: true,
+        monthlyCarouselLimit: true,
+        monthlyReelLimit: true,
+        monthlyStoryLimit: true,
+        monthlyStandaloneLimit: true,
+        monthlyPointsLimit: true
+      }
+    });
+
+    if (!client) {
+      throw new NotFoundException("Cliente não encontrado.");
+    }
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const [calendarItems, standalone] = await Promise.all([
+      this.prisma.contentItem.findMany({
+        where: {
+          calendar: { clientId },
+          scheduledAt: { gte: start, lt: end }
+        },
+        select: {
+          contentType: true,
+          effortPoints: true
+        }
+      }),
+      this.prisma.standaloneArtwork.findMany({
+        where: {
+          clientId,
+          createdAt: { gte: start, lt: end },
+          status: { not: StandaloneArtworkStatus.CANCELLED }
+        },
+        select: {
+          quantity: true,
+          effortPoints: true
+        }
+      })
+    ]);
+
+    const calendarByType = {
+      POST: calendarItems.filter((item) => item.contentType === ContentType.POST).length,
+      CAROUSEL: calendarItems.filter((item) => item.contentType === ContentType.CAROUSEL).length,
+      REEL: calendarItems.filter((item) => item.contentType === ContentType.REEL).length,
+      STORY: calendarItems.filter((item) => item.contentType === ContentType.STORY).length
+    };
+
+    const standalonePieces = standalone.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    const points =
+      calendarItems.reduce((sum, item) => sum + item.effortPoints, 0) +
+      standalone.reduce((sum, item) => sum + item.effortPoints, 0);
+
+    return {
+      clientId: client.id,
+      clientName: client.name,
+      periodStart: start.toISOString(),
+      periodEnd: end.toISOString(),
+      usage: {
+        post: calendarByType.POST,
+        carousel: calendarByType.CAROUSEL,
+        reel: calendarByType.REEL,
+        story: calendarByType.STORY,
+        standalone: standalonePieces,
+        points
+      },
+      limits: {
+        post: client.monthlyPostLimit,
+        carousel: client.monthlyCarouselLimit,
+        reel: client.monthlyReelLimit,
+        story: client.monthlyStoryLimit,
+        standalone: client.monthlyStandaloneLimit,
+        points: client.monthlyPointsLimit
+      }
+    };
+  }
+
   async listStandaloneArtworks(actor: InternalActor) {
     return this.prisma.standaloneArtwork.findMany({
       where:
@@ -2537,7 +2644,11 @@ export class AdminService {
           ? { assignedDesignerId: actor.id }
           : {})
       },
-      select: { id: true, name: true }
+      select: {
+        id: true,
+        name: true,
+        defaultStandaloneSlaHours: true
+      }
     });
 
     if (!client) {
@@ -2573,7 +2684,12 @@ export class AdminService {
         quantity: dto.quantity,
         effortPoints: dto.effortPoints,
         priority: dto.priority ?? ArtworkPriority.NORMAL,
-        dueAt: dto.dueAt ? new Date(dto.dueAt) : null,
+        dueAt: dto.dueAt
+          ? new Date(dto.dueAt)
+          : new Date(
+              Date.now() +
+                client.defaultStandaloneSlaHours * 60 * 60 * 1000
+            ),
         nextcloudPath: dto.nextcloudPath?.trim() || null
       },
       include: {
