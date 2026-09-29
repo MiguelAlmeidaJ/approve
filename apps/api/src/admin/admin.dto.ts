@@ -807,3 +807,10 @@ export class UpdateContentProductionStageDto {
   @IsEnum(ContentStage)
   stage!: ContentStage;
 }
+
+
+export class AssignDemandDesignerDto {
+  @IsString()
+  @MinLength(1)
+  designerId!: string;
+}
