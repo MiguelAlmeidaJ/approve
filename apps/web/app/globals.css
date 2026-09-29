@@ -13647,3 +13647,365 @@ body::-webkit-scrollbar,
     font-size: 14px !important;
   }
 }
+
+
+/* Calendar showcase */
+.calendar-showcase {
+  display: grid;
+  gap: 18px;
+}
+
+.calendar-showcase-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.calendar-showcase-summary article {
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line, #e8e6e3);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.calendar-summary-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #fff0f4;
+  color: #ff0a54;
+  font-size: 19px;
+}
+
+.calendar-showcase-summary article div {
+  display: grid;
+  gap: 2px;
+}
+
+.calendar-showcase-summary strong {
+  color: #171719;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.calendar-showcase-summary small {
+  color: #77757a;
+  font-size: 12px;
+}
+
+.calendar-showcase-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(170px, 210px) minmax(170px, 210px) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line, #e8e6e3);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.calendar-showcase-search {
+  min-width: 0;
+}
+
+.calendar-showcase-count {
+  padding: 0 6px;
+  color: #8a878b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.calendar-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.calendar-showcase-card {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e5e3e0;
+  border-radius: 20px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.calendar-showcase-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #ff0a54;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.calendar-showcase-card:hover {
+  transform: translateY(-2px);
+  border-color: #d7d3d0;
+  box-shadow: 0 12px 34px rgba(23, 23, 25, 0.07);
+}
+
+.calendar-showcase-card:hover::before {
+  opacity: 1;
+}
+
+.calendar-showcase-card.is-archived {
+  opacity: 0.68;
+}
+
+.calendar-showcase-card-top,
+.calendar-showcase-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calendar-showcase-month {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 15px;
+  background: #141416;
+  color: #fff;
+}
+
+.calendar-showcase-month span {
+  color: #ff346e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.calendar-showcase-month strong {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.calendar-showcase-client {
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f4f3f2;
+  color: #666469;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.calendar-showcase-card h3 {
+  margin: -4px 0 0;
+  color: #18181a;
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.calendar-showcase-period {
+  margin: -7px 0 0;
+  color: #908d91;
+  font-size: 12px;
+}
+
+.calendar-showcase-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #eceae8;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.calendar-showcase-metrics > span {
+  display: grid;
+  gap: 2px;
+  padding: 11px 12px;
+}
+
+.calendar-showcase-metrics > span + span {
+  border-left: 1px solid #eceae8;
+}
+
+.calendar-showcase-metrics strong {
+  color: #1e1d20;
+  font-size: 15px;
+}
+
+.calendar-showcase-metrics small {
+  color: #989599;
+  font-size: 10px;
+}
+
+.calendar-showcase-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.calendar-showcase-progress > div {
+  height: 6px;
+  border-radius: 999px;
+  background: #f0eeed;
+  overflow: hidden;
+}
+
+.calendar-showcase-progress > div span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #ff0a54;
+}
+
+.calendar-showcase-progress small {
+  color: #8d8a8e;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.calendar-showcase-footer {
+  padding-top: 2px;
+  color: #77747a;
+  font-size: 11px;
+}
+
+.calendar-showcase-footer > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-showcase-open {
+  color: #171719;
+  font-weight: 800;
+}
+
+.nextcloud-upload-strip {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 240px) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eceae8;
+  background: #fbfaf9;
+}
+
+.nextcloud-upload-strip > div {
+  display: grid;
+  gap: 4px;
+}
+
+.nextcloud-upload-strip strong {
+  color: #1d1c1f;
+  font-size: 13px;
+}
+
+.nextcloud-upload-strip small {
+  color: #8d8a8f;
+  font-size: 10px;
+}
+
+.nextcloud-upload-folder {
+  display: grid;
+  gap: 5px;
+}
+
+.nextcloud-upload-folder span {
+  color: #6f6c71;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.nextcloud-upload-folder input {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #ddd9d6;
+  border-radius: 10px;
+  background: #fff;
+  color: #1b1a1d;
+  outline: none;
+}
+
+.nextcloud-upload-folder input:focus {
+  border-color: #ff0a54;
+  box-shadow: 0 0 0 3px rgba(255, 10, 84, 0.08);
+}
+
+.nextcloud-upload-button {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nextcloud-upload-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nextcloud-upload-error {
+  padding: 9px 18px;
+  border-bottom: 1px solid #ffd2dd;
+  background: #fff3f6;
+  color: #a10f36;
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .calendar-showcase-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendar-showcase-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calendar-showcase-count {
+    text-align: right;
+  }
+
+  .nextcloud-upload-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .nextcloud-upload-strip > div {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .calendar-showcase-summary,
+  .calendar-showcase-grid,
+  .calendar-showcase-toolbar,
+  .nextcloud-upload-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-showcase-count {
+    text-align: left;
+  }
+
+  .calendar-showcase-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-showcase-metrics > span + span {
+    border-left: 0;
+    border-top: 1px solid #eceae8;
+  }
+}
