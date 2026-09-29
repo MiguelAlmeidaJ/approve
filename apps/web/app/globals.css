@@ -14333,3 +14333,170 @@ body::-webkit-scrollbar,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Contract usage and demand SLA */
+.client-contract-grid,
+.client-sla-grid,
+.contract-usage-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.client-contract-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.client-sla-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.input-with-suffix {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid #dedad7;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.input-with-suffix input {
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.input-with-suffix span {
+  padding: 0 12px;
+  color: #817d82;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.client-contract-usage {
+  margin: 18px 0;
+  padding: 20px;
+  border: 1px solid #e8e5e2;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.contract-usage-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contract-usage-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #ece9e7;
+  border-radius: 14px;
+  background: #fbfaf9;
+}
+
+.contract-usage-card > div:first-child {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.contract-usage-card small,
+.contract-usage-card em {
+  color: #858186;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.contract-usage-card strong {
+  color: #1b1a1d;
+  font-size: 18px;
+}
+
+.contract-usage-card strong span {
+  color: #99959a;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contract-usage-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #ece9e7;
+  overflow: hidden;
+}
+
+.contract-usage-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #252326;
+}
+
+.contract-usage-card.exceeded {
+  border-color: #f1bcc9;
+  background: #fff6f8;
+}
+
+.contract-usage-card.exceeded .contract-usage-track i {
+  background: #cf2e59;
+}
+
+.contract-usage-card.exceeded em {
+  color: #b1264a;
+  font-weight: 700;
+}
+
+.demand-source-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.demand-source-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid #e7e4e2;
+  border-radius: 999px;
+  background: #fff;
+  color: #6f6b70;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.demand-row {
+  border-left: 3px solid transparent;
+}
+
+.demand-row.sla-overdue {
+  border-left-color: #c92c50;
+  background: #fffafb;
+}
+
+.demand-row.sla-risk {
+  border-left-color: #d49a27;
+  background: #fffdf8;
+}
+
+.demand-row.sla-on-time {
+  border-left-color: #58a474;
+}
+
+@media (max-width: 900px) {
+  .client-contract-grid,
+  .contract-usage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .client-contract-grid,
+  .client-sla-grid,
+  .contract-usage-grid {
+    grid-template-columns: 1fr;
+  }
+}
