@@ -1494,7 +1494,7 @@ export class AdminService {
         role: UserRole.DESIGNER,
         active: true
       },
-      select: { id: true, name: true }
+      select: { id: true, name: true, email: true }
     });
 
     if (!target) {
@@ -1509,6 +1509,16 @@ export class AdminService {
         title: true,
         productionDesignerId: true,
         stage: true
+      }
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        designerId: target.id,
+        type: NotificationType.ACTION,
+        title: "Nova demanda atribuída",
+        message: `Você foi definido como responsável por "${updated.title}".`,
+        link: `/calendars/${item.calendarId}/content/${contentItemId}/artwork`
       }
     });
 
@@ -1580,6 +1590,16 @@ export class AdminService {
       include: {
         client: { select: { id: true, name: true, nextcloudPath: true } },
         designer: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        designerId: target.id,
+        type: NotificationType.ACTION,
+        title: "Arte avulsa atribuída",
+        message: `Você foi definido como responsável por "${updated.title}".`,
+        link: "/artes-avulsas"
       }
     });
 
