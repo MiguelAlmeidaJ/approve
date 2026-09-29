@@ -10,7 +10,7 @@
     "dev": "dotenv -e .env -- pnpm --parallel --filter @approve/api --filter @approve/web dev",
     "build": "dotenv -e .env -- pnpm run build:workspace",
     "build:workspace": "pnpm --filter @approve/database build && pnpm --filter @approve/api build && pnpm --filter @approve/web build",
-    "pretypecheck": "dotenv -e .env -- pnpm --filter @approve/database generate",
+    "pretypecheck": "dotenv -e .env -- pnpm --filter @approve/database build",
     "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d mysql",
     "db:down": "docker compose down",
