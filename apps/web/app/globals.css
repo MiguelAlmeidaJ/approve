@@ -14835,3 +14835,98 @@ body::-webkit-scrollbar,
     flex-direction: column;
   }
 }
+
+
+.kanban-card.is-contract-extra {
+  border-color: #efb7c5;
+  background: #fffafb;
+}
+
+.kanban-extra-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 8px 9px;
+  border: 1px solid #f2c6d1;
+  border-radius: 10px;
+  background: #fff1f4;
+  color: #a72749;
+}
+
+.kanban-extra-badge > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.kanban-extra-badge > span {
+  display: grid;
+  gap: 2px;
+}
+
+.kanban-extra-badge strong {
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.kanban-extra-badge small {
+  color: #b55a72;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.kanban-assignee {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #ece9e7;
+  border-radius: 10px;
+  background: #faf9f8;
+}
+
+.kanban-assignee > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.kanban-assignee > div > svg {
+  flex: 0 0 auto;
+  color: #777278;
+}
+
+.kanban-assignee > div > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.kanban-assignee small {
+  color: #99959a;
+  font-size: 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.kanban-assignee strong {
+  overflow: hidden;
+  color: #4d494f;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-assignee select {
+  max-width: 115px;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid #ddd9d6;
+  border-radius: 8px;
+  padding: 0 7px;
+  background: #fff;
+  color: #4b474d;
+  font-size: 9px;
+  cursor: pointer;
+}
