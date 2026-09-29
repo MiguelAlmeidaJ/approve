@@ -5,6 +5,7 @@ import {
   NotFoundException
 } from "@nestjs/common";
 import {
+  ArtworkPriority,
   CalendarStage,
   Channel,
   CommentAuthorType,
@@ -13,6 +14,7 @@ import {
   ContentStatus,
   ContentType,
   NotificationType,
+  StandaloneArtworkStatus,
   UserRole
 } from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
@@ -33,6 +35,7 @@ import {
   CreateContentItemDto,
   CreateDesignerDto,
   CreatePlanningItemDto,
+  CreateStandaloneArtworkDto,
   MarkScheduledDto,
   MarkSchedulingErrorDto,
   MoveContentItemDto,
@@ -44,6 +47,7 @@ import {
   UpdateContentFormatDto,
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
+  UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
 
@@ -1528,6 +1532,7 @@ export class AdminService {
           artworkApprovedAt: null,
           reviewedAt: null,
           artworkVersion: nextVersion,
+          productionDesignerId: actor.id,
           assets: {
             create: assets.map((asset, index) => ({
               filePath: asset.storedPath,
@@ -2495,6 +2500,260 @@ export class AdminService {
           ? JSON.parse(JSON.stringify(input.metadata))
           : undefined
       }
+    });
+  }
+
+  async listStandaloneArtworks(actor: InternalActor) {
+    return this.prisma.standaloneArtwork.findMany({
+      where:
+        actor.role === UserRole.DESIGNER
+          ? { designerId: actor.id }
+          : undefined,
+      include: {
+        client: {
+          select: { id: true, name: true, nextcloudPath: true }
+        },
+        designer: {
+          select: { id: true, name: true, email: true }
+        }
+      },
+      orderBy: [
+        { status: "asc" },
+        { dueAt: "asc" },
+        { createdAt: "desc" }
+      ]
+    });
+  }
+
+  async createStandaloneArtwork(
+    actor: InternalActor,
+    dto: CreateStandaloneArtworkDto
+  ) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id: dto.clientId,
+        active: true,
+        ...(actor.role === UserRole.DESIGNER
+          ? { assignedDesignerId: actor.id }
+          : {})
+      },
+      select: { id: true, name: true }
+    });
+
+    if (!client) {
+      throw new ForbiddenException(
+        "Você não tem acesso a este cliente ou ele está inativo."
+      );
+    }
+
+    const designerId =
+      actor.role === UserRole.DESIGNER ? actor.id : dto.designerId;
+
+    const designer = await this.prisma.designer.findFirst({
+      where: {
+        id: designerId,
+        role: UserRole.DESIGNER,
+        active: true
+      },
+      select: { id: true, name: true }
+    });
+
+    if (!designer) {
+      throw new BadRequestException("Selecione um designer ativo.");
+    }
+
+    const artwork = await this.prisma.standaloneArtwork.create({
+      data: {
+        clientId: client.id,
+        designerId: designer.id,
+        title: dto.title.trim(),
+        briefing: dto.briefing.trim(),
+        contentType: dto.contentType,
+        formatLabel: dto.formatLabel?.trim() || null,
+        quantity: dto.quantity,
+        effortPoints: dto.effortPoints,
+        priority: dto.priority ?? ArtworkPriority.NORMAL,
+        dueAt: dto.dueAt ? new Date(dto.dueAt) : null,
+        nextcloudPath: dto.nextcloudPath?.trim() || null
+      },
+      include: {
+        client: { select: { id: true, name: true, nextcloudPath: true } },
+        designer: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "STANDALONE_ARTWORK_CREATED",
+      entityType: "StandaloneArtwork",
+      entityId: artwork.id,
+      summary: `Arte avulsa "${artwork.title}" criada para ${client.name}.`
+    });
+
+    return artwork;
+  }
+
+  async updateStandaloneArtworkStatus(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateStandaloneArtworkStatusDto
+  ) {
+    const artwork = await this.prisma.standaloneArtwork.findUnique({
+      where: { id },
+      include: {
+        client: { select: { id: true, name: true } }
+      }
+    });
+
+    if (!artwork) {
+      throw new NotFoundException("Arte avulsa não encontrada.");
+    }
+
+    if (
+      actor.role === UserRole.DESIGNER &&
+      artwork.designerId !== actor.id
+    ) {
+      throw new ForbiddenException("Esta demanda não está atribuída a você.");
+    }
+
+    const now = new Date();
+    const data: {
+      status: StandaloneArtworkStatus;
+      startedAt?: Date;
+      approvedAt?: Date;
+      completedAt?: Date;
+      revisionCount?: number;
+      nextcloudPath?: string | null;
+    } = {
+      status: dto.status
+    };
+
+    if (
+      dto.status === StandaloneArtworkStatus.IN_PRODUCTION &&
+      !artwork.startedAt
+    ) {
+      data.startedAt = now;
+    }
+
+    if (dto.status === StandaloneArtworkStatus.CHANGES_REQUESTED) {
+      data.revisionCount = artwork.revisionCount + 1;
+    }
+
+    if (dto.status === StandaloneArtworkStatus.APPROVED) {
+      data.approvedAt = artwork.approvedAt ?? now;
+    }
+
+    if (dto.status === StandaloneArtworkStatus.DELIVERED) {
+      data.approvedAt = artwork.approvedAt ?? now;
+      data.completedAt = artwork.completedAt ?? now;
+    }
+
+    if (dto.nextcloudPath !== undefined) {
+      data.nextcloudPath = dto.nextcloudPath.trim() || null;
+    }
+
+    const updated = await this.prisma.standaloneArtwork.update({
+      where: { id },
+      data,
+      include: {
+        client: { select: { id: true, name: true, nextcloudPath: true } },
+        designer: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "STANDALONE_ARTWORK_STATUS_CHANGED",
+      entityType: "StandaloneArtwork",
+      entityId: id,
+      summary: `Arte avulsa "${updated.title}" alterada para ${updated.status}.`
+    });
+
+    return updated;
+  }
+
+  async getProductivity(actor: InternalActor) {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const designers = await this.prisma.designer.findMany({
+      where: {
+        active: true,
+        role: UserRole.DESIGNER,
+        ...(actor.role === UserRole.DESIGNER ? { id: actor.id } : {})
+      },
+      select: {
+        id: true,
+        name: true,
+        weeklyCapacityPoints: true
+      },
+      orderBy: { name: "asc" }
+    });
+
+    const [calendarItems, standalone] = await Promise.all([
+      this.prisma.contentItem.findMany({
+        where: {
+          productionDesignerId: { in: designers.map((designer) => designer.id) },
+          artworkApprovedAt: { gte: start, lt: end }
+        },
+        select: {
+          productionDesignerId: true,
+          effortPoints: true,
+          contentType: true,
+          artworkApprovedAt: true
+        }
+      }),
+      this.prisma.standaloneArtwork.findMany({
+        where: {
+          designerId: { in: designers.map((designer) => designer.id) },
+          completedAt: { gte: start, lt: end },
+          status: StandaloneArtworkStatus.DELIVERED
+        },
+        select: {
+          designerId: true,
+          quantity: true,
+          effortPoints: true,
+          revisionCount: true,
+          completedAt: true
+        }
+      })
+    ]);
+
+    return designers.map((designer) => {
+      const calendarProduction = calendarItems.filter(
+        (item) => item.productionDesignerId === designer.id
+      );
+      const standaloneProduction = standalone.filter(
+        (item) => item.designerId === designer.id
+      );
+      const calendarPieces = calendarProduction.length;
+      const standalonePieces = standaloneProduction.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
+      const calendarPoints = calendarProduction.reduce(
+        (sum, item) => sum + item.effortPoints,
+        0
+      );
+      const standalonePoints = standaloneProduction.reduce(
+        (sum, item) => sum + item.effortPoints,
+        0
+      );
+
+      return {
+        designer,
+        periodStart: start.toISOString(),
+        periodEnd: end.toISOString(),
+        calendarPieces,
+        standalonePieces,
+        totalPieces: calendarPieces + standalonePieces,
+        calendarPoints,
+        standalonePoints,
+        totalPoints: calendarPoints + standalonePoints,
+        revisions: standaloneProduction.reduce(
+          (sum, item) => sum + item.revisionCount,
+          0
+        )
+      };
     });
   }
 
