@@ -673,6 +673,28 @@ export async function submitPlanning(calendarId: string) {
   redirect(`/calendars/${calendarId}`);
 }
 
+export async function updateContentProductionStage(formData: FormData) {
+  const designer = await requireDesigner();
+  const calendarId = required(formData, "calendarId");
+  const itemId = required(formData, "itemId");
+  const calendar = await getCalendar(calendarId);
+
+  if (!calendar || !canAccessClient(designer, calendar.client)) {
+    throw new Error("Você não tem acesso a este calendário.");
+  }
+
+  await adminPatch(
+    `/api/admin/items/${encodeURIComponent(itemId)}/production-stage`,
+    {
+      stage: required(formData, "stage")
+    }
+  );
+
+  revalidatePath("/");
+  revalidatePath("/producao");
+  revalidatePath(`/calendars/${calendarId}`);
+}
+
 export async function attachArtwork(formData: FormData) {
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
