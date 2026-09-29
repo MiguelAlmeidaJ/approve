@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   FiAtSign,
+  FiBarChart2,
   FiBriefcase,
   FiCalendar,
   FiEdit3,
@@ -16,6 +17,7 @@ import { requireDesigner } from "../../../lib/auth";
 import {
   canAccessClient,
   getClient,
+  getClientContractUsage,
   getDesigners
 } from "../../../lib/api";
 
@@ -42,8 +44,10 @@ export default async function ClientPage({
     notFound();
   }
 
-  const designers =
-    designer.role === "DESIGNER" ? [] : await getDesigners();
+  const [designers, contractUsage] = await Promise.all([
+    designer.role === "DESIGNER" ? Promise.resolve([]) : getDesigners(),
+    getClientContractUsage(clientId)
+  ]);
   const activeCalendars = client.calendars.filter(
     (calendar) => !calendar.archivedAt
   );
@@ -151,6 +155,64 @@ export default async function ClientPage({
           </span>
         </article>
       </section>
+
+      {contractUsage ? (
+        <section className="client-contract-usage">
+          <div className="section-title-row">
+            <div>
+              <span className="micro-label">CONSUMO DO CONTRATO</span>
+              <h2>Franquia do mês</h2>
+            </div>
+            <FiBarChart2 aria-hidden="true" />
+          </div>
+          <div className="contract-usage-grid">
+            {[
+              ["Posts", contractUsage.usage.post, contractUsage.limits.post],
+              ["Carrosséis", contractUsage.usage.carousel, contractUsage.limits.carousel],
+              ["Reels", contractUsage.usage.reel, contractUsage.limits.reel],
+              ["Stories", contractUsage.usage.story, contractUsage.limits.story],
+              ["Artes avulsas", contractUsage.usage.standalone, contractUsage.limits.standalone],
+              ["Pontos", contractUsage.usage.points, contractUsage.limits.points]
+            ].map(([label, used, limit]) => {
+              const usedValue = Number(used);
+              const limitValue = limit === null ? null : Number(limit);
+              const percentage =
+                limitValue && limitValue > 0
+                  ? Math.round((usedValue / limitValue) * 100)
+                  : 0;
+              const exceeded =
+                limitValue !== null && limitValue >= 0 && usedValue > limitValue;
+
+              return (
+                <article
+                  className={exceeded ? "contract-usage-card exceeded" : "contract-usage-card"}
+                  key={String(label)}
+                >
+                  <div>
+                    <small>{label}</small>
+                    <strong>
+                      {usedValue}
+                      <span> / {limitValue === null ? "∞" : limitValue}</span>
+                    </strong>
+                  </div>
+                  {limitValue !== null && limitValue > 0 ? (
+                    <div className="contract-usage-track">
+                      <i style={{ width: `${Math.min(percentage, 100)}%` }} />
+                    </div>
+                  ) : null}
+                  <em>
+                    {exceeded
+                      ? "Acima do contratado"
+                      : limitValue === null
+                        ? "Sem limite definido"
+                        : `${percentage}% utilizado`}
+                  </em>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="client-responsibility">
         <div>
