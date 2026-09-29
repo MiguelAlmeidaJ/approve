@@ -21,6 +21,7 @@ import {
   CreateContentItemDto,
   CreateDesignerDto,
   CreatePlanningItemDto,
+  CreateStandaloneArtworkDto,
   MarkScheduledDto,
   MarkSchedulingErrorDto,
   MoveContentItemDto,
@@ -33,6 +34,7 @@ import {
   UpdateContentFormatDto,
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
+  UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
 import { AdminService } from "./admin.service";
@@ -169,6 +171,37 @@ export class AdminController {
     @Body() dto: UpdateContentMetricsDto
   ) {
     return this.adminService.updateContentMetrics(request.actor, id, dto);
+  }
+
+  @Get("standalone-artworks")
+  listStandaloneArtworks(@Req() request: InternalActorRequest) {
+    return this.adminService.listStandaloneArtworks(request.actor);
+  }
+
+  @Post("standalone-artworks")
+  createStandaloneArtwork(
+    @Req() request: InternalActorRequest,
+    @Body() dto: CreateStandaloneArtworkDto
+  ) {
+    return this.adminService.createStandaloneArtwork(request.actor, dto);
+  }
+
+  @Patch("standalone-artworks/:id/status")
+  updateStandaloneArtworkStatus(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateStandaloneArtworkStatusDto
+  ) {
+    return this.adminService.updateStandaloneArtworkStatus(
+      request.actor,
+      id,
+      dto
+    );
+  }
+
+  @Get("productivity")
+  productivity(@Req() request: InternalActorRequest) {
+    return this.adminService.getProductivity(request.actor);
   }
 
   @Get("clients/:id")
