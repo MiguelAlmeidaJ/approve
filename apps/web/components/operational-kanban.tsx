@@ -9,11 +9,13 @@ import {
   FiImage,
   FiLayers,
   FiRefreshCw,
-  FiTool
+  FiTool,
+  FiUser
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import {
+  assignOperationalDemand,
   updateContentProductionStage,
   updateStandaloneArtworkStatus
 } from "../app/actions";
@@ -29,6 +31,7 @@ export type OperationalKanbanCard = {
   id: string;
   source: "calendar" | "standalone";
   calendarId?: string;
+  clientId: string;
   clientName: string;
   context: string;
   title: string;
@@ -40,6 +43,10 @@ export type OperationalKanbanCard = {
   href: string;
   priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   nextcloudPath?: string | null;
+  designerId: string | null;
+  designerName: string;
+  contractExtra: boolean;
+  extraReasons: string[];
   movable: boolean;
 };
 
@@ -122,9 +129,13 @@ function calendarStage(column: KanbanColumn) {
 }
 
 export function OperationalKanban({
-  initialCards
+  initialCards,
+  designers,
+  canReassign
 }: {
   initialCards: OperationalKanbanCard[];
+  designers: Array<{ id: string; name: string }>;
+  canReassign: boolean;
 }) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
@@ -207,18 +218,59 @@ export function OperationalKanban({
     });
   }
 
+  function assignDesigner(card: OperationalKanbanCard, designerId: string) {
+    if (!designerId || designerId === card.designerId) return;
+
+    const selected = designers.find((item) => item.id === designerId);
+    if (!selected) return;
+
+    const previous = cards;
+    setError(null);
+    setCards((current) =>
+      current.map((item) =>
+        item.id === card.id && item.source === card.source
+          ? {
+              ...item,
+              designerId: selected.id,
+              designerName: selected.name
+            }
+          : item
+      )
+    );
+
+    const formData = new FormData();
+    formData.set("id", card.id);
+    formData.set("source", card.source);
+    formData.set("designerId", designerId);
+    if (card.calendarId) formData.set("calendarId", card.calendarId);
+
+    startTransition(async () => {
+      try {
+        await assignOperationalDemand(formData);
+        router.refresh();
+      } catch (cause) {
+        setCards(previous);
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível reatribuir a demanda."
+        );
+      }
+    });
+  }
+
   return (
     <section className="operational-kanban-wrap">
       <div className="operational-kanban-help">
         <div>
           <strong>Kanban operacional</strong>
           <span>
-            Arraste artes avulsas entre as etapas. Peças de calendário podem ser
-            puxadas para produção e devolvidas para aguardando; aprovação segue
-            o fluxo do calendário.
+            Arraste demandas entre etapas permitidas. Gestores podem
+            reatribuir o responsável diretamente no card; itens acima da
+            franquia aparecem como Extra do contrato.
           </span>
         </div>
-        {isPending ? <em>Salvando movimentação...</em> : null}
+        {isPending ? <em>Salvando alteração...</em> : null}
       </div>
 
       {error ? (
@@ -293,7 +345,9 @@ export function OperationalKanban({
                         className={
                           isDragging
                             ? "kanban-card is-dragging"
-                            : "kanban-card"
+                            : card.contractExtra
+                              ? "kanban-card is-contract-extra"
+                              : "kanban-card"
                         }
                         key={`${card.source}-${card.id}`}
                         draggable={card.movable && !isPending}
@@ -323,6 +377,16 @@ export function OperationalKanban({
                           </span>
                         </div>
 
+                        {card.contractExtra ? (
+                          <div className="kanban-extra-badge">
+                            <FiAlertCircle aria-hidden="true" />
+                            <span>
+                              <strong>Extra do contrato</strong>
+                              <small>{card.extraReasons.join(" · ")}</small>
+                            </span>
+                          </div>
+                        ) : null}
+
                         <div className="kanban-card-main">
                           <strong>{card.title}</strong>
                           <span>{card.clientName}</span>
@@ -337,6 +401,37 @@ export function OperationalKanban({
                             <span className="kanban-priority">
                               {card.priority === "URGENT" ? "Urgente" : "Alta"}
                             </span>
+                          ) : null}
+                        </div>
+
+                        <div className="kanban-assignee">
+                          <div>
+                            <FiUser aria-hidden="true" />
+                            <span>
+                              <small>Responsável</small>
+                              <strong>{card.designerName}</strong>
+                            </span>
+                          </div>
+                          {canReassign && card.column !== "DONE" ? (
+                            <select
+                              aria-label={`Reatribuir ${card.title}`}
+                              value={card.designerId ?? ""}
+                              disabled={isPending}
+                              onMouseDown={(event) => event.stopPropagation()}
+                              onDragStart={(event) => event.preventDefault()}
+                              onChange={(event) =>
+                                assignDesigner(card, event.target.value)
+                              }
+                            >
+                              <option value="" disabled>
+                                Selecionar
+                              </option>
+                              {designers.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                  {item.name}
+                                </option>
+                              ))}
+                            </select>
                           ) : null}
                         </div>
 
