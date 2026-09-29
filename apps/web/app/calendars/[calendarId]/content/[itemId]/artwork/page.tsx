@@ -22,15 +22,23 @@ export default async function ArtworkPage({
     getFormats()
   ]);
 
-  if (!calendar || !canAccessClient(designer, calendar.client)) {
+  if (!calendar) {
+    notFound();
+  }
+
+  const item = calendar.contentItems.find((entry) => entry.id === itemId);
+  const hasItemAccess =
+    canAccessClient(designer, calendar.client) ||
+    (designer.role === "DESIGNER" &&
+      item?.productionDesignerId === designer.id);
+
+  if (!hasItemAccess) {
     notFound();
   }
 
   if (calendar.stage !== "PRODUCTION" || calendar.archivedAt) {
     redirect(`/calendars/${calendarId}`);
   }
-
-  const item = calendar.contentItems.find((entry) => entry.id === itemId);
 
   if (
     !item ||
