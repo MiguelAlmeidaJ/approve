@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  FiArrowRight,
+  FiArrowUpRight,
+  FiCalendar,
+  FiCheckCircle,
   FiChevronLeft,
   FiChevronRight,
-  FiSearch
+  FiClock,
+  FiSearch,
+  FiUser
 } from "react-icons/fi";
 import type { CalendarStage, Client } from "../lib/api";
 
@@ -43,6 +47,29 @@ const stageProgress: Record<CalendarStage, number> = {
   ARCHIVED: 100
 };
 
+const readyStages = new Set([
+  "ART_APPROVED",
+  "READY_TO_SCHEDULE",
+  "SCHEDULED",
+  "PUBLISHED"
+]);
+
+function monthLabel(date: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    timeZone: "UTC"
+  }).format(new Date(date)).replace(".", "").toUpperCase();
+}
+
+function periodLabel(start: string, end: string) {
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC"
+  });
+  return `${formatter.format(new Date(start))} — ${formatter.format(new Date(end))}`;
+}
+
 export function CalendarsList({ clients }: { clients: Client[] }) {
   const [query, setQuery] = useState("");
   const [clientId, setClientId] = useState("all");
@@ -52,49 +79,78 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
   const calendars = useMemo(
     () =>
       clients.flatMap((client) =>
-        client.calendars.map((calendar) => ({
-          ...calendar,
-          client
-        }))
+        client.calendars.map((calendar) => ({ ...calendar, client }))
       ),
     [clients]
   );
 
+  const summary = useMemo(() => {
+    const active = calendars.filter((calendar) => calendar.stage !== "ARCHIVED");
+    return {
+      active: active.length,
+      approvals: active.filter((calendar) =>
+        ["PRE_APPROVAL", "FINAL_APPROVAL"].includes(calendar.stage)
+      ).length,
+      production: active.filter((calendar) => calendar.stage === "PRODUCTION").length,
+      completed: calendars.filter((calendar) => calendar.stage === "COMPLETED").length
+    };
+  }, [calendars]);
+
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return calendars.filter((calendar) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        calendar.title.toLowerCase().includes(normalizedQuery) ||
-        calendar.client.name.toLowerCase().includes(normalizedQuery);
+    return calendars
+      .filter((calendar) => {
+        const matchesQuery =
+          !normalizedQuery ||
+          calendar.title.toLowerCase().includes(normalizedQuery) ||
+          calendar.client.name.toLowerCase().includes(normalizedQuery);
+        const matchesClient =
+          clientId === "all" || calendar.client.id === clientId;
+        const matchesState =
+          state === "ALL" ||
+          (state === "ACTIVE" && calendar.stage !== "ARCHIVED") ||
+          calendar.stage === state;
 
-      const matchesClient =
-        clientId === "all" || calendar.client.id === clientId;
-      const matchesState =
-        state === "ALL" ||
-        (state === "ACTIVE" && calendar.stage !== "ARCHIVED") ||
-        calendar.stage === state;
-
-      return matchesQuery && matchesClient && matchesState;
-    });
+        return matchesQuery && matchesClient && matchesState;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime()
+      );
   }, [calendars, clientId, query, state]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
-  const visible = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  );
+  const visible = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   function resetPage() {
     setPage(1);
   }
 
   return (
-    <>
-      <div className="list-toolbar list-toolbar-calendar">
-        <label className="search-control">
+    <div className="calendar-showcase">
+      <div className="calendar-showcase-summary">
+        <article>
+          <span className="calendar-summary-icon"><FiCalendar /></span>
+          <div><strong>{summary.active}</strong><small>Fluxos ativos</small></div>
+        </article>
+        <article>
+          <span className="calendar-summary-icon"><FiClock /></span>
+          <div><strong>{summary.approvals}</strong><small>Em aprovação</small></div>
+        </article>
+        <article>
+          <span className="calendar-summary-icon"><FiUser /></span>
+          <div><strong>{summary.production}</strong><small>Em produção</small></div>
+        </article>
+        <article>
+          <span className="calendar-summary-icon"><FiCheckCircle /></span>
+          <div><strong>{summary.completed}</strong><small>Concluídos</small></div>
+        </article>
+      </div>
+
+      <div className="calendar-showcase-toolbar">
+        <label className="search-control calendar-showcase-search">
           <FiSearch aria-hidden="true" />
           <input
             type="search"
@@ -119,9 +175,7 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
         >
           <option value="all">Todos os clientes</option>
           {clients.map((client) => (
-            <option value={client.id} key={client.id}>
-              {client.name}
-            </option>
+            <option value={client.id} key={client.id}>{client.name}</option>
           ))}
         </select>
 
@@ -145,9 +199,7 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           <option value="ARCHIVED">Arquivados</option>
         </select>
 
-        <span className="list-result-count">
-          {filtered.length} resultado(s)
-        </span>
+        <span className="calendar-showcase-count">{filtered.length} calendário(s)</span>
       </div>
 
       {visible.length === 0 ? (
@@ -155,67 +207,59 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           Nenhum calendário encontrado com esses filtros.
         </div>
       ) : (
-        <div className="calendar-list-simple">
+        <div className="calendar-showcase-grid">
           {visible.map((calendar) => {
+            const currentStage = calendar.archivedAt ? "ARCHIVED" : calendar.stage;
             const total = calendar.contentItems.length;
-            const currentStage = calendar.archivedAt
-              ? "ARCHIVED"
-              : calendar.stage;
+            const ready = calendar.contentItems.filter((item) =>
+              readyStages.has(item.stage)
+            ).length;
 
             return (
               <Link
                 href={`/calendars/${calendar.id}`}
-                className={
-                  currentStage === "ARCHIVED"
-                    ? "calendar-row calendar-row-archived"
-                    : "calendar-row"
-                }
+                className={`calendar-showcase-card${currentStage === "ARCHIVED" ? " is-archived" : ""}`}
                 key={calendar.id}
               >
-                <div className="calendar-month-block">
-                  <span>
-                    {new Intl.DateTimeFormat("pt-BR", {
-                      month: "short",
-                      timeZone: "UTC"
-                    })
-                      .format(new Date(calendar.periodStart))
-                      .replace(".", "")
-                      .toUpperCase()}
-                  </span>
-                  <strong>
-                    {new Date(calendar.periodStart).getUTCFullYear()}
-                  </strong>
-                </div>
-
-                <div className="calendar-row-main">
-                  <h3>{calendar.title}</h3>
-                  <p>
-                    {calendar.client.name} · {total} publicação(ões)
-                  </p>
-                </div>
-
-                <div className="calendar-stage-cell">
+                <div className="calendar-showcase-card-top">
+                  <div className="calendar-showcase-month">
+                    <span>{monthLabel(calendar.periodStart)}</span>
+                    <strong>{new Date(calendar.periodStart).getUTCFullYear()}</strong>
+                  </div>
                   <span className={`calendar-stage-chip stage-${currentStage.toLowerCase()}`}>
                     {stageLabel[currentStage]}
                   </span>
-                  <small>
-                    {calendar.client.assignedDesigner?.name ??
-                      "Sem designer responsável"}
-                  </small>
                 </div>
 
-                <div className="calendar-progress">
+                <div className="calendar-showcase-client">{calendar.client.name}</div>
+                <h3>{calendar.title}</h3>
+                <p className="calendar-showcase-period">{periodLabel(calendar.periodStart, calendar.periodEnd)}</p>
+
+                <div className="calendar-showcase-metrics">
+                  <span><strong>{total}</strong><small>Publicações</small></span>
+                  <span><strong>{ready}</strong><small>Artes prontas</small></span>
+                  <span>
+                    <strong>{calendar.postingDays.length}</strong>
+                    <small>Dias planejados</small>
+                  </span>
+                </div>
+
+                <div className="calendar-showcase-progress">
                   <div>
-                    <span
-                      style={{
-                        width: `${stageProgress[currentStage]}%`
-                      }}
-                    />
+                    <span style={{ width: `${stageProgress[currentStage]}%` }} />
                   </div>
-                  <small>{stageProgress[currentStage]}%</small>
+                  <small>{stageProgress[currentStage]}% do fluxo</small>
                 </div>
 
-                <FiArrowRight className="arrow-link" aria-hidden="true" />
+                <div className="calendar-showcase-footer">
+                  <span>
+                    <FiUser aria-hidden="true" />
+                    {calendar.client.assignedDesigner?.name ?? "Sem responsável"}
+                  </span>
+                  <span className="calendar-showcase-open">
+                    Abrir <FiArrowUpRight aria-hidden="true" />
+                  </span>
+                </div>
               </Link>
             );
           })}
@@ -233,11 +277,7 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           >
             <FiChevronLeft />
           </button>
-
-          <span>
-            Página <strong>{safePage}</strong> de {pageCount}
-          </span>
-
+          <span>Página <strong>{safePage}</strong> de {pageCount}</span>
           <button
             type="button"
             className="pagination-button"
@@ -249,6 +289,6 @@ export function CalendarsList({ clients }: { clients: Client[] }) {
           </button>
         </nav>
       ) : null}
-    </>
+    </div>
   );
 }
