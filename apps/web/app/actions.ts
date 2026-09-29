@@ -253,6 +253,30 @@ export async function createClient(formData: FormData) {
     references: String(formData.get("references") ?? "").trim() || undefined,
     mlabsProfileId:
       String(formData.get("mlabsProfileId") ?? "").trim() || undefined,
+    monthlyPostLimit: String(formData.get("monthlyPostLimit") ?? "").trim()
+      ? Number(formData.get("monthlyPostLimit"))
+      : undefined,
+    monthlyCarouselLimit: String(formData.get("monthlyCarouselLimit") ?? "").trim()
+      ? Number(formData.get("monthlyCarouselLimit"))
+      : undefined,
+    monthlyReelLimit: String(formData.get("monthlyReelLimit") ?? "").trim()
+      ? Number(formData.get("monthlyReelLimit"))
+      : undefined,
+    monthlyStoryLimit: String(formData.get("monthlyStoryLimit") ?? "").trim()
+      ? Number(formData.get("monthlyStoryLimit"))
+      : undefined,
+    monthlyStandaloneLimit: String(formData.get("monthlyStandaloneLimit") ?? "").trim()
+      ? Number(formData.get("monthlyStandaloneLimit"))
+      : undefined,
+    monthlyPointsLimit: String(formData.get("monthlyPointsLimit") ?? "").trim()
+      ? Number(formData.get("monthlyPointsLimit"))
+      : undefined,
+    defaultArtworkSlaHours: Number(
+      String(formData.get("defaultArtworkSlaHours") ?? "72")
+    ),
+    defaultStandaloneSlaHours: Number(
+      String(formData.get("defaultStandaloneSlaHours") ?? "48")
+    ),
   });
 
   revalidatePath("/");
@@ -296,6 +320,30 @@ export async function updateClient(formData: FormData) {
     hashtags: String(formData.get("hashtags") ?? "").trim(),
     references: String(formData.get("references") ?? "").trim(),
     mlabsProfileId: String(formData.get("mlabsProfileId") ?? "").trim(),
+    monthlyPostLimit: String(formData.get("monthlyPostLimit") ?? "").trim()
+      ? Number(formData.get("monthlyPostLimit"))
+      : undefined,
+    monthlyCarouselLimit: String(formData.get("monthlyCarouselLimit") ?? "").trim()
+      ? Number(formData.get("monthlyCarouselLimit"))
+      : undefined,
+    monthlyReelLimit: String(formData.get("monthlyReelLimit") ?? "").trim()
+      ? Number(formData.get("monthlyReelLimit"))
+      : undefined,
+    monthlyStoryLimit: String(formData.get("monthlyStoryLimit") ?? "").trim()
+      ? Number(formData.get("monthlyStoryLimit"))
+      : undefined,
+    monthlyStandaloneLimit: String(formData.get("monthlyStandaloneLimit") ?? "").trim()
+      ? Number(formData.get("monthlyStandaloneLimit"))
+      : undefined,
+    monthlyPointsLimit: String(formData.get("monthlyPointsLimit") ?? "").trim()
+      ? Number(formData.get("monthlyPointsLimit"))
+      : undefined,
+    defaultArtworkSlaHours: Number(
+      String(formData.get("defaultArtworkSlaHours") ?? "72")
+    ),
+    defaultStandaloneSlaHours: Number(
+      String(formData.get("defaultStandaloneSlaHours") ?? "48")
+    ),
     ...(password ? { password } : {}),
   });
 
