@@ -25,12 +25,17 @@ export default async function CapacityPage() {
       const ownedClients = clients.filter(
         (client) => client.assignedDesignerId === designer.id
       );
-      const productionItems = ownedClients.flatMap((client) =>
+      const productionItems = clients.flatMap((client) =>
         client.calendars.flatMap((calendar) =>
-          calendar.contentItems.filter((item) =>
-            ["DESIGN_PENDING", "DESIGN_IN_PROGRESS", "ART_CHANGES_REQUESTED"].includes(
-              item.stage
-            )
+          calendar.contentItems.filter(
+            (item) =>
+              [
+                "DESIGN_PENDING",
+                "DESIGN_IN_PROGRESS",
+                "ART_CHANGES_REQUESTED"
+              ].includes(item.stage) &&
+              (item.productionDesignerId ?? client.assignedDesignerId) ===
+                designer.id
           )
         )
       );
