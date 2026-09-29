@@ -966,6 +966,52 @@ export async function moveContentItem(formData: FormData) {
   redirect(`/calendars/${calendarId}?item=${encodeURIComponent(itemId)}`);
 }
 
+export async function createStandaloneArtwork(formData: FormData) {
+  const designer = await requireDesigner();
+  const designerId =
+    designer.role === "DESIGNER"
+      ? designer.id
+      : required(formData, "designerId");
+
+  await adminPost("/api/admin/standalone-artworks", {
+    clientId: required(formData, "clientId"),
+    designerId,
+    title: required(formData, "title"),
+    briefing: required(formData, "briefing"),
+    contentType: required(formData, "contentType"),
+    formatLabel:
+      String(formData.get("formatLabel") ?? "").trim() || undefined,
+    quantity: Number(required(formData, "quantity")),
+    effortPoints: Number(required(formData, "effortPoints")),
+    priority: required(formData, "priority"),
+    dueAt:
+      String(formData.get("dueAt") ?? "").trim() || undefined,
+    nextcloudPath:
+      String(formData.get("nextcloudPath") ?? "").trim() || undefined,
+  });
+
+  revalidatePath("/artes-avulsas");
+  revalidatePath("/produtividade");
+  redirect("/artes-avulsas");
+}
+
+export async function updateStandaloneArtworkStatus(formData: FormData) {
+  await requireDesigner();
+  const id = required(formData, "id");
+
+  await adminPatch(
+    `/api/admin/standalone-artworks/${encodeURIComponent(id)}/status`,
+    {
+      status: required(formData, "status"),
+      nextcloudPath:
+        String(formData.get("nextcloudPath") ?? "").trim() || undefined,
+    },
+  );
+
+  revalidatePath("/artes-avulsas");
+  revalidatePath("/produtividade");
+}
+
 export async function createContentFormat(formData: FormData) {
   await requireRole("ADMIN", "DEV");
 
