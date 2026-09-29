@@ -24,6 +24,7 @@ import { NextcloudService } from "../nextcloud/nextcloud.service";
 import { PrismaService } from "../prisma.service";
 import {
   AssignClientDto,
+  AssignDemandDesignerDto,
   AttachArtworkDto,
   CreateBriefingTemplateDto,
   CreateCalendarDto,
@@ -1427,6 +1428,141 @@ export class AdminService {
     });
 
     return this.getCalendar(actor, calendarId);
+  }
+
+  async assignContentDemandDesigner(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: AssignDemandDesignerDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        title: true,
+        calendarId: true,
+        productionDesignerId: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    const calendar = await this.assertCalendarAccess(actor, item.calendarId);
+
+    if (!calendar.client.active || calendar.archivedAt) {
+      throw new BadRequestException(
+        "O cliente e o calendário precisam estar ativos para atribuir a demanda."
+      );
+    }
+
+    const designerId =
+      actor.role === UserRole.DESIGNER ? actor.id : dto.designerId;
+
+    const target = await this.prisma.designer.findFirst({
+      where: {
+        id: designerId,
+        role: UserRole.DESIGNER,
+        active: true
+      },
+      select: { id: true, name: true }
+    });
+
+    if (!target) {
+      throw new BadRequestException("Selecione um designer ativo.");
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: { productionDesignerId: target.id },
+      select: {
+        id: true,
+        title: true,
+        productionDesignerId: true,
+        stage: true
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "CONTENT_DESIGNER_ASSIGNED",
+      entityType: "ContentItem",
+      entityId: contentItemId,
+      summary: `Peça "${updated.title}" atribuída a ${target.name}.`
+    });
+
+    return {
+      ...updated,
+      designer: target
+    };
+  }
+
+  async assignStandaloneArtworkDesigner(
+    actor: InternalActor,
+    id: string,
+    dto: AssignDemandDesignerDto
+  ) {
+    const artwork = await this.prisma.standaloneArtwork.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        designerId: true,
+        clientId: true,
+        status: true
+      }
+    });
+
+    if (!artwork) {
+      throw new NotFoundException("Arte avulsa não encontrada.");
+    }
+
+    if (
+      actor.role === UserRole.DESIGNER &&
+      artwork.designerId !== actor.id
+    ) {
+      throw new ForbiddenException("Esta demanda não está atribuída a você.");
+    }
+
+    if (artwork.status === StandaloneArtworkStatus.DELIVERED) {
+      throw new BadRequestException(
+        "Uma demanda entregue não pode ser reatribuída."
+      );
+    }
+
+    const designerId =
+      actor.role === UserRole.DESIGNER ? actor.id : dto.designerId;
+
+    const target = await this.prisma.designer.findFirst({
+      where: {
+        id: designerId,
+        role: UserRole.DESIGNER,
+        active: true
+      },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!target) {
+      throw new BadRequestException("Selecione um designer ativo.");
+    }
+
+    const updated = await this.prisma.standaloneArtwork.update({
+      where: { id },
+      data: { designerId: target.id },
+      include: {
+        client: { select: { id: true, name: true, nextcloudPath: true } },
+        designer: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "STANDALONE_ARTWORK_DESIGNER_ASSIGNED",
+      entityType: "StandaloneArtwork",
+      entityId: id,
+      summary: `Arte avulsa "${updated.title}" atribuída a ${target.name}.`
+    });
+
+    return updated;
   }
 
   async updateContentProductionStage(
