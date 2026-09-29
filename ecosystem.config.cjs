@@ -2,9 +2,9 @@ module.exports = {
   apps: [
     {
       name: "approve-api",
-      cwd: __dirname,
-      script: "pnpm",
-      args: "--filter @approve/api start:prod",
+      cwd: require("node:path").join(__dirname, "apps", "api"),
+      script: "dist/main.js",
+      interpreter: "node",
       env: {
         NODE_ENV: "production",
         API_PORT: 3333
@@ -12,9 +12,10 @@ module.exports = {
     },
     {
       name: "approve-web",
-      cwd: __dirname,
-      script: "pnpm",
-      args: "--filter @approve/web start",
+      cwd: require("node:path").join(__dirname, "apps", "web"),
+      script: "scripts/next.mjs",
+      args: "start",
+      interpreter: "node",
       env: {
         NODE_ENV: "production",
         WEB_PORT: 3000
