@@ -13,6 +13,7 @@ import { AppShell } from "../../components/app-shell";
 import { requireDesigner } from "../../lib/auth";
 import {
   getAccessibleClients,
+  getDesigners,
   getStandaloneArtworks,
   type ContentItem
 } from "../../lib/api";
@@ -66,11 +67,23 @@ function slaState(value: string | null) {
   };
 }
 
-export default async function ProductionPage() {
+export default async function ProductionPage({
+  searchParams
+}: {
+  searchParams: Promise<{
+    client?: string;
+    designer?: string;
+    source?: string;
+    sla?: string;
+    state?: string;
+  }>;
+}) {
   const designer = await requireDesigner();
-  const [clients, standalone] = await Promise.all([
+  const filters = await searchParams;
+  const [clients, standalone, designers] = await Promise.all([
     getAccessibleClients(designer),
-    getStandaloneArtworks()
+    getStandaloneArtworks(),
+    designer.role === "DESIGNER" ? Promise.resolve([]) : getDesigners()
   ]);
 
   const calendarDemands = clients.flatMap((client) =>
@@ -92,6 +105,9 @@ export default async function ProductionPage() {
           inProgress: item.stage === "DESIGN_IN_PROGRESS",
           points: item.effortPoints || 1,
           quantity: 1,
+          clientId: client.id,
+          designerId: client.assignedDesignerId,
+          priority: "NORMAL",
           dueAt: calendar.artworkDueAt,
           href: `/calendars/${calendar.id}/content/${item.id}/artwork`,
           action: item.assets.length > 0 ? "Abrir arte" : "Produzir"
@@ -112,16 +128,38 @@ export default async function ProductionPage() {
       inProgress: artwork.status === "IN_PRODUCTION",
       points: artwork.effortPoints,
       quantity: artwork.quantity,
+      clientId: artwork.clientId,
+      designerId: artwork.designerId,
+      priority: artwork.priority,
       dueAt: artwork.dueAt,
       href: "/artes-avulsas",
       action: "Abrir demanda"
     }));
 
-  const queue = [...calendarDemands, ...standaloneDemands]
+  const allDemands = [...calendarDemands, ...standaloneDemands]
     .map((demand) => ({
       ...demand,
       sla: slaState(demand.dueAt)
-    }))
+    }));
+
+  const queue = allDemands
+    .filter((demand) => !filters.client || demand.clientId === filters.client)
+    .filter(
+      (demand) => !filters.designer || demand.designerId === filters.designer
+    )
+    .filter(
+      (demand) => !filters.source || demand.source === filters.source
+    )
+    .filter((demand) => !filters.sla || demand.sla.key === filters.sla)
+    .filter((demand) => {
+      if (!filters.state) return true;
+      if (filters.state === "changes") return demand.changes;
+      if (filters.state === "production") return demand.inProgress;
+      if (filters.state === "waiting") {
+        return !demand.changes && !demand.inProgress;
+      }
+      return true;
+    })
     .sort((a, b) => {
       if (a.sla.order !== b.sla.order) return a.sla.order - b.sla.order;
       const ad = a.dueAt ? new Date(a.dueAt).getTime() : Number.MAX_SAFE_INTEGER;
@@ -146,6 +184,58 @@ export default async function ProductionPage() {
           </p>
         </div>
       </header>
+
+      <form className="demand-filters" method="get">
+        <label>
+          <span>Cliente</span>
+          <select name="client" defaultValue={filters.client ?? ""}>
+            <option value="">Todos</option>
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>{client.name}</option>
+            ))}
+          </select>
+        </label>
+        {designer.role !== "DESIGNER" ? (
+          <label>
+            <span>Designer</span>
+            <select name="designer" defaultValue={filters.designer ?? ""}>
+              <option value="">Todos</option>
+              {designers.map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <label>
+          <span>Origem</span>
+          <select name="source" defaultValue={filters.source ?? ""}>
+            <option value="">Todas</option>
+            <option value="calendar">Calendário</option>
+            <option value="standalone">Arte avulsa</option>
+          </select>
+        </label>
+        <label>
+          <span>SLA</span>
+          <select name="sla" defaultValue={filters.sla ?? ""}>
+            <option value="">Todos</option>
+            <option value="overdue">Atrasadas</option>
+            <option value="risk">Em risco</option>
+            <option value="on-time">No prazo</option>
+            <option value="no-deadline">Sem prazo</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="state" defaultValue={filters.state ?? ""}>
+            <option value="">Todos</option>
+            <option value="waiting">Aguardando</option>
+            <option value="production">Em produção</option>
+            <option value="changes">Alterações</option>
+          </select>
+        </label>
+        <button className="button button-dark" type="submit">Filtrar</button>
+        <Link className="button button-ghost" href="/producao">Limpar</Link>
+      </form>
 
       <section className="production-summary">
         <article className={overdue ? "danger" : ""}>
