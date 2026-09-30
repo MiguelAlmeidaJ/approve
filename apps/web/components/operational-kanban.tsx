@@ -161,6 +161,13 @@ function priorityLabel(score: number) {
   return "Normal";
 }
 
+function priorityTone(score: number) {
+  if (score >= 100) return "critical";
+  if (score >= 65) return "high";
+  if (score >= 35) return "medium";
+  return "normal";
+}
+
 export function OperationalKanban({
   initialCards,
   designers,
@@ -494,7 +501,7 @@ export function OperationalKanban({
 
               return (
                 <article
-                  className={`kanban-focus-item priority-${priorityLabel(score).toLowerCase()}`}
+                  className={`kanban-focus-item priority-${priorityTone(score)}`}
                   key={`focus-${card.source}-${card.id}`}
                 >
                   <span className="kanban-focus-rank">{index + 1}</span>
@@ -652,7 +659,7 @@ export function OperationalKanban({
 
                         <div className="kanban-card-meta">
                           <span
-                            className={`kanban-operational-priority priority-${priorityLabel(score).toLowerCase()}`}
+                            className={`kanban-operational-priority priority-${priorityTone(score)}`}
                           >
                             {priorityLabel(score)}
                           </span>
