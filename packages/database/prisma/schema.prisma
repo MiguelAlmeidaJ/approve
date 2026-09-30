@@ -317,6 +317,7 @@ model ContentItem {
   artworkVersion   Int           @default(0)
   effortPoints     Int           @default(1)
   productionDesignerId String?
+  plannedProductionDate DateTime?
   sortOrder        Int           @default(0)
   reviewedAt       DateTime?
   planningApprovedAt DateTime?
@@ -344,6 +345,7 @@ model ContentItem {
   @@index([calendarId, scheduledAt])
   @@index([formatId])
   @@index([productionDesignerId])
+  @@index([plannedProductionDate])
   @@index([status])
   @@index([stage])
 }
@@ -487,6 +489,7 @@ model StandaloneArtwork {
   priority    ArtworkPriority         @default(NORMAL)
   status      StandaloneArtworkStatus @default(REQUESTED)
   dueAt       DateTime?
+  plannedProductionDate DateTime?
   nextcloudPath String?               @db.Text
   revisionCount Int                   @default(0)
   startedAt   DateTime?
@@ -500,5 +503,6 @@ model StandaloneArtwork {
   @@index([clientId, status])
   @@index([designerId, status])
   @@index([dueAt])
+  @@index([plannedProductionDate])
   @@index([completedAt])
 }
