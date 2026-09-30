@@ -3127,15 +3127,13 @@ export class AdminService {
     const generatedNextcloudPath =
       `/Artes avulsas/${year}/${month}/${folderName}`;
 
-    const nextcloudPath = this.nextcloud.isConfigured()
-      ? (
-          await this.nextcloud.ensureFolderForActor(
-            actor,
-            client.id,
-            generatedNextcloudPath
-          )
-        ).path
-      : null;
+    const nextcloudPath = (
+      await this.nextcloud.ensureFolderForActor(
+        actor,
+        client.id,
+        generatedNextcloudPath
+      )
+    ).path;
 
     const artwork = await this.prisma.standaloneArtwork.create({
       data: {
