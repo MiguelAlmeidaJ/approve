@@ -36,6 +36,7 @@ import {
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
   UpdateContentProductionStageDto,
+  UpdateDemandPlannedDateDto,
   UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -186,6 +187,19 @@ export class AdminController {
     @Body() dto: CreateStandaloneArtworkDto
   ) {
     return this.adminService.createStandaloneArtwork(request.actor, dto);
+  }
+
+  @Patch("standalone-artworks/:id/planned-production-date")
+  updateStandalonePlannedProductionDate(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateDemandPlannedDateDto
+  ) {
+    return this.adminService.updateStandalonePlannedProductionDate(
+      request.actor,
+      id,
+      dto
+    );
   }
 
   @Patch("standalone-artworks/:id/designer")
@@ -380,6 +394,19 @@ export class AdminController {
     @Param("id") id: string
   ) {
     return this.adminService.submitPlanning(request.actor, id);
+  }
+
+  @Patch("items/:id/planned-production-date")
+  updateContentPlannedProductionDate(
+    @Req() request: InternalActorRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateDemandPlannedDateDto
+  ) {
+    return this.adminService.updateContentPlannedProductionDate(
+      request.actor,
+      id,
+      dto
+    );
   }
 
   @Patch("items/:id/designer")
