@@ -6,14 +6,16 @@ import {
   FiPlus,
   FiRefreshCw
 } from "react-icons/fi";
-import { createStandaloneArtwork } from "../actions";
 import { AppShell } from "../../components/app-shell";
+import { StandaloneArtworkCreateForm } from "../../components/standalone-artwork-create-form";
 import { StandaloneArtworkStatusForm } from "../../components/standalone-artwork-status";
 import { requireDesigner } from "../../lib/auth";
 import {
   getAccessibleClients,
+  getClientContractUsage,
   getDesigners,
   getStandaloneArtworks,
+  type ContractUsage,
   type StandaloneArtworkStatus
 } from "../../lib/api";
 
@@ -50,6 +52,72 @@ export default async function StandaloneArtworksPage() {
     designer.role === "DESIGNER" ? Promise.resolve([]) : getDesigners(),
     getStandaloneArtworks()
   ]);
+
+  const contractUsage = (
+    await Promise.all(
+      clients.map((client) => getClientContractUsage(client.id))
+    )
+  ).filter(Boolean) as ContractUsage[];
+
+  const team =
+    designer.role === "DESIGNER"
+      ? [
+          {
+            id: designer.id,
+            name: designer.name,
+            weeklyCapacityPoints: designer.weeklyCapacityPoints ?? 30
+          }
+        ]
+      : designers
+          .filter((item) => item.role === "DESIGNER" && item.active)
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            weeklyCapacityPoints: item.weeklyCapacityPoints ?? 30
+          }));
+
+  const activeCalendarStages = [
+    "DESIGN_PENDING",
+    "DESIGN_IN_PROGRESS",
+    "ART_CHANGES_REQUESTED"
+  ];
+  const designerLoad = team.map((item) => {
+    const calendarPoints = clients.reduce(
+      (clientSum, client) =>
+        clientSum +
+        client.calendars.reduce(
+          (calendarSum, calendar) =>
+            calendarSum +
+            calendar.contentItems
+              .filter(
+                (content) =>
+                  activeCalendarStages.includes(content.stage) &&
+                  (content.productionDesignerId ??
+                    client.assignedDesignerId) === item.id
+              )
+              .reduce(
+                (sum, content) => sum + (content.effortPoints || 1),
+                0
+              ),
+          0
+        ),
+      0
+    );
+    const standalonePoints = artworks
+      .filter(
+        (artwork) =>
+          artwork.designerId === item.id &&
+          !["DELIVERED", "CANCELLED"].includes(artwork.status)
+      )
+      .reduce((sum, artwork) => sum + artwork.effortPoints, 0);
+
+    return {
+      id: item.id,
+      name: item.name,
+      usedPoints: calendarPoints + standalonePoints,
+      capacityPoints: item.weeklyCapacityPoints
+    };
+  });
 
   const open = artworks.filter(
     (artwork) => !["DELIVERED", "CANCELLED"].includes(artwork.status)
@@ -93,110 +161,21 @@ export default async function StandaloneArtworksPage() {
       </section>
 
       <section className="standalone-layout">
-        <form action={createStandaloneArtwork} className="standalone-form-card">
-          <div className="section-heading">
-            <div>
-              <span className="micro-label">NOVA DEMANDA</span>
-              <h2>Criar arte avulsa</h2>
-            </div>
-            <FiPlus />
-          </div>
-
-          <label className="field">
-            <span>Cliente</span>
-            <select name="clientId" required defaultValue="">
-              <option value="" disabled>Selecione</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>{client.name}</option>
-              ))}
-            </select>
-          </label>
-
-          {designer.role === "DESIGNER" ? (
-            <input type="hidden" name="designerId" value={designer.id} />
-          ) : (
-            <label className="field">
-              <span>Designer responsável</span>
-              <select name="designerId" required defaultValue="">
-                <option value="" disabled>Selecione</option>
-                {designers
-                  .filter((item) => item.role === "DESIGNER" && item.active)
-                  .map((item) => (
-                    <option key={item.id} value={item.id}>{item.name}</option>
-                  ))}
-              </select>
-            </label>
-          )}
-
-          <label className="field">
-            <span>Título</span>
-            <input name="title" required placeholder="Ex.: Banner campanha de setembro" />
-          </label>
-
-          <label className="field">
-            <span>Briefing</span>
-            <textarea
-              name="briefing"
-              required
-              rows={5}
-              placeholder="Objetivo, mensagem, referências e orientações."
-            />
-          </label>
-
-          <div className="standalone-form-grid">
-            <label className="field">
-              <span>Tipo</span>
-              <select name="contentType" defaultValue="POST">
-                <option value="POST">Post</option>
-                <option value="CAROUSEL">Carrossel</option>
-                <option value="REEL">Reel</option>
-                <option value="STORY">Story</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Formato</span>
-              <input name="formatLabel" placeholder="1080x1350" />
-            </label>
-
-            <label className="field">
-              <span>Quantidade</span>
-              <input type="number" min="1" max="50" name="quantity" defaultValue="1" required />
-            </label>
-
-            <label className="field">
-              <span>Pontos</span>
-              <input type="number" min="1" max="200" name="effortPoints" defaultValue="1" required />
-            </label>
-
-            <label className="field">
-              <span>Prioridade</span>
-              <select name="priority" defaultValue="NORMAL">
-                <option value="LOW">Baixa</option>
-                <option value="NORMAL">Normal</option>
-                <option value="HIGH">Alta</option>
-                <option value="URGENT">Urgente</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Prazo</span>
-              <input type="datetime-local" name="dueAt" />
-            </label>
-          </div>
-
-          <label className="field">
-            <span>Pasta/arquivo no Nextcloud (opcional)</span>
-            <input
-              name="nextcloudPath"
-              placeholder="Ex.: /Artes avulsas/Setembro/banner-final.psd"
-            />
-          </label>
-
-          <button className="button button-primary button-wide" type="submit">
-            <FiPlus /> Criar demanda
-          </button>
-        </form>
+        <StandaloneArtworkCreateForm
+          clients={clients.map((client) => ({
+            id: client.id,
+            name: client.name,
+            assignedDesignerId: client.assignedDesignerId,
+            defaultStandaloneSlaHours: client.defaultStandaloneSlaHours
+          }))}
+          designers={designerLoad}
+          contractUsage={contractUsage}
+          actor={{
+            id: designer.id,
+            name: designer.name,
+            role: designer.role
+          }}
+        />
 
         <section className="standalone-list-card">
           <div className="section-heading">
