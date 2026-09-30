@@ -16174,3 +16174,329 @@ body::-webkit-scrollbar,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Help: points and capacity */
+.points-help-hero {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.points-help-hero article,
+.points-help-card,
+.points-help-final {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+}
+
+.points-help-hero article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 18px;
+}
+
+.points-help-hero svg {
+  margin-top: 2px;
+  color: var(--pink);
+  font-size: 20px;
+}
+
+.points-help-hero article > div {
+  display: grid;
+  gap: 5px;
+}
+
+.points-help-hero span {
+  color: #9a969b;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+
+.points-help-hero strong {
+  color: #242126;
+  font-size: 13px;
+}
+
+.points-help-hero p,
+.points-help-card p,
+.points-reference-note p,
+.points-help-final p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.points-help-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.points-help-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.points-help-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.points-help-card-head svg {
+  color: var(--pink);
+  font-size: 18px;
+}
+
+.points-help-card-head h2,
+.points-help-section h2 {
+  margin: 0 0 4px;
+  color: #262328;
+  font-size: 14px;
+}
+
+.points-capacity-examples {
+  display: grid;
+  gap: 8px;
+}
+
+.points-capacity-examples > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid #ece9e7;
+  border-radius: 10px;
+  background: #faf9f8;
+}
+
+.points-capacity-examples > div > div {
+  display: grid;
+  gap: 1px;
+}
+
+.points-capacity-examples strong {
+  font-size: 10px;
+}
+
+.points-capacity-examples small {
+  color: #8a868b;
+  font-size: 8px;
+}
+
+.points-status {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.points-status.ok {
+  background: #4f8f69;
+}
+
+.points-status.warning {
+  background: #c69a35;
+}
+
+.points-status.danger {
+  background: #c92c50;
+}
+
+.points-help-callout {
+  padding: 12px;
+  border-radius: 11px;
+  background: #faf7f2;
+  border: 1px solid #eee2cd;
+}
+
+.points-help-callout strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #6e5320;
+  font-size: 9px;
+}
+
+.points-help-section {
+  margin-bottom: 24px;
+}
+
+.points-reference-table {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.points-reference-head,
+.points-reference-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 100px minmax(240px, 1.4fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px 14px;
+}
+
+.points-reference-head {
+  background: #f7f5f3;
+  color: #8c888d;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.points-reference-row {
+  border-top: 1px solid #eeecea;
+}
+
+.points-reference-row strong {
+  color: #333036;
+  font-size: 10px;
+}
+
+.points-reference-row small {
+  color: #878388;
+  font-size: 8px;
+}
+
+.points-pill {
+  width: fit-content;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: #f2f0ee;
+  color: #575259;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.points-reference-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 9px;
+  padding: 10px 12px;
+  border: 1px solid #ece9e7;
+  border-radius: 10px;
+  background: #faf9f8;
+}
+
+.points-reference-note svg {
+  flex: 0 0 auto;
+  color: #8b681a;
+}
+
+.points-week-example {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.points-week-example > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eeecea;
+}
+
+.points-week-example > div:last-child {
+  border-bottom: 0;
+}
+
+.points-week-example span {
+  color: #68646a;
+  font-size: 9px;
+}
+
+.points-week-example strong {
+  color: #333036;
+  font-size: 9px;
+}
+
+.points-week-example .total {
+  background: #242126;
+}
+
+.points-week-example .total span,
+.points-week-example .total strong {
+  color: #fff;
+}
+
+.points-help-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #656167;
+  font-size: 9px;
+  line-height: 1.8;
+}
+
+.points-help-final {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 18px;
+}
+
+.points-help-final > svg:first-child {
+  color: var(--pink);
+  font-size: 20px;
+}
+
+.points-help-final > svg:last-child {
+  color: #4f8f69;
+  font-size: 20px;
+}
+
+.points-help-final > div {
+  display: grid;
+  gap: 3px;
+}
+
+.points-help-final strong {
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .points-help-hero,
+  .points-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .points-reference-head,
+  .points-reference-row {
+    grid-template-columns: minmax(140px, 1fr) 80px minmax(180px, 1.2fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .points-reference-head {
+    display: none;
+  }
+
+  .points-reference-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .points-reference-row small {
+    grid-column: 1 / -1;
+  }
+
+  .points-help-final {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .points-help-final > svg:last-child {
+    display: none;
+  }
+}
