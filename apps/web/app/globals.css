@@ -15234,3 +15234,193 @@ body::-webkit-scrollbar,
     justify-items: start;
   }
 }
+
+
+/* Weekly capacity planning */
+.kanban-week-plan {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e7e4e2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.kanban-week-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kanban-week-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.kanban-week-head strong {
+  color: #1f1d21;
+  font-size: 12px;
+}
+
+.kanban-week-head span,
+.kanban-week-head small {
+  color: #858186;
+  font-size: 9px;
+}
+
+.kanban-week-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.kanban-week-day {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 170px;
+  padding: 11px;
+  border: 1px solid #ebe8e5;
+  border-radius: 12px;
+  background: #faf9f8;
+}
+
+.kanban-week-day.warning {
+  border-color: #ead7a6;
+  background: #fffdf7;
+}
+
+.kanban-week-day.overloaded {
+  border-color: #efb7c5;
+  background: #fff8fa;
+}
+
+.kanban-week-day > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kanban-week-day > header > div {
+  display: grid;
+  gap: 1px;
+}
+
+.kanban-week-day > header strong {
+  color: #2a272c;
+  font-size: 10px;
+}
+
+.kanban-week-day > header span,
+.kanban-week-day > header em {
+  color: #878388;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.kanban-week-day > header em {
+  font-weight: 800;
+}
+
+.kanban-week-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9e6e3;
+}
+
+.kanban-week-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #4f8f69;
+}
+
+.kanban-week-day.warning .kanban-week-track i {
+  background: #c69a35;
+}
+
+.kanban-week-day.overloaded .kanban-week-track i {
+  background: #c92c50;
+}
+
+.kanban-week-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #858186;
+  font-size: 8px;
+}
+
+.kanban-week-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 6px 7px;
+  border-radius: 8px;
+  background: #fff0f3;
+  color: #b3294c;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.kanban-week-cards {
+  display: grid;
+  gap: 6px;
+}
+
+.kanban-week-cards > a {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid #ece9e7;
+  border-radius: 9px;
+  background: #fff;
+  text-decoration: none;
+}
+
+.kanban-week-cards > a > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kanban-week-cards > a strong {
+  overflow: hidden;
+  color: #343136;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-week-cards > a small,
+.kanban-week-cards > small {
+  color: #969297;
+  font-size: 7px;
+}
+
+.kanban-week-cards > a em {
+  color: #69656b;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .kanban-week-grid {
+    grid-template-columns: repeat(5, 190px);
+  }
+}
+
+@media (max-width: 700px) {
+  .kanban-week-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
