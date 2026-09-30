@@ -15757,3 +15757,188 @@ body::-webkit-scrollbar,
     flex-direction: column;
   }
 }
+
+
+/* Operational alerts */
+.kanban-operational-alerts {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e7e4e2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.kanban-operational-alerts.has-critical {
+  border-color: #efb7c5;
+  background: #fffafb;
+}
+
+.kanban-operational-alerts.has-warning {
+  border-color: #ead7a6;
+  background: #fffdf8;
+}
+
+.kanban-operational-alerts.is-clear {
+  border-color: #cfe3d6;
+  background: #fbfefc;
+}
+
+.kanban-alerts-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kanban-alerts-head > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.kanban-alerts-head strong {
+  color: #1f1d21;
+  font-size: 12px;
+}
+
+.kanban-alerts-head span {
+  color: #858186;
+  font-size: 9px;
+}
+
+.kanban-alerts-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.kanban-alerts-summary span {
+  padding: 5px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.kanban-alerts-summary .critical {
+  background: #fff0f3;
+  color: #b3294c;
+}
+
+.kanban-alerts-summary .warning {
+  background: #fff5dc;
+  color: #8a6818;
+}
+
+.kanban-alerts-clear {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid #dcebe1;
+  border-radius: 11px;
+  background: #fff;
+  color: #397153;
+}
+
+.kanban-alerts-clear > span {
+  display: grid;
+  gap: 2px;
+}
+
+.kanban-alerts-clear strong {
+  font-size: 10px;
+}
+
+.kanban-alerts-clear small {
+  color: #75897d;
+  font-size: 8px;
+}
+
+.kanban-alerts-list {
+  display: grid;
+  gap: 7px;
+}
+
+.kanban-alert-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid #ece9e7;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.kanban-alert-item > svg {
+  flex: 0 0 auto;
+}
+
+.kanban-alert-item > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kanban-alert-item strong {
+  color: #343136;
+  font-size: 9px;
+}
+
+.kanban-alert-item span {
+  overflow: hidden;
+  color: #858186;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-alert-item > a {
+  color: #2c292e;
+  font-size: 8px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.kanban-alert-item.critical {
+  border-color: #f0c3ce;
+  background: #fff7f9;
+  color: #b3294c;
+}
+
+.kanban-alert-item.warning {
+  border-color: #ead9ad;
+  background: #fffdf8;
+  color: #946e18;
+}
+
+.kanban-alert-item.info {
+  color: #516a95;
+}
+
+.kanban-alerts-more {
+  color: #858186;
+  font-size: 8px;
+  font-weight: 700;
+  text-align: right;
+}
+
+@media (max-width: 700px) {
+  .kanban-alerts-head {
+    flex-direction: column;
+  }
+
+  .kanban-alerts-summary {
+    justify-content: flex-start;
+  }
+
+  .kanban-alert-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .kanban-alert-item > a {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
