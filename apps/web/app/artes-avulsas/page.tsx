@@ -3,7 +3,6 @@ import {
   FiCheckCircle,
   FiClock,
   FiImage,
-  FiPlus,
   FiRefreshCw
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
