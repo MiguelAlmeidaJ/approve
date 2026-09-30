@@ -184,29 +184,28 @@ export class NextcloudService {
     clientDirectory: string,
     relativePath: string
   ) {
-    const normalized = this.normalizeRelativePath(relativePath);
-
-    if (normalized === "/") {
-      return;
-    }
+    const directory = this.normalizeRelativePath(clientDirectory);
+    const relative = this.normalizeRelativePath(relativePath);
 
     this.assertConfigured();
-    const segments = normalized.split("/").filter(Boolean);
+    const segments = [
+      ...directory.split("/").filter(Boolean),
+      ...relative.split("/").filter(Boolean)
+    ];
     let current = "";
 
     for (const segment of segments) {
       current = `${current}/${segment}`;
-      const storedPath = this.clientStoredPath(
-        this.normalizeRelativePath(clientDirectory),
-        this.normalizeRelativePath(current)
+      const response = await fetch(
+        this.davUrl(this.normalizeRelativePath(current)),
+        {
+          method: "MKCOL",
+          headers: {
+            authorization: this.authorization()
+          },
+          cache: "no-store"
+        }
       );
-      const response = await fetch(this.davUrl(storedPath), {
-        method: "MKCOL",
-        headers: {
-          authorization: this.authorization()
-        },
-        cache: "no-store"
-      });
 
       // 201 = criada; 405 = já existe.
       if (!response.ok && response.status !== 405) {
