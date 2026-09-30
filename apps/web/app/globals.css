@@ -15520,3 +15520,240 @@ body::-webkit-scrollbar,
 .kanban-week-cards > a[draggable="true"]:active {
   cursor: grabbing;
 }
+
+
+/* Designer weekly agenda */
+.kanban-designer-agenda {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e7e4e2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.kanban-agenda-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kanban-agenda-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.kanban-agenda-head strong {
+  color: #1f1d21;
+  font-size: 12px;
+}
+
+.kanban-agenda-head span,
+.kanban-agenda-head small {
+  color: #858186;
+  font-size: 9px;
+}
+
+.kanban-agenda-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.kanban-agenda-grid {
+  display: grid;
+  grid-template-columns: 170px repeat(5, minmax(180px, 1fr));
+  min-width: 1080px;
+  border: 1px solid #ebe8e5;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.kanban-agenda-corner,
+.kanban-agenda-day-head,
+.kanban-agenda-designer,
+.kanban-agenda-cell {
+  min-height: 72px;
+  border-right: 1px solid #ebe8e5;
+  border-bottom: 1px solid #ebe8e5;
+}
+
+.kanban-agenda-corner {
+  display: flex;
+  align-items: end;
+  padding: 10px 12px;
+  background: #f6f4f2;
+}
+
+.kanban-agenda-corner span {
+  color: #7c787d;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.kanban-agenda-day-head {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px;
+  background: #f6f4f2;
+}
+
+.kanban-agenda-day-head strong {
+  color: #2b282d;
+  font-size: 10px;
+}
+
+.kanban-agenda-day-head span {
+  color: #8d898e;
+  font-size: 8px;
+}
+
+.kanban-agenda-designer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #fbfaf9;
+}
+
+.kanban-agenda-designer > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.kanban-agenda-designer svg {
+  flex: 0 0 auto;
+  color: #777379;
+}
+
+.kanban-agenda-designer span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kanban-agenda-designer strong {
+  overflow: hidden;
+  color: #343136;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-agenda-designer small {
+  color: #939095;
+  font-size: 8px;
+}
+
+.kanban-agenda-cell {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 8px;
+  background: #fff;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+
+.kanban-agenda-cell:hover {
+  background: #faf9f8;
+  box-shadow: inset 0 0 0 1px #ddd9d6;
+}
+
+.kanban-agenda-cell.warning {
+  background: #fffdf7;
+}
+
+.kanban-agenda-cell.overloaded {
+  background: #fff7f9;
+}
+
+.kanban-agenda-cell-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: #858186;
+  font-size: 8px;
+}
+
+.kanban-agenda-cell-head em {
+  font-style: normal;
+  font-weight: 800;
+}
+
+.kanban-agenda-cell-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece9e7;
+}
+
+.kanban-agenda-cell-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #4f8f69;
+}
+
+.kanban-agenda-cell.warning .kanban-agenda-cell-track i {
+  background: #c69a35;
+}
+
+.kanban-agenda-cell.overloaded .kanban-agenda-cell-track i {
+  background: #c92c50;
+}
+
+.kanban-agenda-items {
+  display: grid;
+  gap: 5px;
+}
+
+.kanban-agenda-items > small {
+  color: #aaa6aa;
+  font-size: 8px;
+}
+
+.kanban-agenda-item {
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  border: 1px solid #e9e6e3;
+  border-radius: 8px;
+  background: #fff;
+  text-decoration: none;
+  cursor: grab;
+}
+
+.kanban-agenda-item:hover {
+  border-color: #d7d2ce;
+}
+
+.kanban-agenda-item.fixed {
+  border-left: 3px solid #4f8f69;
+}
+
+.kanban-agenda-item.suggested {
+  border-left: 3px dashed #b7b2ae;
+}
+
+.kanban-agenda-item strong {
+  overflow: hidden;
+  color: #343136;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-agenda-item span {
+  color: #8b878c;
+  font-size: 7px;
+}
+
+@media (max-width: 700px) {
+  .kanban-agenda-head {
+    flex-direction: column;
+  }
+}
