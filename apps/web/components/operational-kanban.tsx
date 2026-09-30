@@ -596,7 +596,13 @@ export function OperationalKanban({
         const changingDesigner = slot.id !== card.designerId;
         if (changingDesigner && !canReassign) return null;
 
-        const projected = slot.used + card.points;
+        const alreadyInSlot = slot.cards.some(
+          (item) =>
+            item.id === card.id && item.source === card.source
+        )
+          ? card.points
+          : 0;
+        const projected = slot.used - alreadyInSlot + card.points;
         const ratio =
           slot.capacity > 0
             ? projected / slot.capacity
@@ -973,7 +979,81 @@ export function OperationalKanban({
   function autoResolveConflicts() {
     if (!canReassign) return;
 
-    const affectedKeys = new Set(
+    const load = new Map<string, number>();
+    for (const day of weeklyPlan) {
+      for (const slot of day.perDesigner) {
+        load.set(
+          `${slot.id}:${dateOnlyKey(day.date)}`,
+          slot.used
+        );
+      }
+    }
+
+    const operations: Array<{
+      id: string;
+      source: "calendar" | "standalone";
+      designerId?: string;
+      plannedProductionDate: string;
+    }> = [];
+    const handled = new Set<string>();
+
+    function choosePlacement(card: OperationalKanbanCard) {
+      const candidateDays = weeklyPlan.filter((day) => {
+        if (!card.dueAt) return true;
+        const due = new Date(card.dueAt);
+        due.setHours(23, 59, 59, 999);
+        return day.date.getTime() <= due.getTime();
+      });
+      const days =
+        candidateDays.length > 0 ? candidateDays : weeklyPlan;
+
+      return days
+        .flatMap((day) =>
+          day.perDesigner.map((slot) => {
+            const changingDesigner = slot.id !== card.designerId;
+            const key = `${slot.id}:${dateOnlyKey(day.date)}`;
+            const currentLoad = load.get(key) ?? 0;
+            const sourceSlot = slot.cards.some(
+              (item) =>
+                item.id === card.id && item.source === card.source
+            );
+            const adjustedLoad = sourceSlot
+              ? Math.max(0, currentLoad - card.points)
+              : currentLoad;
+            const projected = adjustedLoad + card.points;
+            const ratio =
+              slot.capacity > 0
+                ? projected / slot.capacity
+                : Number.POSITIVE_INFINITY;
+
+            return {
+              designerId: slot.id,
+              date: day.date,
+              key,
+              sourceSlot,
+              adjustedLoad,
+              projected,
+              capacity: slot.capacity,
+              ratio,
+              changingDesigner
+            };
+          })
+        )
+        .sort((a, b) => {
+          const aFits = a.projected <= a.capacity ? 0 : 1;
+          const bFits = b.projected <= b.capacity ? 0 : 1;
+          const aSame = a.designerId === card.designerId ? 0 : 1;
+          const bSame = b.designerId === card.designerId ? 0 : 1;
+          return (
+            aFits - bFits ||
+            aSame - bSame ||
+            a.ratio - b.ratio ||
+            a.date.getTime() - b.date.getTime()
+          );
+        })[0] ?? null;
+    }
+
+    const alertKeys = new Set(
       operationalAlerts
         .filter(
           (alert) =>
@@ -989,28 +1069,99 @@ export function OperationalKanban({
         .map((alert) => alert.cardKey as string)
     );
 
-    const operations = [...affectedKeys]
-      .map((key) => {
-        const [source, id] = key.split(":");
-        const card = cards.find(
-          (item) => item.source === source && item.id === id
-        );
-        if (!card || card.column === "DONE") return null;
+    const prioritized = rankedCards.filter((card) =>
+      alertKeys.has(`${card.source}:${card.id}`)
+    );
 
-        const placement = recommendedPlacementFor(card);
-        if (!placement) return null;
+    for (const card of prioritized) {
+      const cardKey = `${card.source}:${card.id}`;
+      if (handled.has(cardKey) || card.column === "DONE") continue;
 
-        return {
-          id: card.id,
-          source: card.source,
-          designerId:
-            placement.designerId !== card.designerId
-              ? placement.designerId
-              : undefined,
-          plannedProductionDate: dateOnlyKey(placement.date)
-        };
-      })
-      .filter(Boolean);
+      const placement = choosePlacement(card);
+      if (!placement) continue;
+
+      for (const day of weeklyPlan) {
+        for (const slot of day.perDesigner) {
+          if (
+            slot.cards.some(
+              (item) =>
+                item.id === card.id && item.source === card.source
+            )
+          ) {
+            const oldKey = `${slot.id}:${dateOnlyKey(day.date)}`;
+            load.set(
+              oldKey,
+              Math.max(0, (load.get(oldKey) ?? 0) - card.points)
+            );
+          }
+        }
+      }
+      load.set(placement.key, placement.projected);
+
+      operations.push({
+        id: card.id,
+        source: card.source,
+        designerId:
+          placement.designerId !== card.designerId
+            ? placement.designerId
+            : undefined,
+        plannedProductionDate: dateOnlyKey(placement.date)
+      });
+      handled.add(cardKey);
+    }
+
+    for (const day of weeklyPlan) {
+      for (const slot of day.perDesigner) {
+        const slotKey = `${slot.id}:${dateOnlyKey(day.date)}`;
+        let currentLoad = load.get(slotKey) ?? 0;
+
+        if (currentLoad <= slot.capacity) continue;
+
+        const movable = [...slot.cards]
+          .filter((card) => card.column !== "DONE")
+          .sort(
+            (a, b) =>
+              a.operationalScore - b.operationalScore
+          );
+
+        for (const card of movable) {
+          if (currentLoad <= slot.capacity) break;
+          const cardKey = `${card.source}:${card.id}`;
+          if (handled.has(cardKey)) continue;
+
+          load.set(
+            slotKey,
+            Math.max(0, currentLoad - card.points)
+          );
+          const placement = choosePlacement(card);
+
+          if (
+            !placement ||
+            (
+              placement.designerId === slot.id &&
+              dateOnlyKey(placement.date) === dateOnlyKey(day.date)
+            )
+          ) {
+            load.set(slotKey, currentLoad);
+            continue;
+          }
+
+          load.set(placement.key, placement.projected);
+          currentLoad = Math.max(0, currentLoad - card.points);
+
+          operations.push({
+            id: card.id,
+            source: card.source,
+            designerId:
+              placement.designerId !== card.designerId
+                ? placement.designerId
+                : undefined,
+            plannedProductionDate: dateOnlyKey(placement.date)
+          });
+          handled.add(cardKey);
+        }
+      }
+    }
 
     if (operations.length === 0) {
       setError("Não há conflitos com solução automática disponível.");
@@ -1034,7 +1185,6 @@ export function OperationalKanban({
       }
     });
   }
-
 
 
   return (
@@ -1133,7 +1283,8 @@ export function OperationalKanban({
                           )
                         }
                       >
-                        Replanejar
+                        Replanejar → {placement.designerName}{" "}
+                        {shortWeekday(placement.date)}
                       </button>
                     ) : null;
                   })() : null}
