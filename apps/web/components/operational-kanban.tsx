@@ -168,6 +168,38 @@ function priorityTone(score: number) {
   return "normal";
 }
 
+function nextBusinessDays(count = 5) {
+  const days: Date[] = [];
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+
+  while (days.length < count) {
+    const weekday = cursor.getDay();
+    if (weekday !== 0 && weekday !== 6) {
+      days.push(new Date(cursor));
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return days;
+}
+
+function shortWeekday(value: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short"
+  })
+    .format(value)
+    .replace(".", "")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function shortDate(value: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit"
+  }).format(value);
+}
+
 export function OperationalKanban({
   initialCards,
   designers,
@@ -249,6 +281,112 @@ export function OperationalKanban({
         .slice(0, 5),
     [rankedCards]
   );
+
+  const weeklyPlan = useMemo(() => {
+    const days = nextBusinessDays(5);
+    const slots = new Map<
+      string,
+      Array<{
+        date: Date;
+        capacity: number;
+        used: number;
+        cards: Array<
+          OperationalKanbanCard & { operationalScore: number }
+        >;
+      }>
+    >();
+
+    for (const item of capacityState) {
+      slots.set(
+        item.id,
+        days.map((date) => ({
+          date,
+          capacity: item.capacityPoints / 5,
+          used: 0,
+          cards: []
+        }))
+      );
+    }
+
+    const active = rankedCards.filter(
+      (card) => card.column !== "DONE" && card.designerId
+    );
+
+    for (const card of active) {
+      const designerSlots = card.designerId
+        ? slots.get(card.designerId)
+        : undefined;
+      if (!designerSlots) continue;
+
+      let latestIndex = designerSlots.length - 1;
+
+      if (card.dueAt) {
+        const due = new Date(card.dueAt);
+        due.setHours(23, 59, 59, 999);
+        const dueIndex = designerSlots.findIndex(
+          (slot) => slot.date.getTime() > due.getTime()
+        );
+        latestIndex =
+          dueIndex === -1
+            ? designerSlots.length - 1
+            : Math.max(0, dueIndex - 1);
+      }
+
+      const candidates = designerSlots.slice(0, latestIndex + 1);
+      let selected =
+        candidates.find(
+          (slot) => slot.used + card.points <= slot.capacity
+        ) ??
+        [...candidates].sort((a, b) => {
+          const aRatio =
+            a.capacity > 0 ? a.used / a.capacity : Number.POSITIVE_INFINITY;
+          const bRatio =
+            b.capacity > 0 ? b.used / b.capacity : Number.POSITIVE_INFINITY;
+          return aRatio - bRatio;
+        })[0];
+
+      if (!selected) selected = designerSlots[0];
+      selected.used += card.points;
+      selected.cards.push(card);
+    }
+
+    return days.map((date, index) => {
+      const perDesigner = capacityState.map((designer) => {
+        const slot = slots.get(designer.id)?.[index];
+        return {
+          id: designer.id,
+          name: designer.name,
+          capacity: slot?.capacity ?? designer.capacityPoints / 5,
+          used: slot?.used ?? 0,
+          cards: slot?.cards ?? []
+        };
+      });
+
+      const used = perDesigner.reduce((sum, item) => sum + item.used, 0);
+      const capacity = perDesigner.reduce(
+        (sum, item) => sum + item.capacity,
+        0
+      );
+      const overload = perDesigner.filter(
+        (item) => item.used > item.capacity
+      );
+      const cards = perDesigner
+        .flatMap((item) => item.cards)
+        .sort(
+          (a, b) => b.operationalScore - a.operationalScore
+        );
+
+      return {
+        date,
+        used,
+        capacity,
+        percentage:
+          capacity > 0 ? Math.round((used / capacity) * 100) : 0,
+        overload,
+        cards
+      };
+    });
+  }, [capacityState, rankedCards]);
 
   function suggestedDesignerFor(card: OperationalKanbanCard) {
     if (capacityState.length === 0) return null;
@@ -479,6 +617,99 @@ export function OperationalKanban({
                   </small>
                 </article>
               ))}
+          </div>
+        </div>
+      ) : null}
+
+      {weeklyPlan.length > 0 ? (
+        <div className="kanban-week-plan">
+          <div className="kanban-week-head">
+            <div>
+              <strong>Planejamento dos próximos 5 dias úteis</strong>
+              <span>
+                Distribuição sugerida pela capacidade diária e pelos prazos das demandas.
+              </span>
+            </div>
+            <small>
+              Capacidade diária = capacidade semanal ÷ 5
+            </small>
+          </div>
+
+          <div className="kanban-week-grid">
+            {weeklyPlan.map((day) => (
+              <article
+                className={
+                  day.percentage > 100
+                    ? "kanban-week-day overloaded"
+                    : day.percentage >= 85
+                      ? "kanban-week-day warning"
+                      : "kanban-week-day"
+                }
+                key={day.date.toISOString()}
+              >
+                <header>
+                  <div>
+                    <strong>{shortWeekday(day.date)}</strong>
+                    <span>{shortDate(day.date)}</span>
+                  </div>
+                  <em>
+                    {Math.round(day.used * 10) / 10}/
+                    {Math.round(day.capacity * 10) / 10} pts
+                  </em>
+                </header>
+
+                <div className="kanban-week-track">
+                  <i
+                    style={{
+                      width: `${Math.min(day.percentage, 100)}%`
+                    }}
+                  />
+                </div>
+
+                <div className="kanban-week-summary">
+                  <span>{day.percentage}% da capacidade</span>
+                  <span>{day.cards.length} demanda(s)</span>
+                </div>
+
+                {day.overload.length > 0 ? (
+                  <div className="kanban-week-alert">
+                    <FiAlertCircle aria-hidden="true" />
+                    <span>
+                      Sobrecarga:{" "}
+                      {day.overload
+                        .map((item) => item.name)
+                        .join(", ")}
+                    </span>
+                  </div>
+                ) : null}
+
+                <div className="kanban-week-cards">
+                  {day.cards.length === 0 ? (
+                    <small>Capacidade disponível</small>
+                  ) : (
+                    day.cards.slice(0, 3).map((card) => (
+                      <Link
+                        href={card.href}
+                        key={`week-${day.date.toISOString()}-${card.source}-${card.id}`}
+                      >
+                        <span>
+                          <strong>{card.title}</strong>
+                          <small>
+                            {card.designerName} · {card.points} pts
+                          </small>
+                        </span>
+                        <em>{priorityLabel(card.operationalScore)}</em>
+                      </Link>
+                    ))
+                  )}
+                  {day.cards.length > 3 ? (
+                    <small>
+                      +{day.cards.length - 3} demanda(s) planejada(s)
+                    </small>
+                  ) : null}
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       ) : null}
