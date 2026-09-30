@@ -15942,3 +15942,34 @@ body::-webkit-scrollbar,
     justify-self: start;
   }
 }
+
+
+.kanban-alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kanban-alert-actions button,
+.kanban-alerts-auto {
+  border: 1px solid #dedad7;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: #2b282d;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.kanban-alert-actions a {
+  color: #2c292e;
+  font-size: 8px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.kanban-alerts-auto {
+  background: #242126;
+  color: #fff;
+  border-color: #242126;
+}
