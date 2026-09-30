@@ -117,6 +117,7 @@ export type ContentItem = {
   artworkVersion: number;
   effortPoints: number;
   productionDesignerId: string | null;
+  plannedProductionDate: string | null;
   metricReach: number | null;
   metricImpressions: number | null;
   metricLikes: number | null;
@@ -279,6 +280,7 @@ export type StandaloneArtwork = {
   priority: ArtworkPriority;
   status: StandaloneArtworkStatus;
   dueAt: string | null;
+  plannedProductionDate: string | null;
   nextcloudPath: string | null;
   revisionCount: number;
   startedAt: string | null;
