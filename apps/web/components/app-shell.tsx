@@ -23,7 +23,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { logoutDesigner } from "../app/actions";
-import type { Designer } from "../lib/api";
+import { getNotifications, type Designer } from "../lib/api";
 import { Brand } from "./brand";
 
 export type AppSection =
@@ -68,7 +68,7 @@ function groupIsActive(
   return sections.includes(activeSection);
 }
 
-export function AppShell({
+export async function AppShell({
   designer,
   activeSection = "panel",
   children,
@@ -80,6 +80,10 @@ export function AppShell({
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
+  const notifications = await getNotifications();
+  const unreadNotifications = notifications.filter(
+    (notification) => !notification.readAt
+  ).length;
 
   return (
     <div className="app-frame">
@@ -116,7 +120,6 @@ export function AppShell({
               "calendars",
               "production",
               "standalone",
-              "notifications",
             ])}
           >
             <summary>
@@ -162,17 +165,6 @@ export function AppShell({
               >
                 <FiImage aria-hidden="true" />
                 Artes avulsas
-              </Link>
-              <Link
-                href="/notificacoes"
-                className={
-                  activeSection === "notifications"
-                    ? "sidebar-submenu-link active"
-                    : "sidebar-submenu-link"
-                }
-              >
-                <FiBell aria-hidden="true" />
-                Notificações
               </Link>
             </div>
           </details>
@@ -335,16 +327,6 @@ export function AppShell({
             </div>
           </details>
 
-          <Link
-            href="/ajuda/pontos"
-            className={
-              activeSection === "help" ? "nav-link active" : "nav-link"
-            }
-          >
-            <FiHelpCircle className="nav-icon" aria-hidden="true" />
-            Ajuda
-          </Link>
-
           {canSeeUsers || canSeeConfig ? (
             <details
               className="sidebar-menu-group"
@@ -418,7 +400,53 @@ export function AppShell({
         </div>
       </aside>
 
-      <main className="workspace">{children}</main>
+      <div className="app-content">
+        <header className="app-topbar">
+          <div className="app-topbar-context">
+            <span>TERCEIRO ANDAR</span>
+            <strong>Sistema de aprovação</strong>
+          </div>
+
+          <nav className="app-topbar-actions" aria-label="Atalhos">
+            <Link
+              href="/ajuda/pontos"
+              className={
+                activeSection === "help"
+                  ? "app-topbar-action active"
+                  : "app-topbar-action"
+              }
+              aria-label="Ajuda"
+              title="Ajuda"
+            >
+              <FiHelpCircle aria-hidden="true" />
+            </Link>
+
+            <Link
+              href="/notificacoes"
+              className={
+                activeSection === "notifications"
+                  ? "app-topbar-action active"
+                  : "app-topbar-action"
+              }
+              aria-label={
+                unreadNotifications > 0
+                  ? `Notificações: ${unreadNotifications} não lida(s)`
+                  : "Notificações"
+              }
+              title="Notificações"
+            >
+              <FiBell aria-hidden="true" />
+              {unreadNotifications > 0 ? (
+                <span className="app-topbar-badge">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              ) : null}
+            </Link>
+          </nav>
+        </header>
+
+        <main className="workspace">{children}</main>
+      </div>
     </div>
   );
 }
