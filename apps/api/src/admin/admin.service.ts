@@ -78,6 +78,18 @@ function normalizeNextcloudPath(value?: string) {
   return segments.length === 0 ? "/" : `/${segments.join("/")}`;
 }
 
+function safeNextcloudSegment(value: string) {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+
+  return normalized || "demanda";
+}
+
 function dateKey(value: Date) {
   return value.toISOString().slice(0, 10);
 }
@@ -3109,6 +3121,22 @@ export class AdminService {
       throw new BadRequestException("Selecione um designer ativo.");
     }
 
+    const createdAt = new Date();
+    const [year, month] = saoPauloDateKey(createdAt).split("-");
+    const folderName = `${safeNextcloudSegment(dto.title)}-${randomBytes(3).toString("hex")}`;
+    const generatedNextcloudPath =
+      `/Artes avulsas/${year}/${month}/${folderName}`;
+
+    const nextcloudPath = this.nextcloud.isConfigured()
+      ? (
+          await this.nextcloud.ensureFolderForActor(
+            actor,
+            client.id,
+            generatedNextcloudPath
+          )
+        ).path
+      : null;
+
     const artwork = await this.prisma.standaloneArtwork.create({
       data: {
         clientId: client.id,
@@ -3126,7 +3154,7 @@ export class AdminService {
               Date.now() +
                 client.defaultStandaloneSlaHours * 60 * 60 * 1000
             ),
-        nextcloudPath: dto.nextcloudPath?.trim() || null
+        nextcloudPath
       },
       include: {
         client: { select: { id: true, name: true, nextcloudPath: true } },
