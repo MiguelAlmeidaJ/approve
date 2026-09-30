@@ -134,7 +134,15 @@ export function OperationalKanban({
   canReassign
 }: {
   initialCards: OperationalKanbanCard[];
-  designers: Array<{ id: string; name: string }>;
+  designers: Array<{
+    id: string;
+    name: string;
+    usedPoints: number;
+    capacityPoints: number;
+    remainingPoints: number;
+    percentage: number;
+    activeDemands: number;
+  }>;
   canReassign: boolean;
 }) {
   const router = useRouter();
@@ -142,7 +150,18 @@ export function OperationalKanban({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeDrop, setActiveDrop] = useState<KanbanColumn | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [capacityState, setCapacityState] = useState(designers);
   const [isPending, startTransition] = useTransition();
+
+  const recommendedDesigner = useMemo(
+    () =>
+      [...capacityState].sort(
+        (a, b) =>
+          b.remainingPoints - a.remainingPoints ||
+          a.usedPoints - b.usedPoints
+      )[0] ?? null,
+    [capacityState]
+  );
 
   const grouped = useMemo(
     () =>
@@ -221,10 +240,29 @@ export function OperationalKanban({
   function assignDesigner(card: OperationalKanbanCard, designerId: string) {
     if (!designerId || designerId === card.designerId) return;
 
-    const selected = designers.find((item) => item.id === designerId);
+    const selected = capacityState.find((item) => item.id === designerId);
     if (!selected) return;
 
+    const currentOwner = capacityState.find(
+      (item) => item.id === card.designerId
+    );
+    const projectedPoints = selected.usedPoints + card.points;
+    const projectedPercentage =
+      selected.capacityPoints > 0
+        ? Math.round((projectedPoints / selected.capacityPoints) * 100)
+        : 0;
+
+    if (
+      projectedPoints > selected.capacityPoints &&
+      !window.confirm(
+        `${selected.name} ficará com ${projectedPoints}/${selected.capacityPoints} pontos (${projectedPercentage}%). Deseja atribuir mesmo assim?`
+      )
+    ) {
+      return;
+    }
+
     const previous = cards;
+    const previousCapacity = capacityState;
     setError(null);
     setCards((current) =>
       current.map((item) =>
@@ -236,6 +274,31 @@ export function OperationalKanban({
             }
           : item
       )
+    );
+    setCapacityState((current) =>
+      current.map((item) => {
+        const delta =
+          item.id === selected.id
+            ? card.points
+            : item.id === currentOwner?.id
+              ? -card.points
+              : 0;
+        if (!delta) return item;
+        const usedPoints = Math.max(0, item.usedPoints + delta);
+        return {
+          ...item,
+          usedPoints,
+          remainingPoints: item.capacityPoints - usedPoints,
+          percentage:
+            item.capacityPoints > 0
+              ? Math.round((usedPoints / item.capacityPoints) * 100)
+              : 0,
+          activeDemands: Math.max(
+            0,
+            item.activeDemands + (delta > 0 ? 1 : -1)
+          )
+        };
+      })
     );
 
     const formData = new FormData();
@@ -250,6 +313,7 @@ export function OperationalKanban({
         router.refresh();
       } catch (cause) {
         setCards(previous);
+        setCapacityState(previousCapacity);
         setError(
           cause instanceof Error
             ? cause.message
@@ -272,6 +336,49 @@ export function OperationalKanban({
         </div>
         {isPending ? <em>Salvando alteração...</em> : null}
       </div>
+
+      {capacityState.length > 0 ? (
+        <div className="kanban-capacity-strip">
+          <div className="kanban-capacity-title">
+            <strong>WIP / capacidade</strong>
+            <span>
+              {recommendedDesigner
+                ? `Mais disponível: ${recommendedDesigner.name} · ${Math.max(0, recommendedDesigner.remainingPoints)} pts livres`
+                : "Capacidade da equipe"}
+            </span>
+          </div>
+          <div className="kanban-capacity-list">
+            {capacityState
+              .slice()
+              .sort((a, b) => b.percentage - a.percentage)
+              .map((item) => (
+                <article
+                  className={
+                    item.percentage > 100
+                      ? "kanban-capacity-card overloaded"
+                      : item.percentage >= 80
+                        ? "kanban-capacity-card warning"
+                        : "kanban-capacity-card"
+                  }
+                  key={item.id}
+                >
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span>{item.usedPoints}/{item.capacityPoints} pts</span>
+                  </div>
+                  <div className="kanban-capacity-track">
+                    <i style={{ width: `${Math.min(item.percentage, 100)}%` }} />
+                  </div>
+                  <small>
+                    {item.percentage > 100
+                      ? `${item.usedPoints - item.capacityPoints} pts acima`
+                      : `${item.remainingPoints} pts livres · ${item.activeDemands} demanda(s)`}
+                  </small>
+                </article>
+              ))}
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <div className="kanban-error" role="alert">
@@ -426,11 +533,31 @@ export function OperationalKanban({
                               <option value="" disabled>
                                 Selecionar
                               </option>
-                              {designers.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.name}
-                                </option>
-                              ))}
+                              {capacityState
+                                .slice()
+                                .sort(
+                                  (a, b) =>
+                                    b.remainingPoints - a.remainingPoints
+                                )
+                                .map((item) => {
+                                  const projected =
+                                    item.id === card.designerId
+                                      ? item.usedPoints
+                                      : item.usedPoints + card.points;
+                                  const suffix =
+                                    projected > item.capacityPoints
+                                      ? " · sobrecarga"
+                                      : ` · ${Math.max(
+                                          0,
+                                          item.capacityPoints - projected
+                                        )} pts livres`;
+
+                                  return (
+                                    <option key={item.id} value={item.id}>
+                                      {item.name} · {item.usedPoints}/{item.capacityPoints} pts{suffix}
+                                    </option>
+                                  );
+                                })}
                             </select>
                           ) : null}
                         </div>
