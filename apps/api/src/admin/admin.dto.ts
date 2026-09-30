@@ -814,3 +814,9 @@ export class AssignDemandDesignerDto {
   @MinLength(1)
   designerId!: string;
 }
+
+
+export class UpdateDemandPlannedDateDto {
+  @IsDateString()
+  plannedProductionDate!: string;
+}
