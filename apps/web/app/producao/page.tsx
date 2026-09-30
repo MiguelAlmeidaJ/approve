@@ -269,6 +269,8 @@ export default async function ProductionPage({
               points: item.effortPoints || 1,
               quantity: 1,
               dueAt: calendar.artworkDueAt,
+              plannedProductionDate: item.plannedProductionDate,
+              completedAt: item.artworkApprovedAt ?? item.publishedAt,
               href: `/calendars/${calendar.id}/content/${item.id}/artwork`,
               designerId: assignedDesignerId,
               designerName:
@@ -315,6 +317,8 @@ export default async function ProductionPage({
           points: artwork.effortPoints,
           quantity: artwork.quantity,
           dueAt: artwork.dueAt,
+          plannedProductionDate: artwork.plannedProductionDate,
+          completedAt: artwork.completedAt,
           href: "/artes-avulsas",
           priority: artwork.priority,
           nextcloudPath: artwork.nextcloudPath,
