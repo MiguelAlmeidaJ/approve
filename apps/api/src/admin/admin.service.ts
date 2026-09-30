@@ -49,6 +49,7 @@ import {
   UpdateContentMetricsDto,
   UpdatePlanningItemDto,
   UpdateContentProductionStageDto,
+  UpdateDemandPlannedDateDto,
   UpdateStandaloneArtworkStatusDto,
   UpdateUserDto
 } from "./admin.dto";
@@ -1456,6 +1457,148 @@ export class AdminService {
     });
 
     return this.getCalendar(actor, calendarId);
+  }
+
+  async updateContentPlannedProductionDate(
+    actor: InternalActor,
+    contentItemId: string,
+    dto: UpdateDemandPlannedDateDto
+  ) {
+    const item = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      select: {
+        id: true,
+        title: true,
+        calendarId: true,
+        stage: true,
+        productionDesignerId: true
+      }
+    });
+
+    if (!item) {
+      throw new NotFoundException("Conteúdo não encontrado.");
+    }
+
+    await this.assertCalendarAccess(actor, item.calendarId, item.id);
+
+    if (
+      [
+        ContentStage.ART_APPROVED,
+        ContentStage.READY_TO_SCHEDULE,
+        ContentStage.SCHEDULED,
+        ContentStage.PUBLISHED
+      ].includes(item.stage)
+    ) {
+      throw new BadRequestException(
+        "Uma demanda concluída não pode receber novo planejamento de produção."
+      );
+    }
+
+    const plannedProductionDate = new Date(dto.plannedProductionDate);
+
+    if (Number.isNaN(plannedProductionDate.getTime())) {
+      throw new BadRequestException("Data planejada inválida.");
+    }
+
+    const weekday = plannedProductionDate.getUTCDay();
+    if (weekday === 0 || weekday === 6) {
+      throw new BadRequestException(
+        "Planeje a produção em um dia útil."
+      );
+    }
+
+    const updated = await this.prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: { plannedProductionDate },
+      select: {
+        id: true,
+        title: true,
+        plannedProductionDate: true,
+        productionDesignerId: true
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "CONTENT_PRODUCTION_DATE_PLANNED",
+      entityType: "ContentItem",
+      entityId: contentItemId,
+      summary: `Peça "${updated.title}" planejada para ${plannedProductionDate
+        .toISOString()
+        .slice(0, 10)}.`
+    });
+
+    return updated;
+  }
+
+  async updateStandalonePlannedProductionDate(
+    actor: InternalActor,
+    id: string,
+    dto: UpdateDemandPlannedDateDto
+  ) {
+    const artwork = await this.prisma.standaloneArtwork.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        designerId: true,
+        status: true
+      }
+    });
+
+    if (!artwork) {
+      throw new NotFoundException("Arte avulsa não encontrada.");
+    }
+
+    if (
+      actor.role === UserRole.DESIGNER &&
+      artwork.designerId !== actor.id
+    ) {
+      throw new ForbiddenException("Esta demanda não está atribuída a você.");
+    }
+
+    if (
+      [
+        StandaloneArtworkStatus.DELIVERED,
+        StandaloneArtworkStatus.CANCELLED
+      ].includes(artwork.status)
+    ) {
+      throw new BadRequestException(
+        "Uma demanda concluída ou cancelada não pode ser replanejada."
+      );
+    }
+
+    const plannedProductionDate = new Date(dto.plannedProductionDate);
+
+    if (Number.isNaN(plannedProductionDate.getTime())) {
+      throw new BadRequestException("Data planejada inválida.");
+    }
+
+    const weekday = plannedProductionDate.getUTCDay();
+    if (weekday === 0 || weekday === 6) {
+      throw new BadRequestException(
+        "Planeje a produção em um dia útil."
+      );
+    }
+
+    const updated = await this.prisma.standaloneArtwork.update({
+      where: { id },
+      data: { plannedProductionDate },
+      include: {
+        client: { select: { id: true, name: true, nextcloudPath: true } },
+        designer: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "STANDALONE_PRODUCTION_DATE_PLANNED",
+      entityType: "StandaloneArtwork",
+      entityId: id,
+      summary: `Arte avulsa "${updated.title}" planejada para ${plannedProductionDate
+        .toISOString()
+        .slice(0, 10)}.`
+    });
+
+    return updated;
   }
 
   async assignContentDemandDesigner(
