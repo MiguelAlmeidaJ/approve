@@ -1,11 +1,24 @@
 const path = require("node:path");
 
+process.loadEnvFile(path.join(__dirname, ".env"));
+
+function requirePort(name) {
+  const value = process.env[name];
+  const port = Number(value);
+
+  if (!value || !/^\d+$/.test(value) || port < 1 || port > 65535) {
+    throw new Error(`${name} deve estar definida no .env com uma porta entre 1 e 65535.`);
+  }
+
+  return value;
+}
+
 const webCwd = path.join(__dirname, "apps", "web");
 const nextBin = require.resolve("next/dist/bin/next", {
   paths: [webCwd]
 });
-const apiPort = process.env.API_PORT || "3333";
-const webPort = process.env.WEB_PORT || "3000";
+const apiPort = requirePort("API_PORT");
+const webPort = requirePort("WEB_PORT");
 
 module.exports = {
   apps: [
