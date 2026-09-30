@@ -4,6 +4,7 @@ import {
   FiBarChart2,
   FiBell,
   FiCalendar,
+  FiCheck,
   FiChevronDown,
   FiClipboard,
   FiFolder,
@@ -22,7 +23,7 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
-import { logoutDesigner } from "../app/actions";
+import { logoutDesigner, markNotificationRead } from "../app/actions";
 import { getNotifications, type Designer } from "../lib/api";
 import { Brand } from "./brand";
 
@@ -68,6 +69,16 @@ function groupIsActive(
   return sections.includes(activeSection);
 }
 
+function formatNotificationDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo"
+  }).format(new Date(value));
+}
+
 export async function AppShell({
   designer,
   activeSection = "panel",
@@ -84,6 +95,7 @@ export async function AppShell({
   const unreadNotifications = notifications.filter(
     (notification) => !notification.readAt
   ).length;
+  const latestNotifications = notifications.slice(0, 5);
 
   return (
     <div className="app-frame">
@@ -421,27 +433,103 @@ export async function AppShell({
               <FiHelpCircle aria-hidden="true" />
             </Link>
 
-            <Link
-              href="/notificacoes"
-              className={
-                activeSection === "notifications"
-                  ? "app-topbar-action active"
-                  : "app-topbar-action"
-              }
-              aria-label={
-                unreadNotifications > 0
-                  ? `Notificações: ${unreadNotifications} não lida(s)`
-                  : "Notificações"
-              }
-              title="Notificações"
-            >
-              <FiBell aria-hidden="true" />
-              {unreadNotifications > 0 ? (
-                <span className="app-topbar-badge">
-                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                </span>
-              ) : null}
-            </Link>
+            <details className="app-notification-menu">
+              <summary
+                className={
+                  activeSection === "notifications"
+                    ? "app-topbar-action active"
+                    : "app-topbar-action"
+                }
+                aria-label={
+                  unreadNotifications > 0
+                    ? `Notificações: ${unreadNotifications} não lida(s)`
+                    : "Notificações"
+                }
+                title="Notificações"
+              >
+                <FiBell aria-hidden="true" />
+                {unreadNotifications > 0 ? (
+                  <span className="app-topbar-badge">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                ) : null}
+              </summary>
+
+              <div className="app-notification-dropdown">
+                <div className="app-notification-dropdown-head">
+                  <div>
+                    <strong>Notificações</strong>
+                    <span>
+                      {unreadNotifications > 0
+                        ? `${unreadNotifications} não lida(s)`
+                        : "Tudo em dia"}
+                    </span>
+                  </div>
+                  <Link href="/notificacoes">Ver todas</Link>
+                </div>
+
+                {latestNotifications.length === 0 ? (
+                  <div className="app-notification-empty">
+                    <FiBell aria-hidden="true" />
+                    <span>Nenhuma notificação por enquanto.</span>
+                  </div>
+                ) : (
+                  <div className="app-notification-list">
+                    {latestNotifications.map((notification) => (
+                      <article
+                        className={
+                          notification.readAt
+                            ? "app-notification-item read"
+                            : "app-notification-item"
+                        }
+                        key={notification.id}
+                      >
+                        <span className="app-notification-dot" />
+                        <div className="app-notification-copy">
+                          <strong>{notification.title}</strong>
+                          <p>{notification.message}</p>
+                          <small>{formatNotificationDate(notification.createdAt)}</small>
+                        </div>
+
+                        <div className="app-notification-item-actions">
+                          {notification.link ? (
+                            <Link href={notification.link}>Abrir</Link>
+                          ) : null}
+                          {!notification.readAt ? (
+                            <form action={markNotificationRead}>
+                              <input
+                                type="hidden"
+                                name="notificationId"
+                                value={notification.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="returnTo"
+                                value="/"
+                              />
+                              <button
+                                type="submit"
+                                aria-label="Marcar como lida"
+                                title="Marcar como lida"
+                              >
+                                <FiCheck aria-hidden="true" />
+                              </button>
+                            </form>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                <Link
+                  href="/notificacoes"
+                  className="app-notification-dropdown-footer"
+                >
+                  Abrir central de notificações
+                </Link>
+              </div>
+            </details>
           </nav>
         </header>
 
