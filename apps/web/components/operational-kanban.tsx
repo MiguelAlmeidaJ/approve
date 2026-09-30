@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useMemo, useState, useTransition } from "react";
 import {
   assignOperationalDemand,
+  resolveOperationalConflicts,
   updateContentProductionStage,
   updateOperationalPlannedDate,
   updateStandaloneArtworkStatus
@@ -581,6 +582,61 @@ export function OperationalKanban({
   }, [cards, capacityState]);
 
 
+  function recommendedPlacementFor(card: OperationalKanbanCard) {
+    const candidateDays = weeklyPlan.filter((day) => {
+      if (!card.dueAt) return true;
+      const due = new Date(card.dueAt);
+      due.setHours(23, 59, 59, 999);
+      return day.date.getTime() <= due.getTime();
+    });
+    const days = candidateDays.length > 0 ? candidateDays : weeklyPlan;
+
+    const candidates = days.flatMap((day) =>
+      day.perDesigner.map((slot) => {
+        const changingDesigner = slot.id !== card.designerId;
+        if (changingDesigner && !canReassign) return null;
+
+        const projected = slot.used + card.points;
+        const ratio =
+          slot.capacity > 0
+            ? projected / slot.capacity
+            : Number.POSITIVE_INFINITY;
+
+        return {
+          designerId: slot.id,
+          designerName: slot.name,
+          date: day.date,
+          projected,
+          capacity: slot.capacity,
+          ratio,
+          changingDesigner
+        };
+      })
+    ).filter(Boolean) as Array<{
+      designerId: string;
+      designerName: string;
+      date: Date;
+      projected: number;
+      capacity: number;
+      ratio: number;
+      changingDesigner: boolean;
+    }>;
+
+    return candidates.sort((a, b) => {
+      const aSame = a.designerId === card.designerId ? 0 : 1;
+      const bSame = b.designerId === card.designerId ? 0 : 1;
+      const aFits = a.projected <= a.capacity ? 0 : 1;
+      const bFits = b.projected <= b.capacity ? 0 : 1;
+
+      return (
+        aFits - bFits ||
+        aSame - bSame ||
+        a.ratio - b.ratio ||
+        a.date.getTime() - b.date.getTime()
+      );
+    })[0] ?? null;
+  }
+
   function suggestedDesignerFor(card: OperationalKanbanCard) {
     if (capacityState.length === 0) return null;
 
@@ -914,6 +970,71 @@ export function OperationalKanban({
       }
     });
   }
+  function autoResolveConflicts() {
+    if (!canReassign) return;
+
+    const affectedKeys = new Set(
+      operationalAlerts
+        .filter(
+          (alert) =>
+            alert.cardKey &&
+            (
+              alert.title === "Planejamento vencido" ||
+              alert.title === "Demanda sem responsável" ||
+              alert.title === "Atrasada e sem planejamento" ||
+              alert.title === "Prazo próximo sem planejamento" ||
+              alert.title === "Ajuste sem replanejamento"
+            )
+        )
+        .map((alert) => alert.cardKey as string)
+    );
+
+    const operations = [...affectedKeys]
+      .map((key) => {
+        const [source, id] = key.split(":");
+        const card = cards.find(
+          (item) => item.source === source && item.id === id
+        );
+        if (!card || card.column === "DONE") return null;
+
+        const placement = recommendedPlacementFor(card);
+        if (!placement) return null;
+
+        return {
+          id: card.id,
+          source: card.source,
+          designerId:
+            placement.designerId !== card.designerId
+              ? placement.designerId
+              : undefined,
+          plannedProductionDate: dateOnlyKey(placement.date)
+        };
+      })
+      .filter(Boolean);
+
+    if (operations.length === 0) {
+      setError("Não há conflitos com solução automática disponível.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("operations", JSON.stringify(operations));
+    setError(null);
+
+    startTransition(async () => {
+      try {
+        await resolveOperationalConflicts(formData);
+        router.refresh();
+      } catch (cause) {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível resolver os conflitos automaticamente."
+        );
+      }
+    });
+  }
+
 
 
   return (
@@ -948,6 +1069,16 @@ export function OperationalKanban({
             </span>
           </div>
           <div className="kanban-alerts-summary">
+            {canReassign && operationalAlerts.length > 0 ? (
+              <button
+                className="kanban-alerts-auto"
+                type="button"
+                disabled={isPending}
+                onClick={autoResolveConflicts}
+              >
+                Resolver conflitos
+              </button>
+            ) : null}
             <span className="critical">
               {alertSummary.critical} crítico(s)
             </span>
@@ -980,9 +1111,36 @@ export function OperationalKanban({
                   <strong>{alert.title}</strong>
                   <span>{alert.message}</span>
                 </div>
-                {alert.href ? (
-                  <Link href={alert.href}>Abrir</Link>
-                ) : null}
+                <div className="kanban-alert-actions">
+                  {alert.cardKey ? (() => {
+                    const [source, id] = alert.cardKey.split(":");
+                    const card = cards.find(
+                      (item) => item.source === source && item.id === id
+                    );
+                    const placement = card
+                      ? recommendedPlacementFor(card)
+                      : null;
+
+                    return card && placement ? (
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() =>
+                          planForDesigner(
+                            card,
+                            placement.designerId,
+                            placement.date
+                          )
+                        }
+                      >
+                        Replanejar
+                      </button>
+                    ) : null;
+                  })() : null}
+                  {alert.href ? (
+                    <Link href={alert.href}>Abrir</Link>
+                  ) : null}
+                </div>
               </article>
             ))}
             {operationalAlerts.length > 8 ? (
