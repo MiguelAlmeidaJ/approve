@@ -9,6 +9,16 @@ import {
   type SelectedNextcloudAsset
 } from "./nextcloud-asset-picker";
 
+function initialFolder(path: string | null) {
+  if (!path) return "/";
+  const parts = path.split("/").filter(Boolean);
+  const last = parts.at(-1) ?? "";
+  if (/\.[A-Za-z0-9]{2,8}$/.test(last)) {
+    parts.pop();
+  }
+  return parts.length ? `/${parts.join("/")}` : "/";
+}
+
 const statusLabels: Record<StandaloneArtworkStatus, string> = {
   REQUESTED: "Solicitada",
   IN_PRODUCTION: "Em produção",
@@ -55,6 +65,7 @@ export function StandaloneArtworkStatusForm({
         multiple={false}
         selected={assets}
         onChange={setAssets}
+        initialPath={initialFolder(currentPath)}
       />
     </form>
   );
