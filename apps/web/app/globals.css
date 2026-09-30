@@ -472,9 +472,98 @@ p {
   font-size: 9px;
 }
 
+.app-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-topbar {
+  min-height: 64px;
+  padding: 0 clamp(28px, 5vw, 72px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(244, 244, 242, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.app-topbar-context {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.app-topbar-context span {
+  color: var(--pink);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.app-topbar-context strong {
+  color: #3a373c;
+  font-size: 11px;
+}
+
+.app-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-topbar-action {
+  width: 38px;
+  height: 38px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: #555159;
+  font-size: 17px;
+}
+
+.app-topbar-action:hover,
+.app-topbar-action.active {
+  border-color: #cfcac7;
+  background: #f8f6f4;
+  color: var(--black);
+  transform: translateY(-1px);
+}
+
+.app-topbar-action.active {
+  box-shadow: inset 0 -2px 0 var(--pink);
+}
+
+.app-topbar-badge {
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--paper);
+  border-radius: 999px;
+  background: var(--pink);
+  color: var(--white);
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .workspace {
   min-width: 0;
-  padding: 52px clamp(28px, 5vw, 72px) 80px;
+  padding: 36px clamp(28px, 5vw, 72px) 80px;
 }
 
 .page-header,
@@ -16498,5 +16587,21 @@ body::-webkit-scrollbar,
 
   .points-help-final > svg:last-child {
     display: none;
+  }
+}
+
+
+@media (max-width: 760px) {
+  .app-topbar {
+    min-height: 58px;
+    padding: 0 18px;
+  }
+
+  .app-topbar-context strong {
+    display: none;
+  }
+
+  .workspace {
+    padding: 28px 18px 64px;
   }
 }
