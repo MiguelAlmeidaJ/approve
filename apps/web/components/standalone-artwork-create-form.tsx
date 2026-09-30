@@ -82,7 +82,6 @@ export function StandaloneArtworkCreateForm({
     role: "DESIGNER" | "ADMIN" | "DEV";
   };
 }) {
-  const firstClient = clients[0] ?? null;
   const [clientId, setClientId] = useState("");
   const [contentType, setContentType] =
     useState<keyof typeof formats>("POST");
@@ -97,7 +96,7 @@ export function StandaloneArtworkCreateForm({
   const [dueAt, setDueAt] = useState("");
 
   const selectedClient =
-    clients.find((client) => client.id === clientId) ?? firstClient;
+    clients.find((client) => client.id === clientId) ?? null;
   const usage = contractUsage.find((item) => item.clientId === clientId) ?? null;
   const selectedDesigner =
     designers.find((item) => item.id === designerId) ??
@@ -124,7 +123,7 @@ export function StandaloneArtworkCreateForm({
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `/Artes avulsas/${year}/${month}/${safeSegment(title)}/`;
+    return `/Artes avulsas/${year}/${month}/${safeSegment(title)}-xxxxxx/`;
   }, [title]);
 
   function changeClient(nextClientId: string) {
