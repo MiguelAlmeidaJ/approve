@@ -329,6 +329,46 @@ export default async function ProductionPage({
   );
 
   const allCards = [...calendarCards, ...standaloneCards];
+  const capacityDesigners =
+    designer.role === "DESIGNER"
+      ? [
+          {
+            id: designer.id,
+            name: designer.name,
+            weeklyCapacityPoints: designer.weeklyCapacityPoints ?? 30
+          }
+        ]
+      : designers.map((item) => ({
+          id: item.id,
+          name: item.name,
+          weeklyCapacityPoints: item.weeklyCapacityPoints ?? 30
+        }));
+
+  const capacity = capacityDesigners.map((item) => {
+    const activeCards = allCards.filter(
+      (card) => card.column !== "DONE" && card.designerId === item.id
+    );
+    const usedPoints = activeCards.reduce(
+      (sum, card) => sum + card.points,
+      0
+    );
+    const remainingPoints = item.weeklyCapacityPoints - usedPoints;
+    const percentage =
+      item.weeklyCapacityPoints > 0
+        ? Math.round((usedPoints / item.weeklyCapacityPoints) * 100)
+        : 0;
+
+    return {
+      id: item.id,
+      name: item.name,
+      usedPoints,
+      capacityPoints: item.weeklyCapacityPoints,
+      remainingPoints,
+      percentage,
+      activeDemands: activeCards.length
+    };
+  });
+
   const cards = allCards.filter((card) => {
     if (designer.role === "DESIGNER" && card.designerId !== designer.id) {
       return false;
@@ -448,9 +488,14 @@ export default async function ProductionPage({
 
       <OperationalKanban
         initialCards={cards}
-        designers={designers.map((item) => ({
+        designers={capacity.map((item) => ({
           id: item.id,
-          name: item.name
+          name: item.name,
+          usedPoints: item.usedPoints,
+          capacityPoints: item.capacityPoints,
+          remainingPoints: item.remainingPoints,
+          percentage: item.percentage,
+          activeDemands: item.activeDemands
         }))}
         canReassign={designer.role !== "DESIGNER"}
       />
