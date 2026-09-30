@@ -673,6 +673,37 @@ export async function submitPlanning(calendarId: string) {
   redirect(`/calendars/${calendarId}`);
 }
 
+export async function updateOperationalPlannedDate(formData: FormData) {
+  await requireDesigner();
+  const id = required(formData, "id");
+  const source = required(formData, "source");
+  const date = required(formData, "plannedProductionDate");
+  const calendarId = String(formData.get("calendarId") ?? "").trim();
+  const plannedProductionDate = /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? new Date(`${date}T12:00:00.000Z`).toISOString()
+    : new Date(date).toISOString();
+
+  if (source === "calendar") {
+    await adminPatch(
+      `/api/admin/items/${encodeURIComponent(id)}/planned-production-date`,
+      { plannedProductionDate }
+    );
+  } else if (source === "standalone") {
+    await adminPatch(
+      `/api/admin/standalone-artworks/${encodeURIComponent(id)}/planned-production-date`,
+      { plannedProductionDate }
+    );
+  } else {
+    throw new Error("Origem de demanda inválida.");
+  }
+
+  revalidatePath("/producao");
+  revalidatePath("/capacidade");
+  revalidatePath("/produtividade");
+  revalidatePath("/artes-avulsas");
+  if (calendarId) revalidatePath(`/calendars/${calendarId}`);
+}
+
 export async function assignOperationalDemand(formData: FormData) {
   await requireRole("ADMIN", "DEV");
   const id = required(formData, "id");
