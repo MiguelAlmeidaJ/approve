@@ -17,6 +17,7 @@ import { useMemo, useState, useTransition } from "react";
 import {
   assignOperationalDemand,
   updateContentProductionStage,
+  updateOperationalPlannedDate,
   updateStandaloneArtworkStatus
 } from "../app/actions";
 
@@ -40,6 +41,8 @@ export type OperationalKanbanCard = {
   points: number;
   quantity: number;
   dueAt: string | null;
+  plannedProductionDate: string | null;
+  completedAt: string | null;
   href: string;
   priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   nextcloudPath?: string | null;
@@ -200,6 +203,28 @@ function shortDate(value: Date) {
   }).format(value);
 }
 
+function dateOnlyKey(value: Date | string) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function currentBusinessWeekRange() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const weekday = now.getDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+  const start = new Date(now);
+  start.setDate(now.getDate() + offset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 4);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
 export function OperationalKanban({
   initialCards,
   designers,
@@ -311,8 +336,30 @@ export function OperationalKanban({
     const active = rankedCards.filter(
       (card) => card.column !== "DONE" && card.designerId
     );
+    const explicitlyPlanned = active.filter(
+      (card) => card.plannedProductionDate
+    );
+    const automatic = active.filter(
+      (card) => !card.plannedProductionDate
+    );
 
-    for (const card of active) {
+    for (const card of explicitlyPlanned) {
+      const designerSlots = card.designerId
+        ? slots.get(card.designerId)
+        : undefined;
+      if (!designerSlots || !card.plannedProductionDate) continue;
+
+      const plannedKey = dateOnlyKey(card.plannedProductionDate);
+      const selected = designerSlots.find(
+        (slot) => dateOnlyKey(slot.date) === plannedKey
+      );
+      if (!selected) continue;
+
+      selected.used += card.points;
+      selected.cards.push(card);
+    }
+
+    for (const card of automatic) {
       const designerSlots = card.designerId
         ? slots.get(card.designerId)
         : undefined;
@@ -387,6 +434,46 @@ export function OperationalKanban({
       };
     });
   }, [capacityState, rankedCards]);
+
+  const plannedVsDone = useMemo(() => {
+    const { start, end } = currentBusinessWeekRange();
+
+    return capacityState.map((designer) => {
+      const plannedPoints = cards
+        .filter(
+          (card) =>
+            card.designerId === designer.id &&
+            card.plannedProductionDate &&
+            new Date(card.plannedProductionDate) >= start &&
+            new Date(card.plannedProductionDate) <= end
+        )
+        .reduce((sum, card) => sum + card.points, 0);
+
+      const completedPoints = cards
+        .filter(
+          (card) =>
+            card.designerId === designer.id &&
+            card.completedAt &&
+            new Date(card.completedAt) >= start &&
+            new Date(card.completedAt) <= end
+        )
+        .reduce((sum, card) => sum + card.points, 0);
+
+      return {
+        id: designer.id,
+        name: designer.name,
+        plannedPoints,
+        completedPoints,
+        percentage:
+          plannedPoints > 0
+            ? Math.round((completedPoints / plannedPoints) * 100)
+            : completedPoints > 0
+              ? 100
+              : 0
+      };
+    });
+  }, [cards, capacityState]);
+
 
   function suggestedDesignerFor(card: OperationalKanbanCard) {
     if (capacityState.length === 0) return null;
@@ -564,6 +651,47 @@ export function OperationalKanban({
     });
   }
 
+  function planDate(card: OperationalKanbanCard, date: Date) {
+    if (card.column === "DONE") return;
+
+    const previous = cards;
+    const plannedProductionDate = dateOnlyKey(date);
+    setError(null);
+    setCards((current) =>
+      current.map((item) =>
+        item.id === card.id && item.source === card.source
+          ? {
+              ...item,
+              plannedProductionDate: new Date(
+                `${plannedProductionDate}T12:00:00.000Z`
+              ).toISOString()
+            }
+          : item
+      )
+    );
+
+    const formData = new FormData();
+    formData.set("id", card.id);
+    formData.set("source", card.source);
+    formData.set("plannedProductionDate", plannedProductionDate);
+    if (card.calendarId) formData.set("calendarId", card.calendarId);
+
+    startTransition(async () => {
+      try {
+        await updateOperationalPlannedDate(formData);
+        router.refresh();
+      } catch (cause) {
+        setCards(previous);
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível alterar o planejamento."
+        );
+      }
+    });
+  }
+
+
   return (
     <section className="operational-kanban-wrap">
       <div className="operational-kanban-help">
@@ -621,6 +749,43 @@ export function OperationalKanban({
         </div>
       ) : null}
 
+      {plannedVsDone.length > 0 ? (
+        <div className="kanban-performance-panel">
+          <div className="kanban-performance-head">
+            <div>
+              <strong>Planejado x realizado · semana atual</strong>
+              <span>
+                Pontos planejados para produção comparados aos pontos concluídos.
+              </span>
+            </div>
+          </div>
+          <div className="kanban-performance-grid">
+            {plannedVsDone.map((item) => (
+              <article key={item.id}>
+                <div>
+                  <strong>{item.name}</strong>
+                  <span>
+                    {item.completedPoints}/{item.plannedPoints} pts
+                  </span>
+                </div>
+                <div className="kanban-performance-track">
+                  <i
+                    style={{
+                      width: `${Math.min(item.percentage, 100)}%`
+                    }}
+                  />
+                </div>
+                <small>
+                  {item.plannedPoints === 0
+                    ? "Sem produção planejada"
+                    : `${item.percentage}% realizado`}
+                </small>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {weeklyPlan.length > 0 ? (
         <div className="kanban-week-plan">
           <div className="kanban-week-head">
@@ -646,6 +811,21 @@ export function OperationalKanban({
                       : "kanban-week-day"
                 }
                 key={day.date.toISOString()}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const [source, id] = event.dataTransfer
+                    .getData("text/plain")
+                    .split(":");
+                  const card = cards.find(
+                    (item) =>
+                      item.id === id && item.source === source
+                  );
+                  if (card) planDate(card, day.date);
+                }}
               >
                 <header>
                   <div>
@@ -691,11 +871,25 @@ export function OperationalKanban({
                       <Link
                         href={card.href}
                         key={`week-${day.date.toISOString()}-${card.source}-${card.id}`}
+                        draggable={card.column !== "DONE" && !isPending}
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData(
+                            "text/plain",
+                            `${card.source}:${card.id}`
+                          );
+                          event.dataTransfer.effectAllowed = "move";
+                        }}
+                        onClick={(event) => {
+                          if (isPending) event.preventDefault();
+                        }}
                       >
                         <span>
                           <strong>{card.title}</strong>
                           <small>
                             {card.designerName} · {card.points} pts
+                            {card.plannedProductionDate
+                              ? " · fixado"
+                              : " · sugerido"}
                           </small>
                         </span>
                         <em>{priorityLabel(card.operationalScore)}</em>
