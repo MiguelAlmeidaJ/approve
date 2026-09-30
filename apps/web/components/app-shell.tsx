@@ -8,6 +8,7 @@ import {
   FiClipboard,
   FiFolder,
   FiHome,
+  FiHelpCircle,
   FiImage,
   FiLogOut,
   FiPieChart,
@@ -42,6 +43,7 @@ export type AppSection =
   | "capacity"
   | "audit"
   | "formats"
+  | "help"
   | "config";
 
 const roleLabel = {
@@ -332,6 +334,16 @@ export function AppShell({
               </Link>
             </div>
           </details>
+
+          <Link
+            href="/ajuda/pontos"
+            className={
+              activeSection === "help" ? "nav-link active" : "nav-link"
+            }
+          >
+            <FiHelpCircle className="nav-icon" aria-hidden="true" />
+            Ajuda
+          </Link>
 
           {canSeeUsers || canSeeConfig ? (
             <details
