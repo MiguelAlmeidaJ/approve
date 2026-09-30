@@ -102,6 +102,20 @@ export class NextcloudService {
     };
   }
 
+  async ensureFolderForActor(
+    actor: InternalActor,
+    clientId: string,
+    relativePath: string
+  ) {
+    const client = await this.getAccessibleClient(actor, clientId);
+    const clientDirectory = this.clientDirectory(client);
+    const path = this.normalizeRelativePath(relativePath || "/");
+
+    await this.ensureRelativeDirectory(clientDirectory, path);
+
+    return { path };
+  }
+
   async uploadForActor(
     actor: InternalActor,
     clientId: string,
