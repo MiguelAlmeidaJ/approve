@@ -704,6 +704,78 @@ export async function updateOperationalPlannedDate(formData: FormData) {
   if (calendarId) revalidatePath(`/calendars/${calendarId}`);
 }
 
+export async function resolveOperationalConflicts(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+  const raw = required(formData, "operations");
+  let operations: unknown;
+
+  try {
+    operations = JSON.parse(raw);
+  } catch {
+    throw new Error("Plano automático inválido.");
+  }
+
+  if (!Array.isArray(operations) || operations.length === 0) {
+    throw new Error("Nenhum conflito para resolver.");
+  }
+
+  for (const operation of operations) {
+    if (
+      !operation ||
+      typeof operation !== "object" ||
+      typeof operation.id !== "string" ||
+      typeof operation.source !== "string" ||
+      typeof operation.plannedProductionDate !== "string"
+    ) {
+      throw new Error("Operação automática inválida.");
+    }
+
+    const designerId =
+      typeof operation.designerId === "string" && operation.designerId
+        ? operation.designerId
+        : null;
+
+    if (designerId) {
+      if (operation.source === "calendar") {
+        await adminPatch(
+          `/api/admin/items/${encodeURIComponent(operation.id)}/designer`,
+          { designerId }
+        );
+      } else if (operation.source === "standalone") {
+        await adminPatch(
+          `/api/admin/standalone-artworks/${encodeURIComponent(operation.id)}/designer`,
+          { designerId }
+        );
+      }
+    }
+
+    const plannedProductionDate = /^\d{4}-\d{2}-\d{2}$/.test(
+      operation.plannedProductionDate
+    )
+      ? new Date(`${operation.plannedProductionDate}T12:00:00.000Z`).toISOString()
+      : new Date(operation.plannedProductionDate).toISOString();
+
+    if (operation.source === "calendar") {
+      await adminPatch(
+        `/api/admin/items/${encodeURIComponent(operation.id)}/planned-production-date`,
+        { plannedProductionDate }
+      );
+    } else if (operation.source === "standalone") {
+      await adminPatch(
+        `/api/admin/standalone-artworks/${encodeURIComponent(operation.id)}/planned-production-date`,
+        { plannedProductionDate }
+      );
+    } else {
+      throw new Error("Origem de demanda inválida.");
+    }
+  }
+
+  revalidatePath("/producao");
+  revalidatePath("/capacidade");
+  revalidatePath("/produtividade");
+  revalidatePath("/artes-avulsas");
+}
+
 export async function assignOperationalDemand(formData: FormData) {
   await requireRole("ADMIN", "DEV");
   const id = required(formData, "id");
