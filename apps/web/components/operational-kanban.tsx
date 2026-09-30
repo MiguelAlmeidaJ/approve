@@ -13,7 +13,7 @@ import {
   FiUser
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { Fragment, useMemo, useState, useTransition } from "react";
 import {
   assignOperationalDemand,
   updateContentProductionStage,
@@ -430,7 +430,8 @@ export function OperationalKanban({
         percentage:
           capacity > 0 ? Math.round((used / capacity) * 100) : 0,
         overload,
-        cards
+        cards,
+        perDesigner
       };
     });
   }, [capacityState, rankedCards]);
@@ -651,6 +652,124 @@ export function OperationalKanban({
     });
   }
 
+  function planForDesigner(
+    card: OperationalKanbanCard,
+    designerId: string,
+    date: Date
+  ) {
+    if (card.column === "DONE") return;
+
+    const target = capacityState.find((item) => item.id === designerId);
+    if (!target) return;
+
+    const changingDesigner = card.designerId !== designerId;
+    if (changingDesigner && !canReassign) return;
+
+    const currentOwner = capacityState.find(
+      (item) => item.id === card.designerId
+    );
+    const projectedPoints = changingDesigner
+      ? target.usedPoints + card.points
+      : target.usedPoints;
+    const projectedPercentage =
+      target.capacityPoints > 0
+        ? Math.round((projectedPoints / target.capacityPoints) * 100)
+        : 0;
+
+    if (
+      changingDesigner &&
+      projectedPoints > target.capacityPoints &&
+      !window.confirm(
+        `${target.name} ficará com ${projectedPoints}/${target.capacityPoints} pontos (${projectedPercentage}%). Deseja planejar mesmo assim?`
+      )
+    ) {
+      return;
+    }
+
+    const previousCards = cards;
+    const previousCapacity = capacityState;
+    const plannedProductionDate = dateOnlyKey(date);
+    const plannedIso = new Date(
+      `${plannedProductionDate}T12:00:00.000Z`
+    ).toISOString();
+
+    setError(null);
+    setCards((current) =>
+      current.map((item) =>
+        item.id === card.id && item.source === card.source
+          ? {
+              ...item,
+              designerId: target.id,
+              designerName: target.name,
+              plannedProductionDate: plannedIso
+            }
+          : item
+      )
+    );
+
+    if (changingDesigner) {
+      setCapacityState((current) =>
+        current.map((item) => {
+          const delta =
+            item.id === target.id
+              ? card.points
+              : item.id === currentOwner?.id
+                ? -card.points
+                : 0;
+          if (!delta) return item;
+          const usedPoints = Math.max(0, item.usedPoints + delta);
+          return {
+            ...item,
+            usedPoints,
+            remainingPoints: item.capacityPoints - usedPoints,
+            percentage:
+              item.capacityPoints > 0
+                ? Math.round((usedPoints / item.capacityPoints) * 100)
+                : 0,
+            activeDemands: Math.max(
+              0,
+              item.activeDemands + (delta > 0 ? 1 : -1)
+            )
+          };
+        })
+      );
+    }
+
+    const planningForm = new FormData();
+    planningForm.set("id", card.id);
+    planningForm.set("source", card.source);
+    planningForm.set("plannedProductionDate", plannedProductionDate);
+    if (card.calendarId) {
+      planningForm.set("calendarId", card.calendarId);
+    }
+
+    const assignmentForm = new FormData();
+    assignmentForm.set("id", card.id);
+    assignmentForm.set("source", card.source);
+    assignmentForm.set("designerId", target.id);
+    if (card.calendarId) {
+      assignmentForm.set("calendarId", card.calendarId);
+    }
+
+    startTransition(async () => {
+      try {
+        if (changingDesigner) {
+          await assignOperationalDemand(assignmentForm);
+        }
+        await updateOperationalPlannedDate(planningForm);
+        router.refresh();
+      } catch (cause) {
+        setCards(previousCards);
+        setCapacityState(previousCapacity);
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível alterar a agenda da demanda."
+        );
+      }
+    });
+  }
+
   function planDate(card: OperationalKanbanCard, date: Date) {
     if (card.column === "DONE") return;
 
@@ -782,6 +901,156 @@ export function OperationalKanban({
                 </small>
               </article>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {weeklyPlan.length > 0 && capacityState.length > 0 ? (
+        <div className="kanban-designer-agenda">
+          <div className="kanban-agenda-head">
+            <div>
+              <strong>Agenda por designer</strong>
+              <span>
+                Matriz designer × dia. Arraste uma demanda para outro dia ou
+                outro designer para atualizar o planejamento.
+              </span>
+            </div>
+            <small>Alterações são salvas automaticamente</small>
+          </div>
+
+          <div className="kanban-agenda-scroll">
+            <div className="kanban-agenda-grid">
+              <div className="kanban-agenda-corner">
+                <span>Designer</span>
+              </div>
+
+              {weeklyPlan.map((day) => (
+                <div
+                  className="kanban-agenda-day-head"
+                  key={`agenda-head-${day.date.toISOString()}`}
+                >
+                  <strong>{shortWeekday(day.date)}</strong>
+                  <span>{shortDate(day.date)}</span>
+                </div>
+              ))}
+
+              {capacityState.map((designer) => (
+                <Fragment key={`agenda-row-${designer.id}`}>
+                  <div
+                    className="kanban-agenda-designer"
+                    key={`agenda-designer-${designer.id}`}
+                  >
+                    <div>
+                      <FiUser aria-hidden="true" />
+                      <span>
+                        <strong>{designer.name}</strong>
+                        <small>
+                          {designer.usedPoints}/{designer.capacityPoints} pts
+                        </small>
+                      </span>
+                    </div>
+                  </div>
+
+                  {weeklyPlan.map((day) => {
+                    const slot = day.perDesigner.find(
+                      (item) => item.id === designer.id
+                    );
+                    const used = slot?.used ?? 0;
+                    const capacity = slot?.capacity ?? designer.capacityPoints / 5;
+                    const percentage =
+                      capacity > 0
+                        ? Math.round((used / capacity) * 100)
+                        : 0;
+                    const slotCards = slot?.cards ?? [];
+
+                    return (
+                      <div
+                        className={
+                          percentage > 100
+                            ? "kanban-agenda-cell overloaded"
+                            : percentage >= 85
+                              ? "kanban-agenda-cell warning"
+                              : "kanban-agenda-cell"
+                        }
+                        key={`agenda-${designer.id}-${day.date.toISOString()}`}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = "move";
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          const [source, id] = event.dataTransfer
+                            .getData("text/plain")
+                            .split(":");
+                          const card = cards.find(
+                            (item) =>
+                              item.id === id && item.source === source
+                          );
+                          if (card) {
+                            planForDesigner(card, designer.id, day.date);
+                          }
+                        }}
+                      >
+                        <div className="kanban-agenda-cell-head">
+                          <span>
+                            {Math.round(used * 10) / 10}/
+                            {Math.round(capacity * 10) / 10} pts
+                          </span>
+                          <em>{percentage}%</em>
+                        </div>
+
+                        <div className="kanban-agenda-cell-track">
+                          <i
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`
+                            }}
+                          />
+                        </div>
+
+                        <div className="kanban-agenda-items">
+                          {slotCards.length === 0 ? (
+                            <small>Livre</small>
+                          ) : (
+                            slotCards.map((card) => (
+                              <Link
+                                href={card.href}
+                                className={
+                                  card.plannedProductionDate
+                                    ? "kanban-agenda-item fixed"
+                                    : "kanban-agenda-item suggested"
+                                }
+                                draggable={
+                                  card.column !== "DONE" && !isPending
+                                }
+                                key={`agenda-card-${designer.id}-${day.date.toISOString()}-${card.source}-${card.id}`}
+                                onDragStart={(event) => {
+                                  event.dataTransfer.setData(
+                                    "text/plain",
+                                    `${card.source}:${card.id}`
+                                  );
+                                  event.dataTransfer.effectAllowed = "move";
+                                }}
+                                onClick={(event) => {
+                                  if (isPending) event.preventDefault();
+                                }}
+                              >
+                                <strong>{card.title}</strong>
+                                <span>
+                                  {card.points} pts ·{" "}
+                                  {card.plannedProductionDate
+                                    ? "fixado"
+                                    : "sugerido"}
+                                </span>
+                              </Link>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}
