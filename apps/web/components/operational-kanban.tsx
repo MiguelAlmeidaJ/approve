@@ -436,6 +436,111 @@ export function OperationalKanban({
     });
   }, [capacityState, rankedCards]);
 
+  const operationalAlerts = useMemo(() => {
+    const now = new Date();
+    const todayKey = dateOnlyKey(now);
+    const alerts: Array<{
+      id: string;
+      severity: "critical" | "warning" | "info";
+      title: string;
+      message: string;
+      href?: string;
+      cardKey?: string;
+    }> = [];
+
+    for (const card of rankedCards) {
+      if (card.column === "DONE") continue;
+
+      const cardKey = `${card.source}:${card.id}`;
+      const deadline = sla(card.dueAt);
+
+      if (
+        card.plannedProductionDate &&
+        dateOnlyKey(card.plannedProductionDate) < todayKey
+      ) {
+        alerts.push({
+          id: `planned-overdue-${cardKey}`,
+          severity: "critical",
+          title: "Planejamento vencido",
+          message: `${card.title} · ${card.clientName} · planejada para ${new Intl.DateTimeFormat(
+            "pt-BR",
+            { day: "2-digit", month: "2-digit" }
+          ).format(new Date(card.plannedProductionDate))} e ainda não concluída.`,
+          href: card.href,
+          cardKey
+        });
+      }
+
+      if (!card.designerId) {
+        alerts.push({
+          id: `no-owner-${cardKey}`,
+          severity: "critical",
+          title: "Demanda sem responsável",
+          message: `${card.title} · ${card.clientName} precisa de um designer responsável.`,
+          href: card.href,
+          cardKey
+        });
+      }
+
+      if (
+        !card.plannedProductionDate &&
+        (deadline.key === "risk" || deadline.key === "overdue")
+      ) {
+        alerts.push({
+          id: `no-plan-${cardKey}`,
+          severity: deadline.key === "overdue" ? "critical" : "warning",
+          title:
+            deadline.key === "overdue"
+              ? "Atrasada e sem planejamento"
+              : "Prazo próximo sem planejamento",
+          message: `${card.title} · ${card.clientName} · ${deadline.label}.`,
+          href: card.href,
+          cardKey
+        });
+      }
+
+      if (card.column === "CHANGES" && !card.plannedProductionDate) {
+        alerts.push({
+          id: `changes-unplanned-${cardKey}`,
+          severity: "warning",
+          title: "Ajuste sem replanejamento",
+          message: `${card.title} · ${card.clientName} voltou para ajustes e ainda não tem dia definido.`,
+          href: card.href,
+          cardKey
+        });
+      }
+    }
+
+    for (const day of weeklyPlan) {
+      for (const item of day.overload) {
+        alerts.push({
+          id: `overload-${item.id}-${dateOnlyKey(day.date)}`,
+          severity: "warning",
+          title: "Dia sobrecarregado",
+          message: `${item.name} tem ${Math.round(item.used * 10) / 10}/${Math.round(
+            item.capacity * 10
+          ) / 10} pts em ${shortWeekday(day.date)} ${shortDate(day.date)}.`
+        });
+      }
+    }
+
+    const rank = { critical: 0, warning: 1, info: 2 } as const;
+    return alerts.sort((a, b) => rank[a.severity] - rank[b.severity]);
+  }, [rankedCards, weeklyPlan]);
+
+  const alertSummary = useMemo(
+    () => ({
+      critical: operationalAlerts.filter(
+        (alert) => alert.severity === "critical"
+      ).length,
+      warning: operationalAlerts.filter(
+        (alert) => alert.severity === "warning"
+      ).length,
+      total: operationalAlerts.length
+    }),
+    [operationalAlerts]
+  );
+
   const plannedVsDone = useMemo(() => {
     const { start, end } = currentBusinessWeekRange();
 
@@ -823,6 +928,70 @@ export function OperationalKanban({
           </span>
         </div>
         {isPending ? <em>Salvando alteração...</em> : null}
+      </div>
+
+      <div
+        className={
+          alertSummary.critical > 0
+            ? "kanban-operational-alerts has-critical"
+            : alertSummary.warning > 0
+              ? "kanban-operational-alerts has-warning"
+              : "kanban-operational-alerts is-clear"
+        }
+      >
+        <div className="kanban-alerts-head">
+          <div>
+            <strong>Alertas operacionais</strong>
+            <span>
+              Pendências detectadas automaticamente a partir de prazo,
+              planejamento e capacidade.
+            </span>
+          </div>
+          <div className="kanban-alerts-summary">
+            <span className="critical">
+              {alertSummary.critical} crítico(s)
+            </span>
+            <span className="warning">
+              {alertSummary.warning} atenção
+            </span>
+          </div>
+        </div>
+
+        {operationalAlerts.length === 0 ? (
+          <div className="kanban-alerts-clear">
+            <FiCheckCircle aria-hidden="true" />
+            <span>
+              <strong>Operação sem alertas.</strong>
+              <small>
+                Nenhuma demanda atrasada, sem planejamento ou com sobrecarga
+                detectada.
+              </small>
+            </span>
+          </div>
+        ) : (
+          <div className="kanban-alerts-list">
+            {operationalAlerts.slice(0, 8).map((alert) => (
+              <article
+                className={`kanban-alert-item ${alert.severity}`}
+                key={alert.id}
+              >
+                <FiAlertCircle aria-hidden="true" />
+                <div>
+                  <strong>{alert.title}</strong>
+                  <span>{alert.message}</span>
+                </div>
+                {alert.href ? (
+                  <Link href={alert.href}>Abrir</Link>
+                ) : null}
+              </article>
+            ))}
+            {operationalAlerts.length > 8 ? (
+              <small className="kanban-alerts-more">
+                +{operationalAlerts.length - 8} alerta(s) adicional(is)
+              </small>
+            ) : null}
+          </div>
+        )}
       </div>
 
       {capacityState.length > 0 ? (
