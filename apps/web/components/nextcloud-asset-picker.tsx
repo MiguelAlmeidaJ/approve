@@ -49,15 +49,17 @@ export function NextcloudAssetPicker({
   clientId,
   multiple,
   selected,
-  onChange
+  onChange,
+  initialPath = "/"
 }: {
   clientId: string;
   multiple: boolean;
   selected: SelectedNextcloudAsset[];
   onChange: (assets: SelectedNextcloudAsset[]) => void;
+  initialPath?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [path, setPath] = useState("/");
+  const [path, setPath] = useState(initialPath || "/");
   const [items, setItems] = useState<NextcloudFileItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
