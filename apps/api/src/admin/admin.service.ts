@@ -1482,12 +1482,12 @@ export class AdminService {
     await this.assertCalendarAccess(actor, item.calendarId, item.id);
 
     if (
-      [
+      ([
         ContentStage.ART_APPROVED,
         ContentStage.READY_TO_SCHEDULE,
         ContentStage.SCHEDULED,
         ContentStage.PUBLISHED
-      ].includes(item.stage)
+      ] as ContentStage[]).includes(item.stage)
     ) {
       throw new BadRequestException(
         "Uma demanda concluída não pode receber novo planejamento de produção."
@@ -1557,10 +1557,10 @@ export class AdminService {
     }
 
     if (
-      [
+      ([
         StandaloneArtworkStatus.DELIVERED,
         StandaloneArtworkStatus.CANCELLED
-      ].includes(artwork.status)
+      ] as StandaloneArtworkStatus[]).includes(artwork.status)
     ) {
       throw new BadRequestException(
         "Uma demanda concluída ou cancelada não pode ser replanejada."
