@@ -737,8 +737,8 @@ export async function updateContentProductionStage(formData: FormData) {
   const itemId = required(formData, "itemId");
   const calendar = await getCalendar(calendarId);
 
-  if (!calendar || !canAccessClient(designer, calendar.client)) {
-    throw new Error("Você não tem acesso a este calendário.");
+  if (!calendar) {
+    throw new Error("Calendário não encontrado.");
   }
 
   await adminPatch(
@@ -759,8 +759,8 @@ export async function attachArtwork(formData: FormData) {
   const itemId = required(formData, "itemId");
   const calendar = await getCalendar(calendarId);
 
-  if (!calendar || !canAccessClient(designer, calendar.client)) {
-    throw new Error("Você não tem acesso a este calendário.");
+  if (!calendar) {
+    throw new Error("Calendário não encontrado.");
   }
 
   const assetPaths = formData
