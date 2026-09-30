@@ -128,6 +128,39 @@ function calendarStage(column: KanbanColumn) {
   return null;
 }
 
+function priorityScore(card: OperationalKanbanCard) {
+  if (card.column === "DONE") return -1000;
+
+  let score = 0;
+  const deadline = sla(card.dueAt);
+
+  if (deadline.key === "overdue") score += 100;
+  if (deadline.key === "risk") score += 65;
+  if (card.column === "CHANGES") score += 55;
+  if (card.column === "PRODUCTION") score += 20;
+  if (card.column === "WAITING") score += 15;
+  if (card.priority === "URGENT") score += 45;
+  if (card.priority === "HIGH") score += 25;
+  if (card.contractExtra) score += 5;
+
+  if (card.dueAt) {
+    const hours = Math.ceil(
+      (new Date(card.dueAt).getTime() - Date.now()) / (60 * 60 * 1000)
+    );
+    if (hours > 24 && hours <= 48) score += 15;
+    if (hours > 48 && hours <= 72) score += 8;
+  }
+
+  return score;
+}
+
+function priorityLabel(score: number) {
+  if (score >= 100) return "Crítica";
+  if (score >= 65) return "Alta";
+  if (score >= 35) return "Média";
+  return "Normal";
+}
+
 export function OperationalKanban({
   initialCards,
   designers,
@@ -163,17 +196,80 @@ export function OperationalKanban({
     [capacityState]
   );
 
+  const rankedCards = useMemo(
+    () =>
+      cards
+        .map((card) => ({
+          ...card,
+          operationalScore: priorityScore(card)
+        }))
+        .sort((a, b) => {
+          if (b.operationalScore !== a.operationalScore) {
+            return b.operationalScore - a.operationalScore;
+          }
+          const ad = a.dueAt
+            ? new Date(a.dueAt).getTime()
+            : Number.MAX_SAFE_INTEGER;
+          const bd = b.dueAt
+            ? new Date(b.dueAt).getTime()
+            : Number.MAX_SAFE_INTEGER;
+          return ad - bd;
+        }),
+    [cards]
+  );
+
   const grouped = useMemo(
     () =>
       columns.reduce(
         (acc, column) => {
-          acc[column.key] = cards.filter((card) => card.column === column.key);
+          acc[column.key] = rankedCards.filter(
+            (card) => card.column === column.key
+          );
           return acc;
         },
-        {} as Record<KanbanColumn, OperationalKanbanCard[]>
+        {} as Record<
+          KanbanColumn,
+          Array<OperationalKanbanCard & { operationalScore: number }>
+        >
       ),
-    [cards]
+    [rankedCards]
   );
+
+  const focusToday = useMemo(
+    () =>
+      rankedCards
+        .filter((card) => card.column !== "DONE")
+        .slice(0, 5),
+    [rankedCards]
+  );
+
+  function suggestedDesignerFor(card: OperationalKanbanCard) {
+    if (capacityState.length === 0) return null;
+
+    return [...capacityState]
+      .map((item) => {
+        const projectedPoints =
+          item.id === card.designerId
+            ? item.usedPoints
+            : item.usedPoints + card.points;
+        const projectedPercentage =
+          item.capacityPoints > 0
+            ? projectedPoints / item.capacityPoints
+            : Number.POSITIVE_INFINITY;
+
+        return {
+          ...item,
+          projectedPoints,
+          projectedPercentage
+        };
+      })
+      .sort(
+        (a, b) =>
+          a.projectedPercentage - b.projectedPercentage ||
+          b.remainingPoints - a.remainingPoints ||
+          a.activeDemands - b.activeDemands
+      )[0];
+  }
 
   function canMoveTo(card: OperationalKanbanCard, target: KanbanColumn) {
     if (!card.movable || card.column === target) return false;
@@ -380,6 +476,58 @@ export function OperationalKanban({
         </div>
       ) : null}
 
+      {focusToday.length > 0 ? (
+        <div className="kanban-focus-panel">
+          <div className="kanban-focus-head">
+            <div>
+              <strong>Foco de hoje</strong>
+              <span>
+                Ordem sugerida por prazo, SLA, ajustes e prioridade.
+              </span>
+            </div>
+            <small>Top {focusToday.length}</small>
+          </div>
+          <div className="kanban-focus-list">
+            {focusToday.map((card, index) => {
+              const suggested = suggestedDesignerFor(card);
+              const score = priorityScore(card);
+
+              return (
+                <article
+                  className={`kanban-focus-item priority-${priorityLabel(score).toLowerCase()}`}
+                  key={`focus-${card.source}-${card.id}`}
+                >
+                  <span className="kanban-focus-rank">{index + 1}</span>
+                  <div className="kanban-focus-main">
+                    <strong>{card.title}</strong>
+                    <span>
+                      {card.clientName} · {card.designerName}
+                    </span>
+                  </div>
+                  <div className="kanban-focus-meta">
+                    <span>{priorityLabel(score)}</span>
+                    <small>{sla(card.dueAt).label}</small>
+                  </div>
+                  {canReassign &&
+                  suggested &&
+                  suggested.id !== card.designerId ? (
+                    <button
+                      className="kanban-suggest-button"
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => assignDesigner(card, suggested.id)}
+                    >
+                      Sugerir {suggested.name}
+                    </button>
+                  ) : null}
+                  <Link href={card.href}>Abrir</Link>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
         <div className="kanban-error" role="alert">
           <FiAlertCircle aria-hidden="true" />
@@ -444,6 +592,8 @@ export function OperationalKanban({
                 ) : (
                   items.map((card) => {
                     const deadline = sla(card.dueAt);
+                    const score = priorityScore(card);
+                    const suggested = suggestedDesignerFor(card);
                     const isDragging =
                       draggingId === `${card.source}:${card.id}`;
 
@@ -501,6 +651,11 @@ export function OperationalKanban({
                         </div>
 
                         <div className="kanban-card-meta">
+                          <span
+                            className={`kanban-operational-priority priority-${priorityLabel(score).toLowerCase()}`}
+                          >
+                            {priorityLabel(score)}
+                          </span>
                           <span>{card.quantity} peça(s)</span>
                           <span>{card.points} pts</span>
                           {card.priority &&
@@ -519,6 +674,22 @@ export function OperationalKanban({
                               <strong>{card.designerName}</strong>
                             </span>
                           </div>
+                          {canReassign &&
+                          card.column !== "DONE" &&
+                          suggested &&
+                          suggested.id !== card.designerId ? (
+                            <button
+                              className="kanban-recommend"
+                              type="button"
+                              disabled={isPending}
+                              title={`Carga projetada: ${suggested.projectedPoints}/${suggested.capacityPoints} pts`}
+                              onClick={() =>
+                                assignDesigner(card, suggested.id)
+                              }
+                            >
+                              Sugerir {suggested.name}
+                            </button>
+                          ) : null}
                           {canReassign && card.column !== "DONE" ? (
                             <select
                               aria-label={`Reatribuir ${card.title}`}
