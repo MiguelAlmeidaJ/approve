@@ -1187,8 +1187,6 @@ export async function createStandaloneArtwork(formData: FormData) {
     dueAt: String(formData.get("dueAt") ?? "").trim()
       ? brazilLocalDateTimeToIso(String(formData.get("dueAt")))
       : undefined,
-    nextcloudPath:
-      String(formData.get("nextcloudPath") ?? "").trim() || undefined,
   });
 
   revalidatePath("/artes-avulsas");
