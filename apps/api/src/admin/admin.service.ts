@@ -3251,7 +3251,7 @@ export class AdminService {
         contentType: normalizedOutputs[0].contentType,
         formatLabel: normalizedOutputs[0].formatLabel,
         quantity: totalQuantity,
-        effortPoints: totalEffortPoints,
+        effortPoints: dto.effortPoints,
         outputs: {
           create: normalizedOutputs
         },
