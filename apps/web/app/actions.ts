@@ -1283,3 +1283,19 @@ export async function logoutDesigner() {
   cookieStore.delete(SESSION_COOKIE);
   redirect("/login");
 }
+
+
+export async function updateSystemBranding(formData: FormData) {
+  await requireRole("ADMIN", "DEV");
+
+  await adminPatch("/api/admin/system-branding", {
+    logoPath: String(formData.get("logoPath") ?? "").trim(),
+    logoName: String(formData.get("logoName") ?? "").trim(),
+    faviconPath: String(formData.get("faviconPath") ?? "").trim(),
+    faviconName: String(formData.get("faviconName") ?? "").trim()
+  });
+
+  revalidatePath("/identidade-visual");
+  revalidatePath("/");
+  revalidatePath("/cliente");
+}
