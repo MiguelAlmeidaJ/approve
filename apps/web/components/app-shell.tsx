@@ -416,7 +416,7 @@ export async function AppShell({
         <header className="app-topbar">
           <nav className="app-topbar-actions" aria-label="Atalhos">
             <Link
-              href="/ajuda/pontos"
+              href="/ajuda"
               className={
                 activeSection === "help"
                   ? "app-topbar-action active"
