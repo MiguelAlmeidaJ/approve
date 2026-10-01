@@ -6,8 +6,8 @@ import {
   FiRefreshCw
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
-import { StandaloneArtworkCreateForm } from "../../components/standalone-artwork-create-form";
-import { StandaloneArtworkStatusForm } from "../../components/standalone-artwork-status";
+import { StandaloneArtworkCreateModal } from "../../components/standalone-artwork-create-modal";
+import { StandaloneArtworkEditModal } from "../../components/standalone-artwork-edit-modal";
 import { requireDesigner } from "../../lib/auth";
 import {
   getAccessibleClients,
@@ -138,6 +138,22 @@ export default async function StandaloneArtworksPage() {
             acompanhamento do fluxo de produção.
           </p>
         </div>
+
+        <StandaloneArtworkCreateModal
+          clients={clients.map((client) => ({
+            id: client.id,
+            name: client.name,
+            assignedDesignerId: client.assignedDesignerId,
+            defaultStandaloneSlaHours: client.defaultStandaloneSlaHours
+          }))}
+          designers={designerLoad}
+          contractUsage={contractUsage}
+          actor={{
+            id: designer.id,
+            name: designer.name,
+            role: designer.role
+          }}
+        />
       </header>
 
       <section className="standalone-kpis">
@@ -159,24 +175,7 @@ export default async function StandaloneArtworksPage() {
         </article>
       </section>
 
-      <section className="standalone-layout">
-        <StandaloneArtworkCreateForm
-          clients={clients.map((client) => ({
-            id: client.id,
-            name: client.name,
-            assignedDesignerId: client.assignedDesignerId,
-            defaultStandaloneSlaHours: client.defaultStandaloneSlaHours
-          }))}
-          designers={designerLoad}
-          contractUsage={contractUsage}
-          actor={{
-            id: designer.id,
-            name: designer.name,
-            role: designer.role
-          }}
-        />
-
-        <section className="standalone-list-card">
+      <section className="standalone-list-card standalone-list-card-full">
           <div className="section-heading">
             <div>
               <span className="micro-label">FILA</span>
@@ -230,18 +229,20 @@ export default async function StandaloneArtworksPage() {
                       </div>
                     ) : null}
 
-                    <StandaloneArtworkStatusForm
-                      id={artwork.id}
-                      clientId={artwork.clientId}
-                      status={artwork.status}
-                      currentPath={artwork.nextcloudPath}
-                    />
+                    <div className="standalone-card-actions">
+                      <StandaloneArtworkEditModal
+                        id={artwork.id}
+                        clientId={artwork.clientId}
+                        title={artwork.title}
+                        status={artwork.status}
+                        currentPath={artwork.nextcloudPath}
+                      />
+                    </div>
                   </article>
                 );
               })}
             </div>
           )}
-        </section>
       </section>
     </AppShell>
   );
