@@ -486,30 +486,10 @@ p {
   z-index: 30;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 244, 242, 0.94);
-  backdrop-filter: blur(14px);
-}
-
-.app-topbar-context {
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.app-topbar-context span {
-  color: var(--pink);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-}
-
-.app-topbar-context strong {
-  color: #3a373c;
-  font-size: 11px;
+  background: var(--white);
 }
 
 .app-topbar-actions {
@@ -552,7 +532,7 @@ p {
   right: -5px;
   display: grid;
   place-items: center;
-  border: 2px solid var(--paper);
+  border: 2px solid var(--white);
   border-radius: 999px;
   background: var(--pink);
   color: var(--white);
@@ -16596,10 +16576,6 @@ body::-webkit-scrollbar,
   .app-topbar {
     min-height: 58px;
     padding: 0 18px;
-  }
-
-  .app-topbar-context strong {
-    display: none;
   }
 
   .workspace {
