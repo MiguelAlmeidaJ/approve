@@ -386,6 +386,14 @@ export default async function ProductionPage({
     return true;
   });
 
+  const hasActiveFilters = Boolean(
+    filters.client ||
+      filters.designer ||
+      filters.source ||
+      filters.sla ||
+      filters.contract
+  );
+
   const overdue = cards.filter(
     (card) => deadlineState(card.dueAt) === "overdue" && card.column !== "DONE"
   ).length;
@@ -427,68 +435,87 @@ export default async function ProductionPage({
         </article>
       </section>
 
-      <form className="demand-filters" method="get">
-        <label>
-          <span>Cliente</span>
-          <select name="client" defaultValue={filters.client ?? ""}>
-            <option value="">Todos</option>
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>{client.name}</option>
-            ))}
-          </select>
-        </label>
+      <details className="demand-filter-panel" open={hasActiveFilters}>
+        <summary>
+          <span>
+            <strong>Filtros</strong>
+            <small>
+              {hasActiveFilters
+                ? "Filtros ativos nesta visualização"
+                : "Refine por cliente, responsável, SLA ou contrato"}
+            </small>
+          </span>
+          <span className="demand-filter-count">
+            {cards.length} demanda(s)
+          </span>
+        </summary>
+        <div className="demand-filter-content">
+          <form className="demand-filters" method="get">
+            <label>
+              <span>Cliente</span>
+              <select name="client" defaultValue={filters.client ?? ""}>
+                <option value="">Todos</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
+                ))}
+              </select>
+            </label>
 
-        {designer.role !== "DESIGNER" ? (
-          <label>
-            <span>Designer</span>
-            <select name="designer" defaultValue={filters.designer ?? ""}>
-              <option value="">Todos</option>
-              {designers.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
-              ))}
-            </select>
-          </label>
-        ) : null}
+            {designer.role !== "DESIGNER" ? (
+              <label>
+                <span>Designer</span>
+                <select name="designer" defaultValue={filters.designer ?? ""}>
+                  <option value="">Todos</option>
+                  {designers.map((item) => (
+                    <option key={item.id} value={item.id}>{item.name}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
-        <label>
-          <span>Origem</span>
-          <select name="source" defaultValue={filters.source ?? ""}>
-            <option value="">Todas</option>
-            <option value="calendar">Calendário</option>
-            <option value="standalone">Arte avulsa</option>
-          </select>
-        </label>
+            <label>
+              <span>Origem</span>
+              <select name="source" defaultValue={filters.source ?? ""}>
+                <option value="">Todas</option>
+                <option value="calendar">Calendário</option>
+                <option value="standalone">Arte avulsa</option>
+              </select>
+            </label>
 
-        <label>
-          <span>SLA</span>
-          <select name="sla" defaultValue={filters.sla ?? ""}>
-            <option value="">Todos</option>
-            <option value="overdue">Atrasadas</option>
-            <option value="risk">Em risco</option>
-            <option value="on-time">No prazo</option>
-            <option value="no-deadline">Sem prazo</option>
-          </select>
-        </label>
+            <label>
+              <span>SLA</span>
+              <select name="sla" defaultValue={filters.sla ?? ""}>
+                <option value="">Todos</option>
+                <option value="overdue">Atrasadas</option>
+                <option value="risk">Em risco</option>
+                <option value="on-time">No prazo</option>
+                <option value="no-deadline">Sem prazo</option>
+              </select>
+            </label>
 
-        <label>
-          <span>Contrato</span>
-          <select name="contract" defaultValue={filters.contract ?? ""}>
-            <option value="">Todos</option>
-            <option value="included">Dentro da franquia</option>
-            <option value="extra">Extra do contrato</option>
-          </select>
-        </label>
+            <label>
+              <span>Contrato</span>
+              <select name="contract" defaultValue={filters.contract ?? ""}>
+                <option value="">Todos</option>
+                <option value="included">Dentro da franquia</option>
+                <option value="extra">Extra do contrato</option>
+              </select>
+            </label>
 
-        <button className="button button-dark" type="submit">Filtrar</button>
-        <Link className="button button-ghost" href="/producao">Limpar</Link>
-      </form>
+            <button className="button button-dark" type="submit">Filtrar</button>
+            <Link className="button button-ghost" href="/producao">Limpar</Link>
+          </form>
 
-      <div className="demand-source-legend">
-        <span><FiLayers /> Calendário: {calendarCards.length}</span>
-        <span>Avulsas: {standaloneCards.length}</span>
-        <span><FiCheckCircle /> Exibindo: {cards.length}</span>
-        <span><FiAlertCircle /> Extras: {extrasCount}</span>
-      </div>
+          <div className="demand-source-legend">
+            <span><FiLayers /> Calendário: {calendarCards.length}</span>
+            <span>Avulsas: {standaloneCards.length}</span>
+            <span><FiCheckCircle /> Exibindo: {cards.length}</span>
+            <span><FiAlertCircle /> Extras: {extrasCount}</span>
+          </div>
+
+        </div>
+      </details>
+
 
       <OperationalKanban
         initialCards={cards}
