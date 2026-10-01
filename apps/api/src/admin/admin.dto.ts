@@ -859,6 +859,14 @@ export class UpdateSystemBrandingDto {
 
   @IsOptional()
   @IsString()
+  darkLogoPath?: string;
+
+  @IsOptional()
+  @IsString()
+  darkLogoName?: string;
+
+  @IsOptional()
+  @IsString()
   faviconPath?: string;
 
   @IsOptional()
