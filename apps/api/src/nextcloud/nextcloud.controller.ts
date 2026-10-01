@@ -54,11 +54,12 @@ export class NextcloudController {
   @Public()
   @Get("public/branding/:kind")
   async publicBranding(
-    @Param("kind") kind: "logo" | "favicon",
+    @Param("kind") kind: "logo" | "logo-dark" | "favicon",
     @Headers("range") range: string | undefined,
     @Res() response: HttpResponse
   ) {
-    const normalizedKind = kind === "favicon" ? "favicon" : "logo";
+    const normalizedKind =
+      kind === "favicon" ? "favicon" : kind === "logo-dark" ? "logo-dark" : "logo";
     const result = await this.nextcloudService.previewBrandAsset(
       normalizedKind,
       range
