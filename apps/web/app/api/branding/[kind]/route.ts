@@ -46,7 +46,7 @@ export async function GET(
     const value = response.headers.get(name);
     if (value) headers.set(name, value);
   }
-  headers.set("cache-control", "public, max-age=300");
+  headers.set("cache-control", "no-store, max-age=0");
 
   return new Response(response.body, {
     status: response.status,
