@@ -11,6 +11,7 @@ import {
   FiZap
 } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
+import { HelpDocsNav } from "../../../components/help-docs-nav";
 import { requireDesigner } from "../../../lib/auth";
 
 const examples = [
@@ -40,6 +41,8 @@ export default async function PointsHelpPage() {
           </p>
         </div>
       </header>
+
+      <HelpDocsNav active="points" />
 
       <section className="points-help-hero">
         <article>
