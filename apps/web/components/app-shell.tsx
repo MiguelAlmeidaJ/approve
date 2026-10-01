@@ -4,10 +4,12 @@ import {
   FiBarChart2,
   FiBell,
   FiCalendar,
+  FiCheck,
   FiChevronDown,
   FiClipboard,
   FiFolder,
   FiHome,
+  FiHelpCircle,
   FiImage,
   FiLogOut,
   FiPieChart,
@@ -21,8 +23,8 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
-import { logoutDesigner } from "../app/actions";
-import type { Designer } from "../lib/api";
+import { logoutDesigner, markNotificationRead } from "../app/actions";
+import { getNotifications, type Designer } from "../lib/api";
 import { Brand } from "./brand";
 
 export type AppSection =
@@ -42,6 +44,7 @@ export type AppSection =
   | "capacity"
   | "audit"
   | "formats"
+  | "help"
   | "config";
 
 const roleLabel = {
@@ -66,7 +69,17 @@ function groupIsActive(
   return sections.includes(activeSection);
 }
 
-export function AppShell({
+function formatNotificationDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo"
+  }).format(new Date(value));
+}
+
+export async function AppShell({
   designer,
   activeSection = "panel",
   children,
@@ -78,6 +91,11 @@ export function AppShell({
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
+  const notifications = await getNotifications();
+  const unreadNotifications = notifications.filter(
+    (notification) => !notification.readAt
+  ).length;
+  const latestNotifications = notifications.slice(0, 5);
 
   return (
     <div className="app-frame">
@@ -114,7 +132,6 @@ export function AppShell({
               "calendars",
               "production",
               "standalone",
-              "notifications",
             ])}
           >
             <summary>
@@ -160,17 +177,6 @@ export function AppShell({
               >
                 <FiImage aria-hidden="true" />
                 Artes avulsas
-              </Link>
-              <Link
-                href="/notificacoes"
-                className={
-                  activeSection === "notifications"
-                    ? "sidebar-submenu-link active"
-                    : "sidebar-submenu-link"
-                }
-              >
-                <FiBell aria-hidden="true" />
-                Notificações
               </Link>
             </div>
           </details>
@@ -406,7 +412,129 @@ export function AppShell({
         </div>
       </aside>
 
-      <main className="workspace">{children}</main>
+      <div className="app-content">
+        <header className="app-topbar">
+          <div className="app-topbar-context">
+            <span>TERCEIRO ANDAR</span>
+            <strong>Sistema de aprovação</strong>
+          </div>
+
+          <nav className="app-topbar-actions" aria-label="Atalhos">
+            <Link
+              href="/ajuda/pontos"
+              className={
+                activeSection === "help"
+                  ? "app-topbar-action active"
+                  : "app-topbar-action"
+              }
+              aria-label="Ajuda"
+              title="Ajuda"
+            >
+              <FiHelpCircle aria-hidden="true" />
+            </Link>
+
+            <details className="app-notification-menu">
+              <summary
+                className={
+                  activeSection === "notifications"
+                    ? "app-topbar-action active"
+                    : "app-topbar-action"
+                }
+                aria-label={
+                  unreadNotifications > 0
+                    ? `Notificações: ${unreadNotifications} não lida(s)`
+                    : "Notificações"
+                }
+                title="Notificações"
+              >
+                <FiBell aria-hidden="true" />
+                {unreadNotifications > 0 ? (
+                  <span className="app-topbar-badge">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                ) : null}
+              </summary>
+
+              <div className="app-notification-dropdown">
+                <div className="app-notification-dropdown-head">
+                  <div>
+                    <strong>Notificações</strong>
+                    <span>
+                      {unreadNotifications > 0
+                        ? `${unreadNotifications} não lida(s)`
+                        : "Tudo em dia"}
+                    </span>
+                  </div>
+                  <Link href="/notificacoes">Ver todas</Link>
+                </div>
+
+                {latestNotifications.length === 0 ? (
+                  <div className="app-notification-empty">
+                    <FiBell aria-hidden="true" />
+                    <span>Nenhuma notificação por enquanto.</span>
+                  </div>
+                ) : (
+                  <div className="app-notification-list">
+                    {latestNotifications.map((notification) => (
+                      <article
+                        className={
+                          notification.readAt
+                            ? "app-notification-item read"
+                            : "app-notification-item"
+                        }
+                        key={notification.id}
+                      >
+                        <span className="app-notification-dot" />
+                        <div className="app-notification-copy">
+                          <strong>{notification.title}</strong>
+                          <p>{notification.message}</p>
+                          <small>{formatNotificationDate(notification.createdAt)}</small>
+                        </div>
+
+                        <div className="app-notification-item-actions">
+                          {notification.link ? (
+                            <Link href={notification.link}>Abrir</Link>
+                          ) : null}
+                          {!notification.readAt ? (
+                            <form action={markNotificationRead}>
+                              <input
+                                type="hidden"
+                                name="notificationId"
+                                value={notification.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="returnTo"
+                                value="/"
+                              />
+                              <button
+                                type="submit"
+                                aria-label="Marcar como lida"
+                                title="Marcar como lida"
+                              >
+                                <FiCheck aria-hidden="true" />
+                              </button>
+                            </form>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                <Link
+                  href="/notificacoes"
+                  className="app-notification-dropdown-footer"
+                >
+                  Abrir central de notificações
+                </Link>
+              </div>
+            </details>
+          </nav>
+        </header>
+
+        <main className="workspace">{children}</main>
+      </div>
     </div>
   );
 }
