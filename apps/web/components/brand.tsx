@@ -7,7 +7,7 @@ export function Brand({
 }) {
   const src =
     tone === "dark"
-      ? "/api/branding/logo?tone=dark"
+      ? "/api/branding/logo-dark"
       : "/api/branding/logo";
 
   return (
