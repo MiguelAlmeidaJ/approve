@@ -71,7 +71,9 @@ export function StandaloneArtworkCreateForm({
   clients,
   designers,
   contractUsage,
-  actor
+  actor,
+  embedded = false,
+  onCreated
 }: {
   clients: ClientOption[];
   designers: DesignerOption[];
@@ -81,6 +83,8 @@ export function StandaloneArtworkCreateForm({
     name: string;
     role: "DESIGNER" | "ADMIN" | "DEV";
   };
+  embedded?: boolean;
+  onCreated?: () => void;
 }) {
   const [clientId, setClientId] = useState("");
   const [contentType, setContentType] =
@@ -126,6 +130,11 @@ export function StandaloneArtworkCreateForm({
     return `/Artes avulsas/${year}/${month}/${safeSegment(title)}-xxxxxx/`;
   }, [title]);
 
+  async function submit(formData: FormData) {
+    await createStandaloneArtwork(formData);
+    onCreated?.();
+  }
+
   function changeClient(nextClientId: string) {
     setClientId(nextClientId);
     const client = clients.find((item) => item.id === nextClientId);
@@ -154,14 +163,23 @@ export function StandaloneArtworkCreateForm({
   }
 
   return (
-    <form action={createStandaloneArtwork} className="standalone-form-card standalone-smart-form">
-      <div className="section-heading">
-        <div>
-          <span className="micro-label">NOVA DEMANDA</span>
-          <h2>Criar arte avulsa</h2>
+    <form
+      action={submit}
+      className={
+        embedded
+          ? "standalone-smart-form standalone-smart-form-embedded"
+          : "standalone-form-card standalone-smart-form"
+      }
+    >
+      {!embedded ? (
+        <div className="section-heading">
+          <div>
+            <span className="micro-label">NOVA DEMANDA</span>
+            <h2>Criar arte avulsa</h2>
+          </div>
+          <FiPlus aria-hidden="true" />
         </div>
-        <FiPlus aria-hidden="true" />
-      </div>
+      ) : null}
 
       <div className="standalone-form-section">
         <div className="standalone-form-section-head">
