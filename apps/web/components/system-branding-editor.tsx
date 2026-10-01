@@ -19,6 +19,11 @@ export function SystemBrandingEditor({
       ? { path: branding.logoPath, name: branding.logoName ?? "Logo" }
       : null
   );
+  const [darkLogo, setDarkLogo] = useState<SystemImageSelection>(
+    branding.darkLogoPath
+      ? { path: branding.darkLogoPath, name: branding.darkLogoName ?? "Logo para fundo escuro" }
+      : null
+  );
   const [favicon, setFavicon] = useState<SystemImageSelection>(
     branding.faviconPath
       ? { path: branding.faviconPath, name: branding.faviconName ?? "Favicon" }
@@ -29,6 +34,8 @@ export function SystemBrandingEditor({
     <form action={updateSystemBranding} className="branding-settings">
       <input type="hidden" name="logoPath" value={logo?.path ?? ""} />
       <input type="hidden" name="logoName" value={logo?.name ?? ""} />
+      <input type="hidden" name="darkLogoPath" value={darkLogo?.path ?? ""} />
+      <input type="hidden" name="darkLogoName" value={darkLogo?.name ?? ""} />
       <input type="hidden" name="faviconPath" value={favicon?.path ?? ""} />
       <input type="hidden" name="faviconName" value={favicon?.name ?? ""} />
 
@@ -57,6 +64,22 @@ export function SystemBrandingEditor({
                     : "/brand-terceiro-andar.svg"
                 }
                 alt="Prévia da logo"
+              />
+            </div>
+          </article>
+
+          <article>
+            <small>Logo em fundo escuro</small>
+            <div className="branding-logo-preview branding-logo-preview-dark">
+              <img
+                src={
+                  darkLogo
+                    ? `/api/nextcloud/system-file?path=${encodeURIComponent(
+                        darkLogo.path
+                      )}`
+                    : "/brand-terceiro-andar-dark.svg"
+                }
+                alt="Prévia da logo em fundo escuro"
               />
             </div>
           </article>
@@ -99,6 +122,12 @@ export function SystemBrandingEditor({
             onChange={setLogo}
           />
           <SystemNextcloudImagePicker
+            label="Logo para fundo escuro"
+            description="Versão clara/branca da marca para login e superfícies escuras. Recomendado: SVG ou PNG transparente."
+            value={darkLogo}
+            onChange={setDarkLogo}
+          />
+          <SystemNextcloudImagePicker
             label="Favicon"
             description="Recomendado: PNG ou SVG quadrado, com boa leitura em tamanhos pequenos."
             value={favicon}
@@ -111,7 +140,7 @@ export function SystemBrandingEditor({
         <div>
           <strong>Aplicação da identidade</strong>
           <span>
-            A logo será usada em todo o sistema e nas telas apresentadas ao cliente.
+            As versões da logo serão aplicadas conforme o fundo, inclusive no login, e o favicon será atualizado no navegador.
           </span>
         </div>
         <button type="submit" className="button button-primary">
