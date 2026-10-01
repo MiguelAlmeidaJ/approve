@@ -17916,3 +17916,125 @@ body::-webkit-scrollbar,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Standalone multi-output selector */
+.standalone-output-selector {
+  display: grid;
+  gap: 12px;
+}
+
+.standalone-output-selector-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.standalone-output-selector-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.standalone-output-selector-head strong {
+  color: #2f2c31;
+  font-size: 10px;
+}
+
+.standalone-output-selector-head small,
+.standalone-output-selector-head > span {
+  color: #8c888d;
+  font-size: 8px;
+}
+
+.standalone-output-types {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.standalone-output-type {
+  min-height: 58px;
+  padding: 9px 10px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  border: 1px solid #e2dedb;
+  border-radius: 10px;
+  background: #fff;
+  color: #5e5a60;
+  cursor: pointer;
+}
+
+.standalone-output-type span {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.standalone-output-type small {
+  color: #99959a;
+  font-size: 7px;
+}
+
+.standalone-output-type.active {
+  border-color: #ff8aac;
+  background: #fff7fa;
+  box-shadow: inset 0 0 0 1px rgba(255, 1, 74, .08);
+}
+
+.standalone-output-type.active span {
+  color: var(--pink);
+}
+
+.standalone-output-configs {
+  display: grid;
+  gap: 8px;
+}
+
+.standalone-output-config {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(90px, .7fr) minmax(180px, 1.6fr) 90px;
+  gap: 10px;
+  align-items: end;
+  border: 1px solid #e9e6e3;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.standalone-output-config > div:first-child {
+  align-self: center;
+  display: grid;
+  gap: 2px;
+}
+
+.standalone-output-config > div:first-child strong {
+  font-size: 9px;
+}
+
+.standalone-output-config > div:first-child small {
+  color: #8d898e;
+  font-size: 7px;
+}
+
+.standalone-output-config .field > span {
+  font-size: 8px;
+}
+
+.standalone-output-config select,
+.standalone-output-config input {
+  min-height: 40px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  .standalone-output-types {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .standalone-output-config {
+    grid-template-columns: 1fr;
+  }
+}
