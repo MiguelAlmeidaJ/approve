@@ -67,18 +67,6 @@ export default async function TeamPage({
         </Link>
       </header>
 
-      <section className="team-permission-banner">
-        <FiShield aria-hidden="true" />
-        <div>
-          <span>{isDev ? "GESTÃO COMPLETA" : "GESTÃO DE DESIGNERS"}</span>
-          <strong>
-            {isDev
-              ? "Você pode gerenciar devs, admins e designers."
-              : "Você pode criar e editar designers. Contas dev ficam ocultas."}
-          </strong>
-        </div>
-      </section>
-
       <section className="team-overview" aria-label="Resumo da equipe">
         <article>
           <div className="team-stat-icon team-stat-icon-pink">
@@ -88,7 +76,6 @@ export default async function TeamPage({
             <span>Pessoas visíveis</span>
             <strong>{users.length}</strong>
           </div>
-          <small>Acessos disponíveis para seu perfil</small>
         </article>
         <article>
           <div className="team-stat-icon">
@@ -98,17 +85,15 @@ export default async function TeamPage({
             <span>Designers</span>
             <strong>{designers}</strong>
           </div>
-          <small>Na operação criativa</small>
         </article>
         <article>
           <div className="team-stat-icon">
             <FiShield aria-hidden="true" />
           </div>
           <div>
-            <span>Gestão & tecnologia</span>
+            <span>Gestão</span>
             <strong>{leadership}</strong>
           </div>
-          <small>{isDev ? "Admins e desenvolvimento" : "Administradores"}</small>
         </article>
         <article>
           <div className="team-stat-icon">
@@ -118,21 +103,11 @@ export default async function TeamPage({
             <span>Clientes atribuídos</span>
             <strong>{assignedClients}</strong>
           </div>
-          <small>Responsabilidades ativas</small>
         </article>
       </section>
 
       <section className="team-management-layout team-management-single">
         <div className="team-directory">
-          <div className="team-section-heading">
-            <div>
-              <span className="micro-label">DIRETÓRIO</span>
-              <h2>Pessoas da equipe</h2>
-              <p>Encontre rapidamente um membro, perfil ou responsabilidade.</p>
-            </div>
-            <span className="team-total-pill">{users.length} pessoas</span>
-          </div>
-
           <UsersList users={users} currentRole={currentRole} />
         </div>
       </section>

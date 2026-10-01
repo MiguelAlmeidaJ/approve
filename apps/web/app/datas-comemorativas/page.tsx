@@ -279,17 +279,6 @@ export default async function CommemorativeDatesPage({
       </section>
 
       <section className="commemorative-section">
-        <div className="commemorative-section-heading">
-          <div>
-            <span className="micro-label">BASE DO SISTEMA</span>
-            <h2>Calendário nacional</h2>
-            <p>
-              Datas fixas já disponíveis automaticamente nos planejamentos.
-            </p>
-          </div>
-          <span>{national.length} datas</span>
-        </div>
-
         <div className="commemorative-grid">
           {national.map((date) => (
             <article className="commemorative-card national" key={date.id}>
