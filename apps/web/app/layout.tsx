@@ -3,7 +3,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Aprovação — Terceiro Andar",
-  description: "Calendário e aprovação de conteúdo da Terceiro Andar."
+  description: "Calendário e aprovação de conteúdo da Terceiro Andar.",
+  icons: {
+    icon: "/api/branding/favicon",
+    shortcut: "/api/branding/favicon",
+    apple: "/api/branding/favicon"
+  }
 };
 
 export default function RootLayout({
