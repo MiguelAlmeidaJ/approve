@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ kind: string }> }
 ) {
   const { kind } = await params;
-  const normalizedKind = kind === "favicon" ? "favicon" : "logo";
+  const normalizedKind =
+    kind === "favicon" ? "favicon" : kind === "logo-dark" ? "logo-dark" : "logo";
   const endpoint = new URL(
     `/api/public/branding/${normalizedKind}`,
     getApiUrl()
@@ -25,7 +26,8 @@ export async function GET(
       new URL(
         normalizedKind === "favicon"
           ? "/brand-terceiro-andar.svg"
-          : request.nextUrl.searchParams.get("tone") === "dark"
+          : normalizedKind === "logo-dark" ||
+              request.nextUrl.searchParams.get("tone") === "dark"
             ? "/brand-terceiro-andar-dark.svg"
             : "/brand-terceiro-andar.svg",
         request.url
