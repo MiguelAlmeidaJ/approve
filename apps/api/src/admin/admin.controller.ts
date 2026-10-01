@@ -38,6 +38,7 @@ import {
   UpdateContentProductionStageDto,
   UpdateDemandPlannedDateDto,
   UpdateStandaloneArtworkStatusDto,
+  UpdateSystemBrandingDto,
   UpdateUserDto
 } from "./admin.dto";
 import { AdminService } from "./admin.service";
@@ -64,6 +65,19 @@ export class AdminController {
   @Get("formats")
   listFormats(@Req() request: InternalActorRequest) {
     return this.adminService.listFormats(request.actor);
+  }
+
+  @Get("system-branding")
+  getSystemBranding(@Req() request: InternalActorRequest) {
+    return this.adminService.getSystemBranding(request.actor);
+  }
+
+  @Patch("system-branding")
+  updateSystemBranding(
+    @Req() request: InternalActorRequest,
+    @Body() dto: UpdateSystemBrandingDto
+  ) {
+    return this.adminService.updateSystemBranding(request.actor, dto);
   }
 
   @Get("commemorative-dates")
