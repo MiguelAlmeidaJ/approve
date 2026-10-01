@@ -248,6 +248,7 @@ export function OperationalKanban({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeDrop, setActiveDrop] = useState<KanbanColumn | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"kanban" | "planning" | "capacity">("kanban");
   const [capacityState, setCapacityState] = useState(designers);
   const [isPending, startTransition] = useTransition();
 
@@ -1189,16 +1190,48 @@ export function OperationalKanban({
 
   return (
     <section className="operational-kanban-wrap">
-      <div className="operational-kanban-help">
-        <div>
-          <strong>Kanban operacional</strong>
+      <div className="kanban-command-bar">
+        <div className="kanban-command-copy">
+          <strong>Central operacional</strong>
           <span>
-            Arraste demandas entre etapas permitidas. Gestores podem
-            reatribuir o responsável diretamente no card; itens acima da
-            franquia aparecem como Extra do contrato.
+            Acompanhe a fila, planeje a semana e distribua a capacidade sem
+            misturar todas as visões na mesma tela.
           </span>
         </div>
-        {isPending ? <em>Salvando alteração...</em> : null}
+
+        <div className="kanban-view-tabs" role="tablist" aria-label="Visão da central">
+          <button
+            type="button"
+            className={view === "kanban" ? "active" : ""}
+            onClick={() => setView("kanban")}
+          >
+            Fila
+          </button>
+          <button
+            type="button"
+            className={view === "planning" ? "active" : ""}
+            onClick={() => setView("planning")}
+          >
+            Planejamento
+          </button>
+          <button
+            type="button"
+            className={view === "capacity" ? "active" : ""}
+            onClick={() => setView("capacity")}
+          >
+            Capacidade
+          </button>
+        </div>
+
+        <div className="kanban-command-status">
+          {alertSummary.critical > 0 ? (
+            <span className="critical">
+              {alertSummary.critical} crítico(s)
+            </span>
+          ) : null}
+          <span>{cards.filter((card) => card.column !== "DONE").length} ativas</span>
+          {isPending ? <em>Salvando...</em> : null}
+        </div>
       </div>
 
       <div
@@ -1251,7 +1284,7 @@ export function OperationalKanban({
           </div>
         ) : (
           <div className="kanban-alerts-list">
-            {operationalAlerts.slice(0, 8).map((alert) => (
+            {operationalAlerts.slice(0, 4).map((alert) => (
               <article
                 className={`kanban-alert-item ${alert.severity}`}
                 key={alert.id}
@@ -1294,416 +1327,431 @@ export function OperationalKanban({
                 </div>
               </article>
             ))}
-            {operationalAlerts.length > 8 ? (
+            {operationalAlerts.length > 4 ? (
               <small className="kanban-alerts-more">
-                +{operationalAlerts.length - 8} alerta(s) adicional(is)
+                +{operationalAlerts.length - 4} alerta(s) adicional(is)
               </small>
             ) : null}
           </div>
         )}
       </div>
 
-      {capacityState.length > 0 ? (
-        <div className="kanban-capacity-strip">
-          <div className="kanban-capacity-title">
-            <strong>WIP / capacidade</strong>
-            <span>
-              {recommendedDesigner
-                ? `Mais disponível: ${recommendedDesigner.name} · ${Math.max(0, recommendedDesigner.remainingPoints)} pts livres`
-                : "Capacidade da equipe"}
-            </span>
-          </div>
-          <div className="kanban-capacity-list">
-            {capacityState
-              .slice()
-              .sort((a, b) => b.percentage - a.percentage)
-              .map((item) => (
-                <article
-                  className={
-                    item.percentage > 100
-                      ? "kanban-capacity-card overloaded"
-                      : item.percentage >= 80
-                        ? "kanban-capacity-card warning"
-                        : "kanban-capacity-card"
-                  }
-                  key={item.id}
-                >
-                  <div>
-                    <strong>{item.name}</strong>
-                    <span>{item.usedPoints}/{item.capacityPoints} pts</span>
-                  </div>
-                  <div className="kanban-capacity-track">
-                    <i style={{ width: `${Math.min(item.percentage, 100)}%` }} />
-                  </div>
-                  <small>
-                    {item.percentage > 100
-                      ? `${item.usedPoints - item.capacityPoints} pts acima`
-                      : `${item.remainingPoints} pts livres · ${item.activeDemands} demanda(s)`}
-                  </small>
-                </article>
-              ))}
-          </div>
-        </div>
-      ) : null}
-
-      {plannedVsDone.length > 0 ? (
-        <div className="kanban-performance-panel">
-          <div className="kanban-performance-head">
-            <div>
-              <strong>Planejado x realizado · semana atual</strong>
-              <span>
-                Pontos planejados para produção comparados aos pontos concluídos.
-              </span>
+      {view === "capacity" ? (
+        <div className="kanban-view-stack">
+          {capacityState.length > 0 ? (
+            <div className="kanban-capacity-strip">
+              <div className="kanban-capacity-title">
+                <strong>WIP / capacidade</strong>
+                <span>
+                  {recommendedDesigner
+                    ? `Mais disponível: ${recommendedDesigner.name} · ${Math.max(0, recommendedDesigner.remainingPoints)} pts livres`
+                    : "Capacidade da equipe"}
+                </span>
+              </div>
+              <div className="kanban-capacity-list">
+                {capacityState
+                  .slice()
+                  .sort((a, b) => b.percentage - a.percentage)
+                  .map((item) => (
+                    <article
+                      className={
+                        item.percentage > 100
+                          ? "kanban-capacity-card overloaded"
+                          : item.percentage >= 80
+                            ? "kanban-capacity-card warning"
+                            : "kanban-capacity-card"
+                      }
+                      key={item.id}
+                    >
+                      <div>
+                        <strong>{item.name}</strong>
+                        <span>{item.usedPoints}/{item.capacityPoints} pts</span>
+                      </div>
+                      <div className="kanban-capacity-track">
+                        <i style={{ width: `${Math.min(item.percentage, 100)}%` }} />
+                      </div>
+                      <small>
+                        {item.percentage > 100
+                          ? `${item.usedPoints - item.capacityPoints} pts acima`
+                          : `${item.remainingPoints} pts livres · ${item.activeDemands} demanda(s)`}
+                      </small>
+                    </article>
+                  ))}
+              </div>
             </div>
-          </div>
-          <div className="kanban-performance-grid">
-            {plannedVsDone.map((item) => (
-              <article key={item.id}>
+          ) : null}
+
+          {plannedVsDone.length > 0 ? (
+            <div className="kanban-performance-panel">
+              <div className="kanban-performance-head">
                 <div>
-                  <strong>{item.name}</strong>
+                  <strong>Planejado x realizado · semana atual</strong>
                   <span>
-                    {item.completedPoints}/{item.plannedPoints} pts
+                    Pontos planejados para produção comparados aos pontos concluídos.
                   </span>
                 </div>
-                <div className="kanban-performance-track">
-                  <i
-                    style={{
-                      width: `${Math.min(item.percentage, 100)}%`
-                    }}
-                  />
-                </div>
-                <small>
-                  {item.plannedPoints === 0
-                    ? "Sem produção planejada"
-                    : `${item.percentage}% realizado`}
-                </small>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {weeklyPlan.length > 0 && capacityState.length > 0 ? (
-        <div className="kanban-designer-agenda">
-          <div className="kanban-agenda-head">
-            <div>
-              <strong>Agenda por designer</strong>
-              <span>
-                Matriz designer × dia. Arraste uma demanda para outro dia ou
-                outro designer para atualizar o planejamento.
-              </span>
-            </div>
-            <small>Alterações são salvas automaticamente</small>
-          </div>
-
-          <div className="kanban-agenda-scroll">
-            <div className="kanban-agenda-grid">
-              <div className="kanban-agenda-corner">
-                <span>Designer</span>
               </div>
-
-              {weeklyPlan.map((day) => (
-                <div
-                  className="kanban-agenda-day-head"
-                  key={`agenda-head-${day.date.toISOString()}`}
-                >
-                  <strong>{shortWeekday(day.date)}</strong>
-                  <span>{shortDate(day.date)}</span>
-                </div>
-              ))}
-
-              {capacityState.map((designer) => (
-                <Fragment key={`agenda-row-${designer.id}`}>
-                  <div
-                    className="kanban-agenda-designer"
-                    key={`agenda-designer-${designer.id}`}
-                  >
+              <div className="kanban-performance-grid">
+                {plannedVsDone.map((item) => (
+                  <article key={item.id}>
                     <div>
-                      <FiUser aria-hidden="true" />
+                      <strong>{item.name}</strong>
                       <span>
-                        <strong>{designer.name}</strong>
-                        <small>
-                          {designer.usedPoints}/{designer.capacityPoints} pts
-                        </small>
+                        {item.completedPoints}/{item.plannedPoints} pts
                       </span>
                     </div>
+                    <div className="kanban-performance-track">
+                      <i
+                        style={{
+                          width: `${Math.min(item.percentage, 100)}%`
+                        }}
+                      />
+                    </div>
+                    <small>
+                      {item.plannedPoints === 0
+                        ? "Sem produção planejada"
+                        : `${item.percentage}% realizado`}
+                    </small>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+        </div>
+      ) : null}
+
+      {view === "planning" ? (
+        <div className="kanban-view-stack">
+          {weeklyPlan.length > 0 && capacityState.length > 0 ? (
+            <div className="kanban-designer-agenda">
+              <div className="kanban-agenda-head">
+                <div>
+                  <strong>Agenda por designer</strong>
+                  <span>
+                    Matriz designer × dia. Arraste uma demanda para outro dia ou
+                    outro designer para atualizar o planejamento.
+                  </span>
+                </div>
+                <small>Alterações são salvas automaticamente</small>
+              </div>
+
+              <div className="kanban-agenda-scroll">
+                <div className="kanban-agenda-grid">
+                  <div className="kanban-agenda-corner">
+                    <span>Designer</span>
                   </div>
 
-                  {weeklyPlan.map((day) => {
-                    const slot = day.perDesigner.find(
-                      (item) => item.id === designer.id
-                    );
-                    const used = slot?.used ?? 0;
-                    const capacity = slot?.capacity ?? designer.capacityPoints / 5;
-                    const percentage =
-                      capacity > 0
-                        ? Math.round((used / capacity) * 100)
-                        : 0;
-                    const slotCards = slot?.cards ?? [];
+                  {weeklyPlan.map((day) => (
+                    <div
+                      className="kanban-agenda-day-head"
+                      key={`agenda-head-${day.date.toISOString()}`}
+                    >
+                      <strong>{shortWeekday(day.date)}</strong>
+                      <span>{shortDate(day.date)}</span>
+                    </div>
+                  ))}
 
-                    return (
+                  {capacityState.map((designer) => (
+                    <Fragment key={`agenda-row-${designer.id}`}>
                       <div
-                        className={
-                          percentage > 100
-                            ? "kanban-agenda-cell overloaded"
-                            : percentage >= 85
-                              ? "kanban-agenda-cell warning"
-                              : "kanban-agenda-cell"
-                        }
-                        key={`agenda-${designer.id}-${day.date.toISOString()}`}
-                        onDragOver={(event) => {
-                          event.preventDefault();
-                          event.dataTransfer.dropEffect = "move";
-                        }}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          const [source, id] = event.dataTransfer
-                            .getData("text/plain")
-                            .split(":");
-                          const card = cards.find(
-                            (item) =>
-                              item.id === id && item.source === source
-                          );
-                          if (card) {
-                            planForDesigner(card, designer.id, day.date);
-                          }
-                        }}
+                        className="kanban-agenda-designer"
+                        key={`agenda-designer-${designer.id}`}
                       >
-                        <div className="kanban-agenda-cell-head">
+                        <div>
+                          <FiUser aria-hidden="true" />
                           <span>
-                            {Math.round(used * 10) / 10}/
-                            {Math.round(capacity * 10) / 10} pts
+                            <strong>{designer.name}</strong>
+                            <small>
+                              {designer.usedPoints}/{designer.capacityPoints} pts
+                            </small>
                           </span>
-                          <em>{percentage}%</em>
-                        </div>
-
-                        <div className="kanban-agenda-cell-track">
-                          <i
-                            style={{
-                              width: `${Math.min(percentage, 100)}%`
-                            }}
-                          />
-                        </div>
-
-                        <div className="kanban-agenda-items">
-                          {slotCards.length === 0 ? (
-                            <small>Livre</small>
-                          ) : (
-                            slotCards.map((card) => (
-                              <Link
-                                href={card.href}
-                                className={
-                                  card.plannedProductionDate
-                                    ? "kanban-agenda-item fixed"
-                                    : "kanban-agenda-item suggested"
-                                }
-                                draggable={
-                                  card.column !== "DONE" && !isPending
-                                }
-                                key={`agenda-card-${designer.id}-${day.date.toISOString()}-${card.source}-${card.id}`}
-                                onDragStart={(event) => {
-                                  event.dataTransfer.setData(
-                                    "text/plain",
-                                    `${card.source}:${card.id}`
-                                  );
-                                  event.dataTransfer.effectAllowed = "move";
-                                }}
-                                onClick={(event) => {
-                                  if (isPending) event.preventDefault();
-                                }}
-                              >
-                                <strong>{card.title}</strong>
-                                <span>
-                                  {card.points} pts ·{" "}
-                                  {card.plannedProductionDate
-                                    ? "fixado"
-                                    : "sugerido"}
-                                </span>
-                              </Link>
-                            ))
-                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                </Fragment>
-              ))}
+
+                      {weeklyPlan.map((day) => {
+                        const slot = day.perDesigner.find(
+                          (item) => item.id === designer.id
+                        );
+                        const used = slot?.used ?? 0;
+                        const capacity = slot?.capacity ?? designer.capacityPoints / 5;
+                        const percentage =
+                          capacity > 0
+                            ? Math.round((used / capacity) * 100)
+                            : 0;
+                        const slotCards = slot?.cards ?? [];
+
+                        return (
+                          <div
+                            className={
+                              percentage > 100
+                                ? "kanban-agenda-cell overloaded"
+                                : percentage >= 85
+                                  ? "kanban-agenda-cell warning"
+                                  : "kanban-agenda-cell"
+                            }
+                            key={`agenda-${designer.id}-${day.date.toISOString()}`}
+                            onDragOver={(event) => {
+                              event.preventDefault();
+                              event.dataTransfer.dropEffect = "move";
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              const [source, id] = event.dataTransfer
+                                .getData("text/plain")
+                                .split(":");
+                              const card = cards.find(
+                                (item) =>
+                                  item.id === id && item.source === source
+                              );
+                              if (card) {
+                                planForDesigner(card, designer.id, day.date);
+                              }
+                            }}
+                          >
+                            <div className="kanban-agenda-cell-head">
+                              <span>
+                                {Math.round(used * 10) / 10}/
+                                {Math.round(capacity * 10) / 10} pts
+                              </span>
+                              <em>{percentage}%</em>
+                            </div>
+
+                            <div className="kanban-agenda-cell-track">
+                              <i
+                                style={{
+                                  width: `${Math.min(percentage, 100)}%`
+                                }}
+                              />
+                            </div>
+
+                            <div className="kanban-agenda-items">
+                              {slotCards.length === 0 ? (
+                                <small>Livre</small>
+                              ) : (
+                                slotCards.map((card) => (
+                                  <Link
+                                    href={card.href}
+                                    className={
+                                      card.plannedProductionDate
+                                        ? "kanban-agenda-item fixed"
+                                        : "kanban-agenda-item suggested"
+                                    }
+                                    draggable={
+                                      card.column !== "DONE" && !isPending
+                                    }
+                                    key={`agenda-card-${designer.id}-${day.date.toISOString()}-${card.source}-${card.id}`}
+                                    onDragStart={(event) => {
+                                      event.dataTransfer.setData(
+                                        "text/plain",
+                                        `${card.source}:${card.id}`
+                                      );
+                                      event.dataTransfer.effectAllowed = "move";
+                                    }}
+                                    onClick={(event) => {
+                                      if (isPending) event.preventDefault();
+                                    }}
+                                  >
+                                    <strong>{card.title}</strong>
+                                    <span>
+                                      {card.points} pts ·{" "}
+                                      {card.plannedProductionDate
+                                        ? "fixado"
+                                        : "sugerido"}
+                                    </span>
+                                  </Link>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      ) : null}
+          ) : null}
 
-      {weeklyPlan.length > 0 ? (
-        <div className="kanban-week-plan">
-          <div className="kanban-week-head">
-            <div>
-              <strong>Planejamento dos próximos 5 dias úteis</strong>
-              <span>
-                Distribuição sugerida pela capacidade diária e pelos prazos das demandas.
-              </span>
-            </div>
-            <small>
-              Capacidade diária = capacidade semanal ÷ 5
-            </small>
-          </div>
+          {weeklyPlan.length > 0 ? (
+            <div className="kanban-week-plan">
+              <div className="kanban-week-head">
+                <div>
+                  <strong>Planejamento dos próximos 5 dias úteis</strong>
+                  <span>
+                    Distribuição sugerida pela capacidade diária e pelos prazos das demandas.
+                  </span>
+                </div>
+                <small>
+                  Capacidade diária = capacidade semanal ÷ 5
+                </small>
+              </div>
 
-          <div className="kanban-week-grid">
-            {weeklyPlan.map((day) => (
-              <article
-                className={
-                  day.percentage > 100
-                    ? "kanban-week-day overloaded"
-                    : day.percentage >= 85
-                      ? "kanban-week-day warning"
-                      : "kanban-week-day"
-                }
-                key={day.date.toISOString()}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  event.dataTransfer.dropEffect = "move";
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  const [source, id] = event.dataTransfer
-                    .getData("text/plain")
-                    .split(":");
-                  const card = cards.find(
-                    (item) =>
-                      item.id === id && item.source === source
-                  );
-                  if (card) planDate(card, day.date);
-                }}
-              >
-                <header>
-                  <div>
-                    <strong>{shortWeekday(day.date)}</strong>
-                    <span>{shortDate(day.date)}</span>
-                  </div>
-                  <em>
-                    {Math.round(day.used * 10) / 10}/
-                    {Math.round(day.capacity * 10) / 10} pts
-                  </em>
-                </header>
-
-                <div className="kanban-week-track">
-                  <i
-                    style={{
-                      width: `${Math.min(day.percentage, 100)}%`
+              <div className="kanban-week-grid">
+                {weeklyPlan.map((day) => (
+                  <article
+                    className={
+                      day.percentage > 100
+                        ? "kanban-week-day overloaded"
+                        : day.percentage >= 85
+                          ? "kanban-week-day warning"
+                          : "kanban-week-day"
+                    }
+                    key={day.date.toISOString()}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
                     }}
-                  />
-                </div>
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      const [source, id] = event.dataTransfer
+                        .getData("text/plain")
+                        .split(":");
+                      const card = cards.find(
+                        (item) =>
+                          item.id === id && item.source === source
+                      );
+                      if (card) planDate(card, day.date);
+                    }}
+                  >
+                    <header>
+                      <div>
+                        <strong>{shortWeekday(day.date)}</strong>
+                        <span>{shortDate(day.date)}</span>
+                      </div>
+                      <em>
+                        {Math.round(day.used * 10) / 10}/
+                        {Math.round(day.capacity * 10) / 10} pts
+                      </em>
+                    </header>
 
-                <div className="kanban-week-summary">
-                  <span>{day.percentage}% da capacidade</span>
-                  <span>{day.cards.length} demanda(s)</span>
-                </div>
-
-                {day.overload.length > 0 ? (
-                  <div className="kanban-week-alert">
-                    <FiAlertCircle aria-hidden="true" />
-                    <span>
-                      Sobrecarga:{" "}
-                      {day.overload
-                        .map((item) => item.name)
-                        .join(", ")}
-                    </span>
-                  </div>
-                ) : null}
-
-                <div className="kanban-week-cards">
-                  {day.cards.length === 0 ? (
-                    <small>Capacidade disponível</small>
-                  ) : (
-                    day.cards.slice(0, 3).map((card) => (
-                      <Link
-                        href={card.href}
-                        key={`week-${day.date.toISOString()}-${card.source}-${card.id}`}
-                        draggable={card.column !== "DONE" && !isPending}
-                        onDragStart={(event) => {
-                          event.dataTransfer.setData(
-                            "text/plain",
-                            `${card.source}:${card.id}`
-                          );
-                          event.dataTransfer.effectAllowed = "move";
+                    <div className="kanban-week-track">
+                      <i
+                        style={{
+                          width: `${Math.min(day.percentage, 100)}%`
                         }}
-                        onClick={(event) => {
-                          if (isPending) event.preventDefault();
-                        }}
-                      >
+                      />
+                    </div>
+
+                    <div className="kanban-week-summary">
+                      <span>{day.percentage}% da capacidade</span>
+                      <span>{day.cards.length} demanda(s)</span>
+                    </div>
+
+                    {day.overload.length > 0 ? (
+                      <div className="kanban-week-alert">
+                        <FiAlertCircle aria-hidden="true" />
                         <span>
-                          <strong>{card.title}</strong>
-                          <small>
-                            {card.designerName} · {card.points} pts
-                            {card.plannedProductionDate
-                              ? " · fixado"
-                              : " · sugerido"}
-                          </small>
+                          Sobrecarga:{" "}
+                          {day.overload
+                            .map((item) => item.name)
+                            .join(", ")}
                         </span>
-                        <em>{priorityLabel(card.operationalScore)}</em>
-                      </Link>
-                    ))
-                  )}
-                  {day.cards.length > 3 ? (
-                    <small>
-                      +{day.cards.length - 3} demanda(s) planejada(s)
-                    </small>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
+                      </div>
+                    ) : null}
+
+                    <div className="kanban-week-cards">
+                      {day.cards.length === 0 ? (
+                        <small>Capacidade disponível</small>
+                      ) : (
+                        day.cards.slice(0, 3).map((card) => (
+                          <Link
+                            href={card.href}
+                            key={`week-${day.date.toISOString()}-${card.source}-${card.id}`}
+                            draggable={card.column !== "DONE" && !isPending}
+                            onDragStart={(event) => {
+                              event.dataTransfer.setData(
+                                "text/plain",
+                                `${card.source}:${card.id}`
+                              );
+                              event.dataTransfer.effectAllowed = "move";
+                            }}
+                            onClick={(event) => {
+                              if (isPending) event.preventDefault();
+                            }}
+                          >
+                            <span>
+                              <strong>{card.title}</strong>
+                              <small>
+                                {card.designerName} · {card.points} pts
+                                {card.plannedProductionDate
+                                  ? " · fixado"
+                                  : " · sugerido"}
+                              </small>
+                            </span>
+                            <em>{priorityLabel(card.operationalScore)}</em>
+                          </Link>
+                        ))
+                      )}
+                      {day.cards.length > 3 ? (
+                        <small>
+                          +{day.cards.length - 3} demanda(s) planejada(s)
+                        </small>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
         </div>
       ) : null}
 
-      {focusToday.length > 0 ? (
-        <div className="kanban-focus-panel">
-          <div className="kanban-focus-head">
-            <div>
-              <strong>Foco de hoje</strong>
-              <span>
-                Ordem sugerida por prazo, SLA, ajustes e prioridade.
-              </span>
-            </div>
-            <small>Top {focusToday.length}</small>
-          </div>
-          <div className="kanban-focus-list">
-            {focusToday.map((card, index) => {
-              const suggested = suggestedDesignerFor(card);
-              const score = priorityScore(card);
+      {view === "kanban" ? (
+        <div className="kanban-view-stack">
+          {focusToday.length > 0 ? (
+            <div className="kanban-focus-panel">
+              <div className="kanban-focus-head">
+                <div>
+                  <strong>Foco de hoje</strong>
+                  <span>
+                    Ordem sugerida por prazo, SLA, ajustes e prioridade.
+                  </span>
+                </div>
+                <small>Top {focusToday.length}</small>
+              </div>
+              <div className="kanban-focus-list">
+                {focusToday.map((card, index) => {
+                  const suggested = suggestedDesignerFor(card);
+                  const score = priorityScore(card);
 
-              return (
-                <article
-                  className={`kanban-focus-item priority-${priorityTone(score)}`}
-                  key={`focus-${card.source}-${card.id}`}
-                >
-                  <span className="kanban-focus-rank">{index + 1}</span>
-                  <div className="kanban-focus-main">
-                    <strong>{card.title}</strong>
-                    <span>
-                      {card.clientName} · {card.designerName}
-                    </span>
-                  </div>
-                  <div className="kanban-focus-meta">
-                    <span>{priorityLabel(score)}</span>
-                    <small>{sla(card.dueAt).label}</small>
-                  </div>
-                  {canReassign &&
-                  suggested &&
-                  suggested.id !== card.designerId ? (
-                    <button
-                      className="kanban-suggest-button"
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => assignDesigner(card, suggested.id)}
+                  return (
+                    <article
+                      className={`kanban-focus-item priority-${priorityTone(score)}`}
+                      key={`focus-${card.source}-${card.id}`}
                     >
-                      Sugerir {suggested.name}
-                    </button>
-                  ) : null}
-                  <Link href={card.href}>Abrir</Link>
-                </article>
-              );
-            })}
-          </div>
+                      <span className="kanban-focus-rank">{index + 1}</span>
+                      <div className="kanban-focus-main">
+                        <strong>{card.title}</strong>
+                        <span>
+                          {card.clientName} · {card.designerName}
+                        </span>
+                      </div>
+                      <div className="kanban-focus-meta">
+                        <span>{priorityLabel(score)}</span>
+                        <small>{sla(card.dueAt).label}</small>
+                      </div>
+                      {canReassign &&
+                      suggested &&
+                      suggested.id !== card.designerId ? (
+                        <button
+                          className="kanban-suggest-button"
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => assignDesigner(card, suggested.id)}
+                        >
+                          Sugerir {suggested.name}
+                        </button>
+                      ) : null}
+                      <Link href={card.href}>Abrir</Link>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
         </div>
       ) : null}
 
@@ -1714,219 +1762,224 @@ export function OperationalKanban({
         </div>
       ) : null}
 
-      <div className="operational-kanban">
-        {columns.map((column) => {
-          const items = grouped[column.key];
-          const points = items.reduce((sum, card) => sum + card.points, 0);
-          const Icon = column.icon;
+      {view === "kanban" ? (
+        <>
+          <div className="operational-kanban">
+            {columns.map((column) => {
+              const items = grouped[column.key];
+              const points = items.reduce((sum, card) => sum + card.points, 0);
+              const Icon = column.icon;
 
-          return (
-            <section
-              className={
-                activeDrop === column.key
-                  ? "kanban-column is-drop-target"
-                  : "kanban-column"
-              }
-              key={column.key}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setActiveDrop(column.key);
-              }}
-              onDragLeave={() => setActiveDrop(null)}
-              onDrop={(event) => {
-                event.preventDefault();
-                setActiveDrop(null);
-                const [source, id] = event.dataTransfer
-                  .getData("text/plain")
-                  .split(":");
-                const card = cards.find(
-                  (item) => item.id === id && item.source === source
-                );
-                if (card) move(card, column.key);
-              }}
-            >
-              <header className="kanban-column-head">
-                <div>
-                  <span className="kanban-column-icon">
-                    <Icon aria-hidden="true" />
-                  </span>
-                  <div>
-                    <strong>{column.label}</strong>
-                    <small>{column.description}</small>
-                  </div>
-                </div>
-                <span className="kanban-column-count">{items.length}</span>
-              </header>
-
-              <div className="kanban-column-metrics">
-                <span>{points} pts</span>
-                <span>
-                  {items.reduce((sum, card) => sum + card.quantity, 0)} peça(s)
-                </span>
-              </div>
-
-              <div className="kanban-cards">
-                {items.length === 0 ? (
-                  <div className="kanban-empty">Solte uma demanda aqui</div>
-                ) : (
-                  items.map((card) => {
-                    const deadline = sla(card.dueAt);
-                    const score = priorityScore(card);
-                    const suggested = suggestedDesignerFor(card);
-                    const isDragging =
-                      draggingId === `${card.source}:${card.id}`;
-
-                    return (
-                      <article
-                        className={
-                          isDragging
-                            ? "kanban-card is-dragging"
-                            : card.contractExtra
-                              ? "kanban-card is-contract-extra"
-                              : "kanban-card"
-                        }
-                        key={`${card.source}-${card.id}`}
-                        draggable={card.movable && !isPending}
-                        onDragStart={(event) => {
-                          event.dataTransfer.setData(
-                            "text/plain",
-                            `${card.source}:${card.id}`
-                          );
-                          event.dataTransfer.effectAllowed = "move";
-                          setDraggingId(`${card.source}:${card.id}`);
-                        }}
-                        onDragEnd={() => {
-                          setDraggingId(null);
-                          setActiveDrop(null);
-                        }}
-                      >
-                        <div className="kanban-card-top">
-                          <span className="kanban-source">
-                            {card.source === "calendar" ? (
-                              <><FiLayers /> Calendário</>
-                            ) : (
-                              <><FiImage /> Avulsa</>
-                            )}
-                          </span>
-                          <span className={`kanban-sla ${deadline.key}`}>
-                            {deadline.label}
-                          </span>
-                        </div>
-
-                        {card.contractExtra ? (
-                          <div className="kanban-extra-badge">
-                            <FiAlertCircle aria-hidden="true" />
-                            <span>
-                              <strong>Extra do contrato</strong>
-                              <small>{card.extraReasons.join(" · ")}</small>
-                            </span>
-                          </div>
-                        ) : null}
-
-                        <div className="kanban-card-main">
-                          <strong>{card.title}</strong>
-                          <span>{card.clientName}</span>
-                          <small>{card.context}</small>
-                        </div>
-
-                        <div className="kanban-card-meta">
-                          <span
-                            className={`kanban-operational-priority priority-${priorityTone(score)}`}
-                          >
-                            {priorityLabel(score)}
-                          </span>
-                          <span>{card.quantity} peça(s)</span>
-                          <span>{card.points} pts</span>
-                          {card.priority &&
-                          ["HIGH", "URGENT"].includes(card.priority) ? (
-                            <span className="kanban-priority">
-                              {card.priority === "URGENT" ? "Urgente" : "Alta"}
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <div className="kanban-assignee">
-                          <div>
-                            <FiUser aria-hidden="true" />
-                            <span>
-                              <small>Responsável</small>
-                              <strong>{card.designerName}</strong>
-                            </span>
-                          </div>
-                          {canReassign &&
-                          card.column !== "DONE" &&
-                          suggested &&
-                          suggested.id !== card.designerId ? (
-                            <button
-                              className="kanban-recommend"
-                              type="button"
-                              disabled={isPending}
-                              title={`Carga projetada: ${suggested.projectedPoints}/${suggested.capacityPoints} pts`}
-                              onClick={() =>
-                                assignDesigner(card, suggested.id)
-                              }
-                            >
-                              Sugerir {suggested.name}
-                            </button>
-                          ) : null}
-                          {canReassign && card.column !== "DONE" ? (
-                            <select
-                              aria-label={`Reatribuir ${card.title}`}
-                              value={card.designerId ?? ""}
-                              disabled={isPending}
-                              onMouseDown={(event) => event.stopPropagation()}
-                              onDragStart={(event) => event.preventDefault()}
-                              onChange={(event) =>
-                                assignDesigner(card, event.target.value)
-                              }
-                            >
-                              <option value="" disabled>
-                                Selecionar
-                              </option>
-                              {capacityState
-                                .slice()
-                                .sort(
-                                  (a, b) =>
-                                    b.remainingPoints - a.remainingPoints
-                                )
-                                .map((item) => {
-                                  const projected =
-                                    item.id === card.designerId
-                                      ? item.usedPoints
-                                      : item.usedPoints + card.points;
-                                  const suffix =
-                                    projected > item.capacityPoints
-                                      ? " · sobrecarga"
-                                      : ` · ${Math.max(
-                                          0,
-                                          item.capacityPoints - projected
-                                        )} pts livres`;
-
-                                  return (
-                                    <option key={item.id} value={item.id}>
-                                      {item.name} · {item.usedPoints}/{item.capacityPoints} pts{suffix}
-                                    </option>
-                                  );
-                                })}
-                            </select>
-                          ) : null}
-                        </div>
-
-                        <footer className="kanban-card-footer">
-                          <span>{card.status}</span>
-                          <Link href={card.href}>
-                            Abrir <FiArrowRight aria-hidden="true" />
-                          </Link>
-                        </footer>
-                      </article>
+              return (
+                <section
+                  className={
+                    activeDrop === column.key
+                      ? "kanban-column is-drop-target"
+                      : "kanban-column"
+                  }
+                  key={column.key}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setActiveDrop(column.key);
+                  }}
+                  onDragLeave={() => setActiveDrop(null)}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    setActiveDrop(null);
+                    const [source, id] = event.dataTransfer
+                      .getData("text/plain")
+                      .split(":");
+                    const card = cards.find(
+                      (item) => item.id === id && item.source === source
                     );
-                  })
-                )}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+                    if (card) move(card, column.key);
+                  }}
+                >
+                  <header className="kanban-column-head">
+                    <div>
+                      <span className="kanban-column-icon">
+                        <Icon aria-hidden="true" />
+                      </span>
+                      <div>
+                        <strong>{column.label}</strong>
+                        <small>{column.description}</small>
+                      </div>
+                    </div>
+                    <span className="kanban-column-count">{items.length}</span>
+                  </header>
+
+                  <div className="kanban-column-metrics">
+                    <span>{points} pts</span>
+                    <span>
+                      {items.reduce((sum, card) => sum + card.quantity, 0)} peça(s)
+                    </span>
+                  </div>
+
+                  <div className="kanban-cards">
+                    {items.length === 0 ? (
+                      <div className="kanban-empty">Solte uma demanda aqui</div>
+                    ) : (
+                      items.map((card) => {
+                        const deadline = sla(card.dueAt);
+                        const score = priorityScore(card);
+                        const suggested = suggestedDesignerFor(card);
+                        const isDragging =
+                          draggingId === `${card.source}:${card.id}`;
+
+                        return (
+                          <article
+                            className={
+                              isDragging
+                                ? "kanban-card is-dragging"
+                                : card.contractExtra
+                                  ? "kanban-card is-contract-extra"
+                                  : "kanban-card"
+                            }
+                            key={`${card.source}-${card.id}`}
+                            draggable={card.movable && !isPending}
+                            onDragStart={(event) => {
+                              event.dataTransfer.setData(
+                                "text/plain",
+                                `${card.source}:${card.id}`
+                              );
+                              event.dataTransfer.effectAllowed = "move";
+                              setDraggingId(`${card.source}:${card.id}`);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingId(null);
+                              setActiveDrop(null);
+                            }}
+                          >
+                            <div className="kanban-card-top">
+                              <span className="kanban-source">
+                                {card.source === "calendar" ? (
+                                  <><FiLayers /> Calendário</>
+                                ) : (
+                                  <><FiImage /> Avulsa</>
+                                )}
+                              </span>
+                              <span className={`kanban-sla ${deadline.key}`}>
+                                {deadline.label}
+                              </span>
+                            </div>
+
+                            {card.contractExtra ? (
+                              <div className="kanban-extra-badge">
+                                <FiAlertCircle aria-hidden="true" />
+                                <span>
+                                  <strong>Extra do contrato</strong>
+                                  <small>{card.extraReasons.join(" · ")}</small>
+                                </span>
+                              </div>
+                            ) : null}
+
+                            <div className="kanban-card-main">
+                              <strong>{card.title}</strong>
+                              <span>{card.clientName}</span>
+                              <small>{card.context}</small>
+                            </div>
+
+                            <div className="kanban-card-meta">
+                              <span
+                                className={`kanban-operational-priority priority-${priorityTone(score)}`}
+                              >
+                                {priorityLabel(score)}
+                              </span>
+                              <span>{card.quantity} peça(s)</span>
+                              <span>{card.points} pts</span>
+                              {card.priority &&
+                              ["HIGH", "URGENT"].includes(card.priority) ? (
+                                <span className="kanban-priority">
+                                  {card.priority === "URGENT" ? "Urgente" : "Alta"}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <div className="kanban-assignee">
+                              <div>
+                                <FiUser aria-hidden="true" />
+                                <span>
+                                  <small>Responsável</small>
+                                  <strong>{card.designerName}</strong>
+                                </span>
+                              </div>
+                              {canReassign &&
+                              card.column !== "DONE" &&
+                              suggested &&
+                              suggested.id !== card.designerId ? (
+                                <button
+                                  className="kanban-recommend"
+                                  type="button"
+                                  disabled={isPending}
+                                  title={`Carga projetada: ${suggested.projectedPoints}/${suggested.capacityPoints} pts`}
+                                  onClick={() =>
+                                    assignDesigner(card, suggested.id)
+                                  }
+                                >
+                                  Sugerir {suggested.name}
+                                </button>
+                              ) : null}
+                              {canReassign && card.column !== "DONE" ? (
+                                <select
+                                  aria-label={`Reatribuir ${card.title}`}
+                                  value={card.designerId ?? ""}
+                                  disabled={isPending}
+                                  onMouseDown={(event) => event.stopPropagation()}
+                                  onDragStart={(event) => event.preventDefault()}
+                                  onChange={(event) =>
+                                    assignDesigner(card, event.target.value)
+                                  }
+                                >
+                                  <option value="" disabled>
+                                    Selecionar
+                                  </option>
+                                  {capacityState
+                                    .slice()
+                                    .sort(
+                                      (a, b) =>
+                                        b.remainingPoints - a.remainingPoints
+                                    )
+                                    .map((item) => {
+                                      const projected =
+                                        item.id === card.designerId
+                                          ? item.usedPoints
+                                          : item.usedPoints + card.points;
+                                      const suffix =
+                                        projected > item.capacityPoints
+                                          ? " · sobrecarga"
+                                          : ` · ${Math.max(
+                                              0,
+                                              item.capacityPoints - projected
+                                            )} pts livres`;
+
+                                      return (
+                                        <option key={item.id} value={item.id}>
+                                          {item.name} · {item.usedPoints}/{item.capacityPoints} pts{suffix}
+                                        </option>
+                                      );
+                                    })}
+                                </select>
+                              ) : null}
+                            </div>
+
+                            <footer className="kanban-card-footer">
+                              <span>{card.status}</span>
+                              <Link href={card.href}>
+                                Abrir <FiArrowRight aria-hidden="true" />
+                              </Link>
+                            </footer>
+                          </article>
+                        );
+                      })
+                    )}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </>
+      ) : null}
+
     </section>
   );
 }
