@@ -87,10 +87,19 @@ export function StandaloneArtworkCreateForm({
   onCreated?: () => void;
 }) {
   const [clientId, setClientId] = useState("");
-  const [contentType, setContentType] =
-    useState<keyof typeof formats>("POST");
-  const [formatLabel, setFormatLabel] = useState("1080x1350");
-  const [quantity, setQuantity] = useState(1);
+  const [selectedTypes, setSelectedTypes] = useState<Array<keyof typeof formats>>(["POST"]);
+  const [outputFormats, setOutputFormats] = useState<Record<keyof typeof formats, string>>({
+    POST: "1080x1350",
+    CAROUSEL: "1080x1350",
+    REEL: "1080x1920",
+    STORY: "1080x1920"
+  });
+  const [outputQuantities, setOutputQuantities] = useState<Record<keyof typeof formats, number>>({
+    POST: 1,
+    CAROUSEL: 1,
+    REEL: 1,
+    STORY: 1
+  });
   const [effortPoints, setEffortPoints] = useState(1);
   const [pointsManual, setPointsManual] = useState(false);
   const [title, setTitle] = useState("");
@@ -108,10 +117,17 @@ export function StandaloneArtworkCreateForm({
       ? designers.find((item) => item.id === actor.id)
       : null);
 
-  const suggestedPoints = basePoints[contentType] * quantity;
+  const totalQuantity = selectedTypes.reduce(
+    (sum, type) => sum + outputQuantities[type],
+    0
+  );
+  const suggestedPoints = selectedTypes.reduce(
+    (sum, type) => sum + basePoints[type] * outputQuantities[type],
+    0
+  );
   const projectedStandalone = usage
-    ? usage.usage.standalone + quantity
-    : quantity;
+    ? usage.usage.standalone + totalQuantity
+    : totalQuantity;
   const projectedPoints = usage ? usage.usage.points + effortPoints : effortPoints;
   const standaloneExtra =
     usage?.limits.standalone !== null &&
@@ -146,19 +162,50 @@ export function StandaloneArtworkCreateForm({
     }
   }
 
-  function changeType(nextType: keyof typeof formats) {
-    setContentType(nextType);
-    setFormatLabel(formats[nextType][0].value);
-    if (!pointsManual) {
-      setEffortPoints(basePoints[nextType] * quantity);
-    }
+  function toggleType(type: keyof typeof formats) {
+    setSelectedTypes((current) => {
+      if (current.includes(type)) {
+        if (current.length === 1) return current;
+        const next = current.filter((item) => item !== type);
+        if (!pointsManual) {
+          setEffortPoints(
+            next.reduce(
+              (sum, item) => sum + basePoints[item] * outputQuantities[item],
+              0
+            )
+          );
+        }
+        return next;
+      }
+
+      const next = [...current, type];
+      if (!pointsManual) {
+        setEffortPoints(
+          next.reduce(
+            (sum, item) => sum + basePoints[item] * outputQuantities[item],
+            0
+          )
+        );
+      }
+      return next;
+    });
   }
 
-  function changeQuantity(nextQuantity: number) {
+  function changeOutputQuantity(
+    type: keyof typeof formats,
+    nextQuantity: number
+  ) {
     const normalized = Math.max(1, Math.min(50, nextQuantity || 1));
-    setQuantity(normalized);
+    const next = { ...outputQuantities, [type]: normalized };
+    setOutputQuantities(next);
+
     if (!pointsManual) {
-      setEffortPoints(basePoints[contentType] * normalized);
+      setEffortPoints(
+        selectedTypes.reduce(
+          (sum, item) => sum + basePoints[item] * next[item],
+          0
+        )
+      );
     }
   }
 
@@ -171,6 +218,30 @@ export function StandaloneArtworkCreateForm({
           : "standalone-form-card standalone-smart-form"
       }
     >
+      <input
+        type="hidden"
+        name="contentType"
+        value={selectedTypes[0]}
+      />
+      <input
+        type="hidden"
+        name="formatLabel"
+        value={outputFormats[selectedTypes[0]]}
+      />
+      <input type="hidden" name="quantity" value={totalQuantity} />
+      <input
+        type="hidden"
+        name="outputs"
+        value={JSON.stringify(
+          selectedTypes.map((type) => ({
+            contentType: type,
+            formatLabel: outputFormats[type],
+            quantity: outputQuantities[type],
+            effortPoints: basePoints[type] * outputQuantities[type]
+          }))
+        )}
+      />
+
       {!embedded ? (
         <div className="section-heading">
           <div>
@@ -278,53 +349,95 @@ export function StandaloneArtworkCreateForm({
           <small>Formato e esforço sugeridos conforme o tipo.</small>
         </div>
 
+        <div className="standalone-output-selector">
+          <div className="standalone-output-selector-head">
+            <div>
+              <strong>Tipos de entrega</strong>
+              <small>Selecione um ou mais tipos para a mesma demanda.</small>
+            </div>
+            <span>{totalQuantity} peça(s)</span>
+          </div>
+
+          <div className="standalone-output-types">
+            {(Object.keys(formats) as Array<keyof typeof formats>).map((type) => {
+              const active = selectedTypes.includes(type);
+              const label = {
+                POST: "Feed",
+                CAROUSEL: "Carrossel",
+                REEL: "Reel",
+                STORY: "Story"
+              }[type];
+
+              return (
+                <button
+                  type="button"
+                  className={active ? "standalone-output-type active" : "standalone-output-type"}
+                  onClick={() => toggleType(type)}
+                  key={type}
+                >
+                  <span>{label}</span>
+                  <small>
+                    {active ? `${outputQuantities[type]} selecionado(s)` : "Adicionar"}
+                  </small>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="standalone-output-configs">
+            {selectedTypes.map((type) => (
+              <div className="standalone-output-config" key={type}>
+                <div>
+                  <strong>
+                    {{
+                      POST: "Feed",
+                      CAROUSEL: "Carrossel",
+                      REEL: "Reel",
+                      STORY: "Story"
+                    }[type]}
+                  </strong>
+                  <small>{basePoints[type]} pt por peça</small>
+                </div>
+
+                <label className="field">
+                  <span>Formato</span>
+                  <select
+                    value={outputFormats[type]}
+                    onChange={(event) =>
+                      setOutputFormats((current) => ({
+                        ...current,
+                        [type]: event.target.value
+                      }))
+                    }
+                  >
+                    {formats[type].map((format) => (
+                      <option key={format.value} value={format.value}>
+                        {format.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field standalone-output-quantity">
+                  <span>Qtd.</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={outputQuantities[type]}
+                    onChange={(event) =>
+                      changeOutputQuantity(type, Number(event.target.value))
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="standalone-form-grid">
           <label className="field">
-            <span>Tipo</span>
-            <select
-              name="contentType"
-              value={contentType}
-              onChange={(event) =>
-                changeType(event.target.value as keyof typeof formats)
-              }
-            >
-              <option value="POST">Post</option>
-              <option value="CAROUSEL">Carrossel</option>
-              <option value="REEL">Reel</option>
-              <option value="STORY">Story</option>
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Formato</span>
-            <select
-              name="formatLabel"
-              value={formatLabel}
-              onChange={(event) => setFormatLabel(event.target.value)}
-            >
-              {formats[contentType].map((format) => (
-                <option key={format.value} value={format.value}>
-                  {format.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Quantidade</span>
-            <input
-              type="number"
-              min="1"
-              max="50"
-              name="quantity"
-              value={quantity}
-              onChange={(event) => changeQuantity(Number(event.target.value))}
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Pontos</span>
+            <span>Pontos totais</span>
             <input
               type="number"
               min="1"
@@ -420,6 +533,26 @@ export function StandaloneArtworkCreateForm({
                 {usageText(projectedPoints, usage.limits.points)}
               </strong>
             </div>
+            {selectedTypes.map((type) => {
+              const key = type.toLowerCase() as "post" | "carousel" | "reel" | "story";
+              const label = {
+                POST: "Feed",
+                CAROUSEL: "Carrossel",
+                REEL: "Reel",
+                STORY: "Story"
+              }[type];
+              return (
+                <div key={type}>
+                  <small>{label}</small>
+                  <strong>
+                    {usageText(
+                      usage.usage[key] + outputQuantities[type],
+                      usage.limits[key]
+                    )}
+                  </strong>
+                </div>
+              );
+            })}
           </div>
           {contractExtra ? (
             <p>
