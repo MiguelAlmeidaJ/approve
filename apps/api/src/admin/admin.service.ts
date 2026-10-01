@@ -310,6 +310,8 @@ export class AdminService {
         id: "default",
         logoPath: null,
         logoName: null,
+        darkLogoPath: null,
+        darkLogoName: null,
         faviconPath: null,
         faviconName: null
       }
@@ -323,8 +325,10 @@ export class AdminService {
     this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
 
     const logoPath = dto.logoPath?.trim() || null;
+    const darkLogoPath = dto.darkLogoPath?.trim() || null;
     const faviconPath = dto.faviconPath?.trim() || null;
     let logoName = dto.logoName?.trim() || null;
+    let darkLogoName = dto.darkLogoName?.trim() || null;
     let faviconName = dto.faviconName?.trim() || null;
 
     if (logoPath) {
@@ -333,6 +337,14 @@ export class AdminService {
         logoPath
       );
       logoName = logo.name;
+    }
+
+    if (darkLogoPath) {
+      const darkLogo = await this.nextcloud.validateSystemImageForActor(
+        actor,
+        darkLogoPath
+      );
+      darkLogoName = darkLogo.name;
     }
 
     if (faviconPath) {
@@ -349,12 +361,16 @@ export class AdminService {
         id: "default",
         logoPath,
         logoName,
+        darkLogoPath,
+        darkLogoName,
         faviconPath,
         faviconName
       },
       update: {
         logoPath,
         logoName,
+        darkLogoPath,
+        darkLogoName,
         faviconPath,
         faviconName
       }
