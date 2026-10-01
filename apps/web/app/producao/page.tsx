@@ -127,13 +127,34 @@ function contractExtras(
         continue;
       }
 
+      const outputs =
+        artwork.outputs.length > 0
+          ? artwork.outputs
+          : [
+              {
+                contentType: artwork.contentType,
+                quantity: artwork.quantity
+              }
+            ];
+
       entries.push({
         key: `standalone:${artwork.id}`,
         date: artwork.createdAt,
         points: artwork.effortPoints,
-        quantity: artwork.quantity,
+        quantity: outputs.reduce((sum, output) => sum + output.quantity, 0),
         kind: "standalone"
       });
+
+      for (const output of outputs) {
+        entries.push({
+          key: `standalone-type:${artwork.id}:${output.contentType}`,
+          date: artwork.createdAt,
+          points: 0,
+          quantity: output.quantity,
+          kind: "standalone",
+          contentType: output.contentType
+        });
+      }
     }
 
     entries.sort(
@@ -158,7 +179,7 @@ function contractExtras(
         reasons.push("Pontos mensais excedidos");
       }
 
-      if (entry.kind === "standalone") {
+      if (entry.kind === "standalone" && !entry.contentType) {
         standalonePieces += entry.quantity;
         if (
           client.monthlyStandaloneLimit !== null &&
@@ -166,7 +187,9 @@ function contractExtras(
         ) {
           reasons.push("Artes avulsas acima da franquia");
         }
-      } else if (entry.contentType === "POST") {
+      }
+
+      if (entry.contentType === "POST") {
         posts += 1;
         if (
           client.monthlyPostLimit !== null &&
@@ -201,7 +224,19 @@ function contractExtras(
       }
 
       if (reasons.length > 0) {
-        result.set(entry.key, reasons);
+        if (entry.key.startsWith("standalone-type:")) {
+          const [, artworkId] = entry.key.split(":");
+          const parentKey = `standalone:${artworkId}`;
+          result.set(parentKey, [
+            ...(result.get(parentKey) ?? []),
+            ...reasons
+          ]);
+        } else {
+          result.set(entry.key, [
+            ...(result.get(entry.key) ?? []),
+            ...reasons
+          ]);
+        }
       }
     }
   }
