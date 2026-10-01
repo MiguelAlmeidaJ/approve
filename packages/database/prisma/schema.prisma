@@ -499,10 +499,28 @@ model StandaloneArtwork {
   updatedAt   DateTime                @updatedAt
   client      Client                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   designer    Designer                @relation(fields: [designerId], references: [id], onDelete: Restrict)
+  outputs     StandaloneArtworkOutput[]
 
   @@index([clientId, status])
   @@index([designerId, status])
   @@index([dueAt])
   @@index([plannedProductionDate])
   @@index([completedAt])
+}
+
+
+model StandaloneArtworkOutput {
+  id                  String            @id @default(cuid())
+  standaloneArtworkId String
+  contentType         ContentType
+  formatLabel         String?
+  quantity            Int               @default(1)
+  effortPoints        Int               @default(1)
+  sortOrder           Int               @default(0)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  standaloneArtwork   StandaloneArtwork @relation(fields: [standaloneArtworkId], references: [id], onDelete: Cascade)
+
+  @@index([standaloneArtworkId, sortOrder])
+  @@index([contentType])
 }
