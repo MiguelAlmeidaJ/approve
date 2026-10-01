@@ -1252,18 +1252,87 @@ export class AdminService {
     const selectedDateKeys = new Set(
       dates.postingDays.map((day) => dateKey(day))
     );
+    const existingPostingKeys = new Set(
+      calendar.postingDays.map((day) => dateKey(day.scheduledDate))
+    );
+    const moveMap = new Map<string, string>();
+
+    for (const move of dto.postingDayMoves ?? []) {
+      const from = move?.from?.trim();
+      const to = move?.to?.trim();
+
+      if (
+        !from ||
+        !to ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(from) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(to)
+      ) {
+        throw new BadRequestException("Remanejamento de dia inválido.");
+      }
+
+      if (!existingPostingKeys.has(from)) {
+        throw new BadRequestException(
+          "O dia de origem do remanejamento não pertence ao calendário atual."
+        );
+      }
+
+      if (!selectedDateKeys.has(to)) {
+        throw new BadRequestException(
+          "O novo dia precisa estar entre os dias de publicação selecionados."
+        );
+      }
+
+      if (from !== to) {
+        moveMap.set(from, to);
+      }
+    }
+
     const usedDateKeys = calendar.contentItems.map((item) =>
       saoPauloDateKey(item.scheduledAt)
     );
     const removedUsedDate = usedDateKeys.find(
-      (value) => !selectedDateKeys.has(value)
+      (value) => !selectedDateKeys.has(value) && !moveMap.has(value)
     );
 
     if (removedUsedDate) {
       throw new BadRequestException(
-        "Não é possível remover um dia que já possui conteúdo. Ajuste a peça antes de alterar o planejamento."
+        "Este dia possui conteúdo. Arraste-o para outra data antes de remover."
       );
     }
+
+    const contentMoveOperations = calendar.contentItems
+      .filter((item) => moveMap.has(saoPauloDateKey(item.scheduledAt)))
+      .map((item) => {
+        const targetDate = moveMap.get(saoPauloDateKey(item.scheduledAt))!;
+        const timeParts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/Sao_Paulo",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hourCycle: "h23"
+        }).formatToParts(item.scheduledAt);
+        const hour = timeParts.find((part) => part.type === "hour")?.value ?? "12";
+        const minute = timeParts.find((part) => part.type === "minute")?.value ?? "00";
+        const second = timeParts.find((part) => part.type === "second")?.value ?? "00";
+        const scheduledAt = new Date(
+          `${targetDate}T${hour}:${minute}:${second}-03:00`
+        );
+
+        return this.prisma.contentItem.update({
+          where: { id: item.id },
+          data: {
+            scheduledAt,
+            ...(calendar.stage === CalendarStage.PRE_APPROVAL
+              ? {
+                  stage: ContentStage.PRE_APPROVAL_PENDING,
+                  status: ContentStatus.PENDING_APPROVAL,
+                  planningApprovedAt: null,
+                  reviewedAt: null
+                }
+              : {})
+          }
+        });
+      });
 
     await this.prisma.$transaction([
       this.prisma.calendar.update({
@@ -1288,7 +1357,8 @@ export class AdminService {
           calendarId,
           scheduledDate
         }))
-      })
+      }),
+      ...contentMoveOperations
     ]);
 
     await this.createAuditLog(actor, {
