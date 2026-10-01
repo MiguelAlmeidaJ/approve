@@ -27,6 +27,46 @@ type HttpResponse = NodeJS.WritableStream & {
 export class NextcloudController {
   constructor(private readonly nextcloudService: NextcloudService) {}
 
+  @Get("admin/nextcloud/system-files")
+  listSystemFiles(
+    @Req() request: InternalActorRequest,
+    @Query("path") path = "/"
+  ) {
+    return this.nextcloudService.listSystemForActor(request.actor, path);
+  }
+
+  @Get("admin/nextcloud/system-file")
+  async previewSystemFile(
+    @Req() request: InternalActorRequest,
+    @Query("path") path: string,
+    @Headers("range") range: string | undefined,
+    @Res() response: HttpResponse
+  ) {
+    const result = await this.nextcloudService.previewSystemForActor(
+      request.actor,
+      path,
+      range
+    );
+
+    await this.pipeResponse(result.response, response, result.metadata.name);
+  }
+
+  @Public()
+  @Get("public/branding/:kind")
+  async publicBranding(
+    @Param("kind") kind: "logo" | "favicon",
+    @Headers("range") range: string | undefined,
+    @Res() response: HttpResponse
+  ) {
+    const normalizedKind = kind === "favicon" ? "favicon" : "logo";
+    const result = await this.nextcloudService.previewBrandAsset(
+      normalizedKind,
+      range
+    );
+
+    await this.pipeResponse(result.response, response, result.metadata.name);
+  }
+
   @Get("admin/nextcloud/files")
   listFiles(
     @Req() request: InternalActorRequest,
