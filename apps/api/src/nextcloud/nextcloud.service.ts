@@ -122,11 +122,16 @@ export class NextcloudService {
     return metadata;
   }
 
-  async previewBrandAsset(kind: "logo" | "favicon", range?: string) {
+  async previewBrandAsset(kind: "logo" | "logo-dark" | "favicon", range?: string) {
     const branding = await this.prisma.systemBranding.findUnique({
       where: { id: "default" }
     });
-    const path = kind === "logo" ? branding?.logoPath : branding?.faviconPath;
+    const path =
+      kind === "logo"
+        ? branding?.logoPath
+        : kind === "logo-dark"
+          ? branding?.darkLogoPath
+          : branding?.faviconPath;
 
     if (!path) {
       throw new NotFoundException("Identidade visual não configurada.");
