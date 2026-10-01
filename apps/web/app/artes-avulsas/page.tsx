@@ -212,8 +212,24 @@ export default async function StandaloneArtworksPage() {
                     <p className="standalone-briefing">{artwork.briefing}</p>
 
                     <div className="standalone-meta">
-                      <span>{artwork.contentType}</span>
-                      <span>{artwork.quantity} peça(s)</span>
+                      {(artwork.outputs.length > 0
+                        ? artwork.outputs
+                        : [
+                            {
+                              id: "legacy",
+                              contentType: artwork.contentType,
+                              quantity: artwork.quantity,
+                              formatLabel: artwork.formatLabel,
+                              effortPoints: artwork.effortPoints,
+                              sortOrder: 0
+                            }
+                          ]
+                      ).map((output) => (
+                        <span key={output.id}>
+                          {output.contentType} · {output.quantity} peça(s)
+                        </span>
+                      ))}
+                      <span>{artwork.quantity} peça(s) no total</span>
                       <span>{artwork.effortPoints} pts</span>
                       <span className={isOverdue ? "is-overdue" : ""}>
                         {dateLabel(artwork.dueAt)}
