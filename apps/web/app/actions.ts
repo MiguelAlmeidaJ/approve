@@ -513,6 +513,12 @@ export async function updateCalendar(formData: FormData) {
   const { start, end } = monthRange(month);
   const typedTitle = String(formData.get("title") ?? "").trim();
   const postingDays = parsePostingDays(formData, month);
+  const postingDayMovesRaw = String(
+    formData.get("postingDayMoves") ?? "[]"
+  ).trim();
+  const postingDayMoves = postingDayMovesRaw
+    ? JSON.parse(postingDayMovesRaw)
+    : [];
 
   await adminPatch(
     `/api/admin/calendars/${encodeURIComponent(calendarId)}`,
@@ -521,6 +527,7 @@ export async function updateCalendar(formData: FormData) {
       periodStart: start.toISOString(),
       periodEnd: end.toISOString(),
       postingDays,
+      postingDayMoves,
       planningDueAt:
         String(formData.get("planningDueAt") ?? "").trim() || undefined,
       planningApprovalDueAt:
