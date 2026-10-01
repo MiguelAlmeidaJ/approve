@@ -14,8 +14,9 @@ export default async function VisualIdentityPage() {
           <span className="micro-label">SISTEMA</span>
           <h1>Identidade visual</h1>
           <p>
-            Defina a logo e o favicon usados pelo sistema. Os arquivos podem
-            ser selecionados diretamente do Nextcloud.
+            Defina a logo principal, a versão para fundo escuro e o favicon
+            usados pelo sistema. Os arquivos podem ser selecionados diretamente
+            do Nextcloud.
           </p>
         </div>
       </header>
