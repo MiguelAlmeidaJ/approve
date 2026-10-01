@@ -33,18 +33,34 @@ export function StandaloneArtworkStatusForm({
   id,
   clientId,
   status,
-  currentPath
+  currentPath,
+  embedded = false,
+  onSaved
 }: {
   id: string;
   clientId: string;
   status: StandaloneArtworkStatus;
   currentPath: string | null;
+  embedded?: boolean;
+  onSaved?: () => void;
 }) {
   const [assets, setAssets] = useState<SelectedNextcloudAsset[]>([]);
   const selectedPath = assets[0]?.path ?? currentPath ?? "";
 
+  async function submit(formData: FormData) {
+    await updateStandaloneArtworkStatus(formData);
+    onSaved?.();
+  }
+
   return (
-    <form action={updateStandaloneArtworkStatus} className="standalone-workflow-form">
+    <form
+      action={submit}
+      className={
+        embedded
+          ? "standalone-workflow-form standalone-workflow-form-embedded"
+          : "standalone-workflow-form"
+      }
+    >
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="nextcloudPath" value={selectedPath} />
 
