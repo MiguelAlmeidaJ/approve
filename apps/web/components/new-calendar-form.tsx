@@ -12,6 +12,7 @@ import {
   FiRepeat,
   FiStar,
   FiTarget,
+  FiTrash2,
   FiUser,
   FiX,
   FiZap
@@ -132,6 +133,7 @@ export function NewCalendarForm({
   calendarId,
   initialTitle = "",
   initialPostingDays = [],
+  initialOccupiedPostingDays = [],
   commemorativeDates,
   initialDeadlines
 }: {
@@ -142,6 +144,7 @@ export function NewCalendarForm({
   calendarId?: string;
   initialTitle?: string;
   initialPostingDays?: string[];
+  initialOccupiedPostingDays?: string[];
   commemorativeDates: CommemorativeDate[];
   initialDeadlines?: {
     planningDueAt?: string | null;
@@ -188,6 +191,32 @@ export function NewCalendarForm({
     );
   });
   const [title, setTitle] = useState(initialTitle);
+  const [focusedDay, setFocusedDay] = useState<number | null>(null);
+  const [draggingDay, setDraggingDay] = useState<number | null>(null);
+  const initialSelectedDaySet = useMemo(
+    () =>
+      new Set(
+        initialPostingDays
+          .filter((value) => value.startsWith(`${initialMonth}-`))
+          .map((value) => Number(value.slice(8, 10)))
+      ),
+    [initialMonth, initialPostingDays]
+  );
+  const [dayOrigins, setDayOrigins] = useState<Record<number, number | null>>(
+    () =>
+      Object.fromEntries(
+        selectedDays.map((day) => [
+          day,
+          calendarId && initialSelectedDaySet.has(day) ? day : null
+        ])
+      )
+  );
+  const [occupiedDays, setOccupiedDays] = useState<number[]>(() =>
+    initialOccupiedPostingDays
+      .filter((value) => value.startsWith(`${initialMonth}-`))
+      .map((value) => Number(value.slice(8, 10)))
+      .filter((value) => Number.isFinite(value))
+  );
   const isEditing = Boolean(calendarId);
 
   const selectedMonthIndex = Number(selectedMonth.slice(5, 7)) - 1;
@@ -216,6 +245,19 @@ export function NewCalendarForm({
   const postingDates = selectedDays.map(
     (day) => `${selectedMonth}-${String(day).padStart(2, "0")}`
   );
+  const postingDayMoves = selectedDays
+    .map((day) => {
+      const origin = dayOrigins[day];
+      if (!calendarId || origin === null || origin === undefined || origin === day) {
+        return null;
+      }
+
+      return {
+        from: `${initialMonth}-${String(origin).padStart(2, "0")}`,
+        to: `${selectedMonth}-${String(day).padStart(2, "0")}`
+      };
+    })
+    .filter(Boolean);
 
   function chooseClient(value: string) {
     setClientId(value);
@@ -237,27 +279,111 @@ export function NewCalendarForm({
     const monthIndex = Number(value.slice(5, 7)) - 1;
 
     setSelectedMonth(value);
-    setSelectedDays(
+    const nextDays =
       selectedWeekdays.length > 0
         ? daysMatchingWeekdays(year, monthIndex, selectedWeekdays)
-        : []
+        : [];
+    setSelectedDays(nextDays);
+    setDayOrigins(
+      Object.fromEntries(
+        nextDays.map((day) => [
+          day,
+          value === initialMonth && initialSelectedDaySet.has(day) ? day : null
+        ])
+      )
     );
+    setFocusedDay(null);
   }
 
-  function togglePostingDay(day: number) {
+  function selectPostingDay(day: number) {
+    if (selectedDays.includes(day)) {
+      setFocusedDay(day);
+      return;
+    }
+
     setSelectedDays((current) =>
-      current.includes(day)
-        ? current.filter((item) => item !== day)
-        : [...current, day].sort((first, second) => first - second)
+      [...current, day].sort((first, second) => first - second)
     );
+    setDayOrigins((current) => ({
+      ...current,
+      [day]:
+        selectedMonth === initialMonth && initialSelectedDaySet.has(day)
+          ? day
+          : null
+    }));
+    setSelectedWeekdays([]);
+    setFocusedDay(day);
+  }
+
+  function deleteFocusedDay() {
+    if (focusedDay === null || !selectedDays.includes(focusedDay)) return;
+    if (occupiedDays.includes(focusedDay)) return;
+
+    setSelectedDays((current) =>
+      current.filter((item) => item !== focusedDay)
+    );
+    setDayOrigins((current) => {
+      const next = { ...current };
+      delete next[focusedDay];
+      return next;
+    });
+    setSelectedWeekdays([]);
+    setFocusedDay(null);
+  }
+
+  function movePostingDay(source: number, target: number) {
+    if (
+      source === target ||
+      !selectedDays.includes(source) ||
+      selectedDays.includes(target)
+    ) {
+      return;
+    }
+
+    const origin = dayOrigins[source] ?? null;
+    setSelectedDays((current) =>
+      current
+        .filter((item) => item !== source)
+        .concat(target)
+        .sort((first, second) => first - second)
+    );
+    setDayOrigins((current) => {
+      const next = { ...current, [target]: origin };
+      delete next[source];
+      return next;
+    });
+    setOccupiedDays((current) =>
+      current.includes(source)
+        ? current
+            .filter((item) => item !== source)
+            .concat(target)
+        : current
+    );
+    setSelectedWeekdays([]);
+    setFocusedDay(target);
+    setDraggingDay(null);
   }
 
   function applyWeekdays(nextWeekdays: readonly number[]) {
     const normalized = [...nextWeekdays].sort((first, second) => first - second);
     setSelectedWeekdays(normalized);
-    setSelectedDays(
-      daysMatchingWeekdays(selectedYear, selectedMonthIndex, normalized)
+    const nextDays = daysMatchingWeekdays(
+      selectedYear,
+      selectedMonthIndex,
+      normalized
     );
+    setSelectedDays(nextDays);
+    setDayOrigins(
+      Object.fromEntries(
+        nextDays.map((day) => [
+          day,
+          selectedMonth === initialMonth && initialSelectedDaySet.has(day)
+            ? day
+            : null
+        ])
+      )
+    );
+    setFocusedDay(null);
   }
 
   function toggleWeekday(weekday: number) {
@@ -269,8 +395,20 @@ export function NewCalendarForm({
   }
 
   function clearSchedule() {
+    if (occupiedDays.length > 0) {
+      const remaining = selectedDays.filter((day) => occupiedDays.includes(day));
+      setSelectedDays(remaining);
+      setDayOrigins((current) =>
+        Object.fromEntries(
+          remaining.map((day) => [day, current[day] ?? day])
+        )
+      );
+    } else {
+      setSelectedDays([]);
+      setDayOrigins({});
+    }
     setSelectedWeekdays([]);
-    setSelectedDays([]);
+    setFocusedDay(null);
   }
 
   return (
@@ -287,6 +425,11 @@ export function NewCalendarForm({
         type="hidden"
         name="postingDays"
         value={JSON.stringify(postingDates)}
+      />
+      <input
+        type="hidden"
+        name="postingDayMoves"
+        value={JSON.stringify(postingDayMoves)}
       />
 
       <div className="calendar-builder planner-builder">
@@ -476,8 +619,8 @@ export function NewCalendarForm({
                 {selectedDays.map((day) => (
                   <button
                     type="button"
-                    onClick={() => togglePostingDay(day)}
-                    aria-label={`Remover ${formatPostingDay(day, selectedYear, selectedMonthIndex)}`}
+                    onClick={() => setFocusedDay(day)}
+                    aria-label={`Selecionar ${formatPostingDay(day, selectedYear, selectedMonthIndex)}`}
                     key={day}
                   >
                     <span>
@@ -650,9 +793,41 @@ export function NewCalendarForm({
           </div>
 
           <p className="planner-preview-hint">
-            Clique em qualquer data para incluir ou remover uma publicação.
-            Datas comemorativas aparecem destacadas como oportunidades de pauta.
+            Clique em um dia para selecioná-lo. Arraste uma publicação para um
+            dia vazio para remanejar. Para excluir, selecione o dia e use o
+            botão Apagar.
           </p>
+
+          <div className="planner-date-toolbar">
+            <div>
+              <span>Dia selecionado</span>
+              <strong>
+                {focusedDay
+                  ? formatPostingDay(
+                      focusedDay,
+                      selectedYear,
+                      selectedMonthIndex
+                    )
+                  : "Nenhum"}
+              </strong>
+              {focusedDay && occupiedDays.includes(focusedDay) ? (
+                <small>Este dia possui conteúdo e deve ser movido antes de apagar.</small>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="planner-delete-day"
+              onClick={deleteFocusedDay}
+              disabled={
+                focusedDay === null ||
+                !selectedDays.includes(focusedDay) ||
+                occupiedDays.includes(focusedDay)
+              }
+            >
+              <FiTrash2 aria-hidden="true" />
+              Apagar dia
+            </button>
+          </div>
 
           {monthCommemorativeDates.length > 0 ? (
             <div className="calendar-opportunity-strip">
@@ -690,13 +865,35 @@ export function NewCalendarForm({
                 ) : (
                   <button
                     type="button"
+                    draggable={selectedDays.includes(day)}
                     className={[
                       selectedDays.includes(day) ? "selected" : "",
-                      commemorativeByDay.has(day) ? "commemorative" : ""
+                      focusedDay === day ? "focused" : "",
+                      draggingDay === day ? "dragging" : "",
+                      commemorativeByDay.has(day) ? "commemorative" : "",
+                      occupiedDays.includes(day) ? "occupied" : ""
                     ]
                       .filter(Boolean)
                       .join(" ")}
-                    onClick={() => togglePostingDay(day)}
+                    onClick={() => selectPostingDay(day)}
+                    onDragStart={() => {
+                      if (selectedDays.includes(day)) setDraggingDay(day);
+                    }}
+                    onDragEnd={() => setDraggingDay(null)}
+                    onDragOver={(event) => {
+                      if (
+                        draggingDay !== null &&
+                        !selectedDays.includes(day)
+                      ) {
+                        event.preventDefault();
+                      }
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (draggingDay !== null) {
+                        movePostingDay(draggingDay, day);
+                      }
+                    }}
                     aria-pressed={selectedDays.includes(day)}
                     aria-label={`${day} de ${monthNames[selectedMonthIndex]}${
                       commemorativeByDay.has(day)
