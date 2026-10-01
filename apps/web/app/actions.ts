@@ -1300,6 +1300,8 @@ export async function updateSystemBranding(formData: FormData) {
   await adminPatch("/api/admin/system-branding", {
     logoPath: String(formData.get("logoPath") ?? "").trim(),
     logoName: String(formData.get("logoName") ?? "").trim(),
+    darkLogoPath: String(formData.get("darkLogoPath") ?? "").trim(),
+    darkLogoName: String(formData.get("darkLogoName") ?? "").trim(),
     faviconPath: String(formData.get("faviconPath") ?? "").trim(),
     faviconName: String(formData.get("faviconName") ?? "").trim()
   });
