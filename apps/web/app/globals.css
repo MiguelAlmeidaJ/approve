@@ -17123,3 +17123,198 @@ body::-webkit-scrollbar,
     flex-direction: column;
   }
 }
+
+
+/* Central de demandas: visão simplificada */
+.kanban-command-bar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #e7e4e2;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.kanban-command-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kanban-command-copy strong {
+  color: #242126;
+  font-size: 11px;
+}
+
+.kanban-command-copy span {
+  overflow: hidden;
+  color: #858186;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-view-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #f3f1ef;
+}
+
+.kanban-view-tabs button {
+  min-height: 31px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 11px;
+  background: transparent;
+  color: #777278;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.kanban-view-tabs button.active {
+  background: #fff;
+  color: #242126;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.kanban-command-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.kanban-command-status span,
+.kanban-command-status em {
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: #f3f1ef;
+  color: #6f6b70;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.kanban-command-status .critical {
+  background: #fff0f3;
+  color: #b3294c;
+}
+
+.kanban-view-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.kanban-operational-alerts {
+  padding: 12px;
+}
+
+.kanban-alerts-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kanban-alert-item {
+  min-height: 58px;
+}
+
+.kanban-alerts-more {
+  grid-column: 1 / -1;
+}
+
+.demand-filter-panel {
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.demand-filter-panel > summary {
+  min-height: 54px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.demand-filter-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.demand-filter-panel > summary > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.demand-filter-panel > summary strong {
+  color: #2d2a2f;
+  font-size: 10px;
+}
+
+.demand-filter-panel > summary small {
+  color: #8e8a8f;
+  font-size: 8px;
+}
+
+.demand-filter-count {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f3f1ef;
+  color: #6f6b70;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.demand-filter-content {
+  padding: 0 12px 12px;
+  border-top: 1px solid #efedea;
+}
+
+.demand-filter-panel .demand-filters {
+  margin-top: 12px;
+}
+
+.demand-filter-panel .demand-source-legend {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1050px) {
+  .kanban-command-bar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .kanban-command-copy {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .kanban-command-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .kanban-view-tabs {
+    width: 100%;
+  }
+
+  .kanban-view-tabs button {
+    flex: 1;
+  }
+
+  .kanban-command-status {
+    justify-content: flex-start;
+  }
+
+  .kanban-alerts-list {
+    grid-template-columns: 1fr;
+  }
+}
