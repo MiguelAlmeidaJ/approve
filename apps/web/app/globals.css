@@ -20245,3 +20245,150 @@ body:has(.instagram-preview-page) {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Login + public calendar portrait presentation refinements */
+.login-visual h1 {
+  max-width: 560px;
+  font-size: clamp(42px, 5vw, 70px);
+  line-height: 0.94;
+}
+
+.branding-preview-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, .55fr);
+}
+
+.branding-picker-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.branding-logo-preview-dark {
+  border-color: #2c2c30;
+  background: #121214;
+}
+
+.instagram-profile-real {
+  grid-template-columns: 150px minmax(0, 1fr);
+}
+
+.instagram-profile-avatar.instagram-profile-avatar-ring {
+  width: 128px;
+  height: 128px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+}
+
+.instagram-profile-avatar-ring > .public-client-logo {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+}
+
+.instagram-profile-avatar-ring > .public-client-logo > img {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  object-fit: contain;
+}
+
+.instagram-profile-avatar-ring > .public-client-logo > span {
+  border-radius: 18px;
+}
+
+.instagram-feed-tile-real {
+  aspect-ratio: 4 / 5;
+  background: #f3f3f1;
+}
+
+.instagram-feed-tile-real .instagram-grid-art,
+.instagram-feed-tile-real .ig-art,
+.instagram-feed-tile-real .protected-public-media {
+  width: 100%;
+  height: 100%;
+}
+
+.instagram-feed-tile-real .protected-public-media > img,
+.instagram-feed-tile-real .protected-public-media > video,
+.instagram-feed-tile-real .ig-art.has-image img,
+.instagram-feed-tile-real .ig-art.has-image video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  background: #f3f3f1;
+}
+
+.instagram-post-modal {
+  width: min(1180px, calc(100vw - 48px));
+  max-height: min(92vh, 920px);
+  grid-template-columns: minmax(0, 640px) minmax(320px, 1fr);
+}
+
+.instagram-post-media {
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+  max-height: min(88vh, 800px);
+  background: #111;
+}
+
+.instagram-post-media .public-art-reviewer,
+.instagram-post-media .public-art-reviewer-stage,
+.instagram-post-media .instagram-post-art,
+.instagram-post-media .protected-public-media {
+  min-width: 0;
+  min-height: 0;
+}
+
+.instagram-post-media .public-art-reviewer {
+  width: 100%;
+  height: 100%;
+}
+
+.instagram-post-media .public-art-reviewer-stage > img,
+.instagram-post-media .public-art-reviewer-stage .protected-public-media > img,
+.instagram-post-media .public-art-reviewer-stage .protected-public-media > video,
+.instagram-post-media .instagram-post-art .protected-public-media > img,
+.instagram-post-media .instagram-post-art .protected-public-media > video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  background: #111;
+}
+
+@media (max-width: 980px) {
+  .branding-preview-grid,
+  .branding-picker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .instagram-post-modal {
+    width: min(760px, calc(100vw - 28px));
+    max-height: 94vh;
+    grid-template-columns: 1fr;
+  }
+
+  .instagram-post-media {
+    width: min(100%, 560px);
+    max-height: none;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .instagram-profile-real {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .instagram-profile-avatar.instagram-profile-avatar-ring {
+    width: 84px;
+    height: 84px;
+    border-radius: 14px;
+  }
+
+  .instagram-profile-avatar-ring > .public-client-logo,
+  .instagram-profile-avatar-ring > .public-client-logo > span {
+    border-radius: 14px;
+  }
+}
