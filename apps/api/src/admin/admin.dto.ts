@@ -776,6 +776,17 @@ export class CreateStandaloneArtworkDto {
   @Max(50)
   quantity!: number;
 
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(4)
+  outputs?: Array<{
+    contentType: ContentType;
+    formatLabel?: string;
+    quantity: number;
+    effortPoints: number;
+  }>;
+
   @IsInt()
   @Min(1)
   @Max(200)
