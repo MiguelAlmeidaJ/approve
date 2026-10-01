@@ -137,7 +137,13 @@ export function StandaloneArtworkCreateForm({
     usage?.limits.points !== null &&
     usage?.limits.points !== undefined &&
     projectedPoints > usage.limits.points;
-  const contractExtra = Boolean(standaloneExtra || pointsExtra);
+  const typeExtra = selectedTypes.some((type) => {
+    if (!usage) return false;
+    const key = type.toLowerCase() as "post" | "carousel" | "reel" | "story";
+    const limit = usage.limits[key];
+    return limit !== null && usage.usage[key] + outputQuantities[type] > limit;
+  });
+  const contractExtra = Boolean(standaloneExtra || pointsExtra || typeExtra);
 
   const folderPreview = useMemo(() => {
     const now = new Date();
