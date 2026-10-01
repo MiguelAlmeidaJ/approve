@@ -207,12 +207,15 @@ export default async function DesignerFlowHelpPage() {
       </section>
 
       <nav className="help-flow-index" aria-label="Atalhos do fluxo">
-        {flows.map((flow) => (
-          <a href={`#${flow.id}`} key={flow.id}>
-            <flow.icon aria-hidden="true" />
-            <span>{flow.eyebrow}</span>
-          </a>
-        ))}
+        {flows.map((flow) => {
+          const Icon = flow.icon;
+          return (
+            <a href={`#${flow.id}`} key={flow.id}>
+              <Icon aria-hidden="true" />
+              <span>{flow.eyebrow}</span>
+            </a>
+          );
+        })}
       </nav>
 
       <section className="help-docs-section">
