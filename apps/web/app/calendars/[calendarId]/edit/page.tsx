@@ -70,6 +70,14 @@ export default async function EditCalendarPage({
         initialPostingDays={calendar.postingDays.map((day) =>
           day.scheduledDate.slice(0, 10)
         )}
+        initialOccupiedPostingDays={calendar.contentItems.map((item) =>
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Sao_Paulo",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+          }).format(new Date(item.scheduledAt))
+        )}
         initialDeadlines={{
           planningDueAt: calendar.planningDueAt,
           planningApprovalDueAt: calendar.planningApprovalDueAt,
