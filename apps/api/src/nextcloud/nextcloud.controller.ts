@@ -67,6 +67,21 @@ export class NextcloudController {
     await this.pipeResponse(result.response, response, result.metadata.name);
   }
 
+  @Public()
+  @Get("public/calendars/:shareToken/client-logo")
+  async publicClientLogo(
+    @Param("shareToken") shareToken: string,
+    @Headers("range") range: string | undefined,
+    @Res() response: HttpResponse
+  ) {
+    const result = await this.nextcloudService.previewClientLogoForPublicShare(
+      shareToken,
+      range
+    );
+
+    await this.pipeResponse(result.response, response, result.metadata.name);
+  }
+
   @Get("admin/nextcloud/files")
   listFiles(
     @Req() request: InternalActorRequest,

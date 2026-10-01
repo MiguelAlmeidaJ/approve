@@ -12,8 +12,12 @@ import {
   FiPlay,
   FiSend
 } from "react-icons/fi";
-import { Brand } from "../../../components/brand";
 import { PublicArtworkReviewer } from "../../../components/public-artwork-reviewer";
+import {
+  PublicClientLogo,
+  PublicPresentationFooter,
+  PublicPresentationHeader
+} from "../../../components/public-presentation-chrome";
 import { PublicReviewActions } from "../../../components/public-review-actions";
 import {
   ProtectedPublicImage,
@@ -172,11 +176,25 @@ function PlanningApprovalView({
   const pendingPlanningItems = calendar.contentItems.filter((item) =>
     ["PRE_APPROVAL_PENDING", "PRE_CHANGES_REQUESTED"].includes(item.stage)
   );
+  const clientLogoSrc = calendar.client.hasLogo
+    ? `/api/client-logo?share=${encodeURIComponent(token)}`
+    : undefined;
+  const accountHref = defaultName
+    ? "/cliente"
+    : `/cliente/login?next=${encodeURIComponent("/cliente")}`;
 
   return (
     <main className="planning-public-page">
-      <header className="planning-public-topbar">
-        <Brand />
+      <PublicPresentationHeader
+        clientName={calendar.client.name}
+        calendarTitle={calendar.title}
+        status={approving ? "Planejamento em aprova\u00e7\u00e3o" : "Planejamento aprovado"}
+        pageHref={`/p/${token}`}
+        accountHref={accountHref}
+        accountLabel={defaultName ? "Meus calend\u00e1rios" : "Acessar hist\u00f3rico"}
+        clientLogoSrc={clientLogoSrc}
+      />
+      <header className="planning-public-topbar legacy-public-chrome">
         <div>
           <span>Pré-calendário · {calendar.client.name}</span>
           <small>{calendar.title}</small>
@@ -309,10 +327,14 @@ function PlanningApprovalView({
         })}
       </section>
 
-      <footer className="planning-public-footer">
-        <Brand />
+      <footer className="planning-public-footer legacy-public-chrome">
         <span>Terceiro Andar · Planejamento de conteúdo</span>
       </footer>
+      <PublicPresentationFooter
+        clientName={calendar.client.name}
+        calendarTitle={calendar.title}
+        clientLogoSrc={clientLogoSrc}
+      />
     </main>
   );
 }
@@ -392,11 +414,31 @@ export default async function ApprovalPage({
     artworkQueueIndex >= 0
       ? artworkReviewQueue[artworkQueueIndex + 1] ?? null
       : null;
+  const clientLogoSrc = calendar.client.hasLogo
+    ? `/api/client-logo?share=${encodeURIComponent(token)}`
+    : undefined;
+  const accountHref = account
+    ? "/cliente"
+    : `/cliente/login?next=${encodeURIComponent("/cliente")}`;
 
   return (
     <main className="instagram-preview-page">
-      <header className="instagram-preview-topbar">
-        <Brand />
+      <PublicPresentationHeader
+        clientName={calendar.client.name}
+        calendarTitle={calendar.title}
+        status={
+          canReviewArtwork
+            ? "Aprova\u00e7\u00e3o final das artes"
+            : calendar.stage === "PRODUCTION"
+              ? "Ajustes em produ\u00e7\u00e3o"
+              : "Calend\u00e1rio aprovado"
+        }
+        pageHref={`/p/${token}`}
+        accountHref={accountHref}
+        accountLabel={account ? "Meus calend\u00e1rios" : "Acessar hist\u00f3rico"}
+        clientLogoSrc={clientLogoSrc}
+      />
+      <header className="instagram-preview-topbar legacy-public-chrome">
         <div>
           <span>
             {canReviewArtwork
@@ -417,7 +459,10 @@ export default async function ApprovalPage({
 
       <section className="instagram-profile instagram-profile-real">
         <div className="instagram-profile-avatar instagram-profile-avatar-ring">
-          <span>{calendar.client.name.slice(0, 2).toUpperCase()}</span>
+          <PublicClientLogo
+            src={clientLogoSrc}
+            name={calendar.client.name}
+          />
         </div>
 
         <div className="instagram-profile-info">
@@ -553,10 +598,14 @@ export default async function ApprovalPage({
         </section>
       )}
 
-      <footer className="instagram-preview-footer">
-        <Brand />
+      <footer className="instagram-preview-footer legacy-public-chrome">
         <span>Terceiro Andar · Aprovação de conteúdo</span>
       </footer>
+      <PublicPresentationFooter
+        clientName={calendar.client.name}
+        calendarTitle={calendar.title}
+        clientLogoSrc={clientLogoSrc}
+      />
 
       {selectedItem ? (
         <div className="modal-layer">
@@ -592,9 +641,11 @@ export default async function ApprovalPage({
 
             <div className="instagram-post-panel">
               <header className="instagram-post-account">
-                <span className="instagram-post-avatar">
-                  {calendar.client.name.slice(0, 2).toUpperCase()}
-                </span>
+                <PublicClientLogo
+                  src={clientLogoSrc}
+                  name={calendar.client.name}
+                  className="instagram-post-avatar"
+                />
                 <div>
                   <strong>
                     {calendar.client.slug.replaceAll("-", "_")}

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { SESSION_COOKIE } from "../../../../../lib/auth";
-import { getApiUrl } from "../../../../../lib/api";
+import { SESSION_COOKIE } from "../../../../lib/auth";
+import { getApiUrl } from "../../../../lib/api";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;

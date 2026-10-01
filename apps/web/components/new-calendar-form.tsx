@@ -675,6 +675,21 @@ export function NewCalendarForm({
             </div>
           </div>
 
+          <div className="planner-sla-intro">
+            <span>
+              <FiClock aria-hidden="true" />
+            </span>
+            <div>
+              <strong>Linha do tempo da entrega</strong>
+              <small>
+                Defina cada passagem de bastão antes do início das publicações.
+              </small>
+            </div>
+            <em>
+              {monthNames[selectedMonthIndex]} {selectedYear}
+            </em>
+          </div>
+
           <div className="planner-sla-grid">
             <label className="field">
               <span>Pré-calendário pronto</span>

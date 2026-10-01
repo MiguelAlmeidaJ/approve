@@ -1059,6 +1059,23 @@ export class AdminService {
       );
     }
 
+    const nextcloudPath =
+      dto.nextcloudPath !== undefined
+        ? normalizeNextcloudPath(dto.nextcloudPath)
+        : current.nextcloudPath;
+    const logoPath = dto.logoPath?.trim() || null;
+    let logoName = dto.logoName?.trim() || null;
+
+    if (logoPath) {
+      const logo = await this.nextcloud.validateClientImageForActor(
+        actor,
+        id,
+        logoPath,
+        nextcloudPath
+      );
+      logoName = logo.name;
+    }
+
     const updated = await this.prisma.client.update({
       where: { id },
       data: {
@@ -1083,8 +1100,9 @@ export class AdminService {
         defaultArtworkSlaHours: dto.defaultArtworkSlaHours ?? current.defaultArtworkSlaHours,
         defaultStandaloneSlaHours: dto.defaultStandaloneSlaHours ?? current.defaultStandaloneSlaHours,
         ...(dto.nextcloudPath !== undefined
-          ? { nextcloudPath: normalizeNextcloudPath(dto.nextcloudPath) }
+          ? { nextcloudPath }
           : {}),
+        ...(dto.logoPath !== undefined ? { logoPath, logoName } : {}),
         postingWeekdays: {
           deleteMany: {},
           create: dto.postingWeekdays.map((weekday) => ({ weekday }))

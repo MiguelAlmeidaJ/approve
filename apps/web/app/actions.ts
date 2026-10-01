@@ -281,7 +281,7 @@ export async function createClient(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/clients");
-  redirect(`/clients/${client.id}`);
+  redirect(`/clients/${client.id}/edit?created=1#client-logo`);
 }
 
 
@@ -310,6 +310,8 @@ export async function updateClient(formData: FormData) {
     phone: required(formData, "phone"),
     email: required(formData, "email"),
     nextcloudPath: String(formData.get("nextcloudPath") ?? "").trim(),
+    logoPath: String(formData.get("logoPath") ?? "").trim(),
+    logoName: String(formData.get("logoName") ?? "").trim(),
     postingWeekdays,
     toneOfVoice: String(formData.get("toneOfVoice") ?? "").trim(),
     targetAudience: String(formData.get("targetAudience") ?? "").trim(),

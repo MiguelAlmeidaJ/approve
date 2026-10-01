@@ -180,6 +180,14 @@ export class UpdateClientDto {
 
   @IsOptional()
   @IsString()
+  logoPath?: string;
+
+  @IsOptional()
+  @IsString()
+  logoName?: string;
+
+  @IsOptional()
+  @IsString()
   toneOfVoice?: string;
 
   @IsOptional()

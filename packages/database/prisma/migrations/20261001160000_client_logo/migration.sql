@@ -1,0 +1,3 @@
+ALTER TABLE `Client`
+  ADD COLUMN `logoPath` TEXT NULL,
+  ADD COLUMN `logoName` VARCHAR(191) NULL;

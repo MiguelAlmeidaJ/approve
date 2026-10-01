@@ -158,6 +158,75 @@ export class NextcloudService {
     };
   }
 
+  async validateClientImageForActor(
+    actor: InternalActor,
+    clientId: string,
+    path: string,
+    nextcloudPath?: string | null
+  ) {
+    const client = await this.getAccessibleClient(actor, clientId);
+    const metadata = await this.getMetadata(
+      this.clientDirectory({
+        ...client,
+        nextcloudPath:
+          nextcloudPath === undefined ? client.nextcloudPath : nextcloudPath
+      }),
+      path
+    );
+
+    if (!metadata.mimeType?.startsWith("image/")) {
+      throw new BadRequestException(
+        "Selecione um arquivo de imagem para a logo do cliente."
+      );
+    }
+
+    return metadata;
+  }
+
+  async previewClientLogoForPublicShare(
+    shareToken: string,
+    range?: string
+  ) {
+    const calendar = await this.prisma.calendar.findFirst({
+      where: {
+        shareToken,
+        archivedAt: null,
+        OR: [
+          { shareExpiresAt: null },
+          { shareExpiresAt: { gt: new Date() } }
+        ],
+        client: { active: true }
+      },
+      select: {
+        client: {
+          select: {
+            slug: true,
+            nextcloudPath: true,
+            logoPath: true
+          }
+        }
+      }
+    });
+
+    if (!calendar?.client.logoPath) {
+      throw new NotFoundException("Logo do cliente nÃ£o configurada.");
+    }
+
+    const metadata = await this.getMetadata(
+      this.clientDirectory(calendar.client),
+      calendar.client.logoPath
+    );
+
+    if (!metadata.mimeType?.startsWith("image/")) {
+      throw new NotFoundException("Logo do cliente invÃ¡lida.");
+    }
+
+    return {
+      metadata,
+      response: await this.downloadStoredPath(metadata.storedPath, range)
+    };
+  }
+
   async ensureFolderForActor(
     actor: InternalActor,
     clientId: string,
@@ -529,7 +598,7 @@ export class NextcloudService {
   }
 
   private assertSystemAccess(actor: InternalActor) {
-    if (![UserRole.ADMIN, UserRole.DEV].includes(actor.role)) {
+    if (actor.role !== UserRole.ADMIN && actor.role !== UserRole.DEV) {
       throw new ForbiddenException(
         "Apenas administradores podem acessar arquivos da identidade visual."
       );

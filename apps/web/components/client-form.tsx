@@ -7,6 +7,7 @@ import {
   FiCompass,
   FiFolder,
   FiHash,
+  FiImage,
   FiKey,
   FiLock,
   FiMessageSquare,
@@ -17,6 +18,7 @@ import {
   FiUserCheck
 } from "react-icons/fi";
 import type { Client, DesignerListItem } from "../lib/api";
+import { ClientLogoField } from "./client-logo-field";
 
 export function ClientForm({
   action,
@@ -122,6 +124,40 @@ export function ClientForm({
               </small>
             </label>
           </div>
+        </section>
+
+        <section className="client-form-section client-logo-section" id="client-logo">
+          <div className="client-form-section-head">
+            <span className="client-form-icon pink">
+              <FiImage aria-hidden="true" />
+            </span>
+            <div>
+              <strong>Marca do cliente</strong>
+              <small>
+                Logo exibida na apresentação comercial e nas aprovações.
+              </small>
+            </div>
+          </div>
+
+          {client ? (
+            <ClientLogoField
+              clientId={client.id}
+              initialPath={client.logoPath}
+              initialName={client.logoName}
+            />
+          ) : (
+            <div className="client-logo-pending">
+              <FiImage aria-hidden="true" />
+              <div>
+                <strong>A logo entra no próximo passo</strong>
+                <span>
+                  Salve o cadastro para criarmos o acesso seguro à pasta do
+                  cliente no Nextcloud. Em seguida, você poderá selecionar ou
+                  enviar a imagem.
+                </span>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="client-form-section client-posting-rhythm-section">

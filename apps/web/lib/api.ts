@@ -384,6 +384,8 @@ export type Client = {
   niche: string | null;
   phone: string | null;
   nextcloudPath: string | null;
+  logoPath: string | null;
+  logoName: string | null;
   assignedDesignerId: string | null;
   toneOfVoice: string | null;
   targetAudience: string | null;
@@ -419,6 +421,8 @@ export type CalendarWithClient = Calendar & {
     niche: string | null;
     phone: string | null;
     nextcloudPath: string | null;
+    logoPath: string | null;
+    logoName: string | null;
     assignedDesignerId: string | null;
     toneOfVoice: string | null;
     targetAudience: string | null;
@@ -448,7 +452,11 @@ export type CalendarWithClient = Calendar & {
   };
 };
 
-export type PublicCalendar = CalendarWithClient;
+export type PublicCalendar = Calendar & {
+  client: Pick<Client, "id" | "name" | "slug" | "niche" | "logoName"> & {
+    hasLogo: boolean;
+  };
+};
 
 export type ClientPortal = {
   id: string;

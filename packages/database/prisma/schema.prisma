@@ -153,6 +153,8 @@ model Client {
   niche              String?
   phone              String?
   nextcloudPath      String?
+  logoPath           String?           @db.Text
+  logoName           String?
   assignedDesignerId String?
   toneOfVoice        String?            @db.Text
   targetAudience     String?            @db.Text

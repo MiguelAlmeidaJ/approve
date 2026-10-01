@@ -40,7 +40,9 @@ export class PublicService {
             id: true,
             name: true,
             slug: true,
-            niche: true
+            niche: true,
+            logoPath: true,
+            logoName: true
           }
         },
         contentItems: {
@@ -106,7 +108,15 @@ export class PublicService {
       throw new NotFoundException("Calendário público não encontrado.");
     }
 
-    return calendar;
+    const { logoPath, ...client } = calendar.client;
+
+    return {
+      ...calendar,
+      client: {
+        ...client,
+        hasLogo: Boolean(logoPath)
+      }
+    };
   }
 
   async review(
