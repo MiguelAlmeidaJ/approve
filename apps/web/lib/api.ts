@@ -91,6 +91,8 @@ export type SystemBranding = {
   id: string;
   logoPath: string | null;
   logoName: string | null;
+  darkLogoPath: string | null;
+  darkLogoName: string | null;
   faviconPath: string | null;
   faviconName: string | null;
   createdAt?: string;
@@ -544,6 +546,8 @@ export async function getSystemBranding(): Promise<SystemBranding> {
       id: "default",
       logoPath: null,
       logoName: null,
+      darkLogoPath: null,
+      darkLogoName: null,
       faviconPath: null,
       faviconName: null
     }
