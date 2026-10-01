@@ -68,6 +68,36 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+function itemAspectRatio(item: ContentItem) {
+  if (item.formatPreset?.width && item.formatPreset?.height) {
+    return `${item.formatPreset.width} / ${item.formatPreset.height}`;
+  }
+
+  const match = item.format.match(/(\d+)\s*[x×]\s*(\d+)/i);
+  if (match) {
+    return `${match[1]} / ${match[2]}`;
+  }
+
+  if (item.contentType === "STORY" || item.contentType === "REEL") {
+    return "9 / 16";
+  }
+
+  return "4 / 5";
+}
+
+function artworkStatusLabel(item: ContentItem) {
+  if (["ART_APPROVED", "READY_TO_SCHEDULE", "SCHEDULED", "PUBLISHED"].includes(item.stage)) {
+    return "Aprovado";
+  }
+  if (item.stage === "ART_CHANGES_REQUESTED") {
+    return "Ajuste solicitado";
+  }
+  if (item.stage === "ART_APPROVAL_PENDING") {
+    return "Revisar";
+  }
+  return "Em produção";
+}
+
 function typeLabel(item: ContentItem) {
   const type = {
     POST: "Post",
@@ -533,32 +563,29 @@ export default async function ApprovalPage({
             </div>
             <small>{stories.length} item(ns)</small>
           </div>
-          <div className="instagram-stories">
-          {stories.map((item) => (
-            <Link
-              href={`/p/${token}?item=${item.id}`}
-              className="instagram-story"
-              key={item.id}
-            >
-              <span className="instagram-story-ring">
-                <span>
-                  {item.assets?.[0] ? (
-                    item.assets[0].mimeType?.startsWith("video/") ? (
-                      <FiPlay aria-hidden="true" />
-                    ) : (
-                      <ProtectedPublicImage
-                        src={publicMediaUrl(item.assets[0].id, token)}
-                        alt=""
-                      />
-                    )
-                  ) : (
-                    <FiSmartphone aria-hidden="true" />
-                  )}
-                </span>
-              </span>
-              <strong>{item.title}</strong>
-            </Link>
-          ))}
+
+          <div className="public-story-grid">
+            {stories.map((item, index) => (
+              <Link
+                href={`/p/${token}?item=${item.id}`}
+                className="public-story-card"
+                key={item.id}
+              >
+                <div
+                  className="public-story-media"
+                  style={{ aspectRatio: itemAspectRatio(item) }}
+                >
+                  <PublicArt item={item} index={index} token={token} />
+                  <span className="public-art-status">
+                    {artworkStatusLabel(item)}
+                  </span>
+                </div>
+                <div className="public-story-copy">
+                  <strong>{item.title}</strong>
+                  <small>{formatDate(item.scheduledAt)} · {typeLabel(item)}</small>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       ) : null}
@@ -571,50 +598,53 @@ export default async function ApprovalPage({
         <small>{feedItems.length} item(ns)</small>
       </div>
 
-      <div className="instagram-tabs">
-        <span className="active">
-          <FiGrid /> PUBLICAÇÕES
-        </span>
-        <span>
-          <FiPlay /> REELS
-        </span>
-      </div>
-
       {feedItems.length === 0 ? (
-        <div className="instagram-empty">
+        <div className="public-calendar-empty">
           Nenhuma peça foi marcada para aparecer no feed.
         </div>
       ) : (
-        <section className="instagram-feed-grid">
+        <section className="public-content-grid">
           {feedItems.map((item, index) => (
             <Link
               href={`/p/${token}?item=${item.id}`}
-              className="instagram-feed-tile"
+              className="public-content-card"
               key={item.id}
             >
-              <PublicArt item={item} index={index} token={token} />
-              {item.contentType === "REEL" ? (
-                <FiPlay className="instagram-tile-type" aria-hidden="true" />
-              ) : null}
-              {item.contentType === "CAROUSEL" ? (
-                <span className="instagram-carousel-mark">▣</span>
-              ) : null}
-              <span className="instagram-tile-overlay">
-                <span>
-                  <FiHeart />{" "}
-                  {[
-                    "ART_APPROVED",
-                    "READY_TO_SCHEDULE",
-                    "SCHEDULED",
-                    "PUBLISHED"
-                  ].includes(item.stage)
-                    ? "Aprovado"
-                    : "Revisar"}
+              <div
+                className="public-content-media"
+                style={{ aspectRatio: itemAspectRatio(item) }}
+              >
+                <PublicArt item={item} index={index} token={token} />
+                {item.contentType === "REEL" ? (
+                  <FiPlay className="public-content-type-icon" aria-hidden="true" />
+                ) : null}
+                {item.contentType === "CAROUSEL" ? (
+                  <span className="public-content-type-icon text">▣</span>
+                ) : null}
+              </div>
+
+              <div className="public-content-card-body">
+                <div className="public-content-card-title">
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{formatDate(item.scheduledAt)} · {typeLabel(item)}</small>
+                  </div>
+                  <span
+                    className={`public-art-status ${artworkStatusLabel(item)
+                      .toLowerCase()
+                      .replaceAll(" ", "-")
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")}`}
+                  >
+                    {artworkStatusLabel(item)}
+                  </span>
+                </div>
+                <p>{item.caption}</p>
+                <span className="public-content-open">
+                  Ver peça
+                  <FiChevronRight aria-hidden="true" />
                 </span>
-                <span>
-                  <FiMessageCircle /> Abrir
-                </span>
-              </span>
+              </div>
             </Link>
           ))}
         </section>
