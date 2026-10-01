@@ -3095,14 +3095,7 @@ export class AdminService {
     };
     const points =
       calendarItems.reduce((sum, item) => sum + item.effortPoints, 0) +
-      standalone.reduce(
-        (sum, item) =>
-          sum +
-          (item.outputs.length > 0
-            ? item.outputs.reduce((outputSum, output) => outputSum + output.effortPoints, 0)
-            : item.effortPoints),
-        0
-      );
+      standalone.reduce((sum, item) => sum + item.effortPoints, 0);
 
     return {
       clientId: client.id,
