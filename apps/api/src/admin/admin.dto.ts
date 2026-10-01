@@ -831,3 +831,22 @@ export class UpdateDemandPlannedDateDto {
   @IsDateString()
   plannedProductionDate!: string;
 }
+
+
+export class UpdateSystemBrandingDto {
+  @IsOptional()
+  @IsString()
+  logoPath?: string;
+
+  @IsOptional()
+  @IsString()
+  logoName?: string;
+
+  @IsOptional()
+  @IsString()
+  faviconPath?: string;
+
+  @IsOptional()
+  @IsString()
+  faviconName?: string;
+}
