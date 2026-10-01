@@ -529,11 +529,13 @@ model StandaloneArtworkOutput {
 
 
 model SystemBranding {
-  id          String   @id @default("default")
-  logoPath    String?  @db.Text
-  logoName    String?
-  faviconPath String?  @db.Text
-  faviconName String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default("default")
+  logoPath     String?  @db.Text
+  logoName     String?
+  darkLogoPath String?  @db.Text
+  darkLogoName String?
+  faviconPath  String?  @db.Text
+  faviconName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
