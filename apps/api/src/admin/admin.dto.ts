@@ -419,6 +419,13 @@ export class UpdateCalendarDto {
   @IsOptional()
   @IsDateString()
   shareExpiresAt?: string;
+
+  @IsOptional()
+  @IsArray()
+  postingDayMoves?: Array<{
+    from: string;
+    to: string;
+  }>;
 }
 
 export class CreateContentFormatDto {
