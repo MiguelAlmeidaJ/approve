@@ -14,7 +14,6 @@ import {
   FiTarget,
   FiTrash2,
   FiUser,
-  FiX,
   FiZap
 } from "react-icons/fi";
 import { createCalendar, updateCalendar } from "../app/actions";
