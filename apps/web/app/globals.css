@@ -19062,3 +19062,570 @@ body:has(.instagram-preview-page) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Public Instagram-style preview */
+.instagram-preview-page {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-bottom: 56px;
+  background: #fff;
+}
+
+body:has(.instagram-preview-page) {
+  background: #f4f4f2;
+}
+
+.instagram-preview-topbar {
+  min-height: 68px;
+  padding: 0 4px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e8e6e3;
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(10px);
+}
+
+.instagram-profile-real {
+  padding: 38px 54px 30px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 42px;
+  align-items: center;
+  border-bottom: 1px solid #e8e6e3;
+  background: #fff;
+}
+
+.instagram-profile-avatar-ring {
+  width: 132px;
+  height: 132px;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ff004a,
+    #ff2d55,
+    #ff6b35,
+    #d300c5,
+    #7f3cff,
+    #ff004a
+  );
+}
+
+.instagram-profile-avatar-ring > span {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border: 6px solid #fff;
+  border-radius: 50%;
+  background: #141416;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.instagram-profile-info {
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.instagram-profile-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.instagram-profile-title h1 {
+  margin: 0;
+  color: #18171a;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.instagram-calendar-chip {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #f2f2f0;
+  color: #4d4a4f;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.instagram-stats {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  color: #37343a;
+  font-size: 10px;
+}
+
+.instagram-stats span {
+  display: inline-flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.instagram-stats strong {
+  color: #1d1b20;
+  font-size: 11px;
+}
+
+.instagram-bio {
+  display: grid;
+  gap: 2px;
+  max-width: 650px;
+}
+
+.instagram-bio strong {
+  color: #28252a;
+  font-size: 10px;
+}
+
+.instagram-bio span {
+  color: #6d6970;
+  font-size: 9px;
+}
+
+.instagram-bio p {
+  margin: 4px 0 0;
+  color: #6d6970;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.instagram-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.instagram-profile-status {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f1efed;
+  color: #625e64;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.instagram-profile-status.review {
+  background: #fff0f4;
+  color: #b3294c;
+}
+
+.instagram-profile-status.adjustment {
+  background: #fff5df;
+  color: #986b18;
+}
+
+.instagram-profile-status.approved {
+  background: #eaf8f1;
+  color: #267452;
+}
+
+.instagram-review-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--pink);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.instagram-story-highlights {
+  min-height: 150px;
+  padding: 20px 30px 18px;
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  border-bottom: 1px solid #ece9e6;
+  background: #fff;
+}
+
+.instagram-story-highlight {
+  width: 86px;
+  flex: 0 0 86px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 5px;
+  color: #2f2c31;
+  text-align: center;
+}
+
+.instagram-story-ring {
+  width: 76px;
+  height: 76px;
+  padding: 3px;
+  border: 1px solid #dedbd8;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+
+.instagram-story-thumb {
+  width: 66px;
+  height: 66px;
+  overflow: hidden;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eceae7;
+}
+
+.instagram-story-thumb .ig-art,
+.instagram-story-thumb .protected-public-media,
+.instagram-story-thumb img,
+.instagram-story-thumb video {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.instagram-story-thumb img,
+.instagram-story-thumb video {
+  object-fit: cover !important;
+}
+
+.instagram-story-highlight strong {
+  width: 100%;
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instagram-story-highlight small {
+  color: #9a969b;
+  font-size: 7px;
+}
+
+.instagram-tabs-real {
+  height: 52px;
+  margin: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 54px;
+  border-top: 0;
+  border-bottom: 1px solid #e8e6e3;
+  background: #fff;
+}
+
+.instagram-tabs-real span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8a858b;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.instagram-tabs-real span.active {
+  color: #2d2a2f;
+}
+
+.instagram-tabs-real span.active::before {
+  content: "";
+  height: 1px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #222024;
+}
+
+.instagram-feed-grid-real {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  background: #fff;
+  border-radius: 0;
+}
+
+.instagram-feed-tile-real {
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  background: #ebe9e6;
+}
+
+.instagram-feed-tile-real .ig-art {
+  width: 100%;
+  height: 100%;
+}
+
+.instagram-feed-tile-real .ig-art.has-image,
+.instagram-feed-tile-real .protected-public-media {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.instagram-feed-tile-real img,
+.instagram-feed-tile-real video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.instagram-grid-art {
+  min-height: 0 !important;
+}
+
+.instagram-grid-type {
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+  border-radius: 7px;
+  background: rgba(20,18,22,.62);
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+}
+
+.instagram-grid-type.carousel {
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.instagram-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 16px;
+  display: grid;
+  place-content: end start;
+  gap: 3px;
+  background: linear-gradient(
+    to top,
+    rgba(12,10,14,.72),
+    rgba(12,10,14,.08) 48%,
+    transparent 68%
+  );
+  color: #fff;
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+
+.instagram-feed-tile-real:hover .instagram-grid-overlay,
+.instagram-feed-tile-real:focus-visible .instagram-grid-overlay {
+  opacity: 1;
+}
+
+.instagram-grid-overlay strong {
+  max-width: 90%;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instagram-grid-overlay small {
+  color: rgba(255,255,255,.78);
+  font-size: 7px;
+}
+
+.instagram-grid-overlay em {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  color: #302d32;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.instagram-preview-footer {
+  min-height: 88px;
+  padding: 20px 4px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: transparent;
+}
+
+/* Calendar day editing */
+.planner-date-toolbar {
+  margin: 10px 0 12px;
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+}
+
+.planner-date-toolbar > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.planner-date-toolbar span {
+  color: rgba(255,255,255,.48);
+  font-size: 8px;
+}
+
+.planner-date-toolbar strong {
+  color: #fff;
+  font-size: 10px;
+}
+
+.planner-date-toolbar small {
+  color: #ffb7c9;
+  font-size: 7px;
+}
+
+.planner-delete-day {
+  min-height: 34px;
+  padding: 0 10px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9px;
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.planner-delete-day:not(:disabled):hover {
+  border-color: rgba(255,58,109,.65);
+  background: rgba(255,0,74,.13);
+  color: #ff6b95;
+}
+
+.planner-delete-day:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.interactive-calendar .mini-calendar-days button {
+  cursor: pointer;
+  transition:
+    transform .12s ease,
+    box-shadow .12s ease,
+    border-color .12s ease;
+}
+
+.interactive-calendar .mini-calendar-days button.selected {
+  cursor: grab;
+}
+
+.interactive-calendar .mini-calendar-days button.selected:active {
+  cursor: grabbing;
+}
+
+.interactive-calendar .mini-calendar-days button.focused {
+  box-shadow:
+    0 0 0 2px #0d0d0f,
+    0 0 0 4px #fff,
+    0 0 0 6px var(--pink);
+}
+
+.interactive-calendar .mini-calendar-days button.dragging {
+  opacity: .45;
+  transform: scale(.92);
+}
+
+.interactive-calendar .mini-calendar-days button.occupied::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: #141416;
+}
+
+@media (max-width: 760px) {
+  .instagram-preview-page {
+    width: 100%;
+  }
+
+  .instagram-preview-topbar {
+    padding: 0 14px;
+  }
+
+  .instagram-profile-real {
+    padding: 26px 18px 22px;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .instagram-profile-avatar-ring {
+    width: 82px;
+    height: 82px;
+    padding: 4px;
+  }
+
+  .instagram-profile-avatar-ring > span {
+    border-width: 4px;
+    font-size: 18px;
+  }
+
+  .instagram-profile-title h1 {
+    font-size: 18px;
+  }
+
+  .instagram-stats {
+    gap: 14px;
+    font-size: 8px;
+  }
+
+  .instagram-bio {
+    grid-column: 1 / -1;
+  }
+
+  .instagram-profile-actions {
+    grid-column: 1 / -1;
+  }
+
+  .instagram-story-highlights {
+    padding-inline: 14px;
+  }
+
+  .instagram-feed-grid-real {
+    gap: 2px;
+  }
+
+  .instagram-grid-overlay {
+    display: none;
+  }
+
+  .planner-date-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .planner-delete-day {
+    width: 100%;
+    justify-content: center;
+  }
+}
