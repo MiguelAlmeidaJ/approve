@@ -7,8 +7,8 @@ export function Brand({
 }) {
   const src =
     tone === "dark"
-      ? "/brand-terceiro-andar-dark.svg"
-      : "/brand-terceiro-andar.svg";
+      ? "/api/branding/logo?tone=dark"
+      : "/api/branding/logo";
 
   return (
     <div
