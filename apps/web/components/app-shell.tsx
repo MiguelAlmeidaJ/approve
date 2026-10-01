@@ -11,6 +11,7 @@ import {
   FiHome,
   FiHelpCircle,
   FiImage,
+  FiLayers,
   FiLogOut,
   FiPieChart,
   FiAward,
@@ -45,6 +46,7 @@ export type AppSection =
   | "audit"
   | "formats"
   | "help"
+  | "identity"
   | "config";
 
 const roleLabel = {
@@ -342,7 +344,7 @@ export async function AppShell({
           {canSeeUsers || canSeeConfig ? (
             <details
               className="sidebar-menu-group"
-              open={groupIsActive(activeSection, ["audit", "config"])}
+              open={groupIsActive(activeSection, ["audit", "identity", "config"])}
             >
               <summary>
                 <span>
@@ -366,6 +368,19 @@ export async function AppShell({
                   >
                     <FiShield aria-hidden="true" />
                     Auditoria
+                  </Link>
+                ) : null}
+                {canSeeUsers ? (
+                  <Link
+                    href="/identidade-visual"
+                    className={
+                      activeSection === "identity"
+                        ? "sidebar-submenu-link active"
+                        : "sidebar-submenu-link"
+                    }
+                  >
+                    <FiLayers aria-hidden="true" />
+                    Identidade visual
                   </Link>
                 ) : null}
                 {canSeeConfig ? (
