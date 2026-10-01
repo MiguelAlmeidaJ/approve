@@ -367,11 +367,18 @@ export function NewCalendarForm({
   function applyWeekdays(nextWeekdays: readonly number[]) {
     const normalized = [...nextWeekdays].sort((first, second) => first - second);
     setSelectedWeekdays(normalized);
-    const nextDays = daysMatchingWeekdays(
+    const generatedDays = daysMatchingWeekdays(
       selectedYear,
       selectedMonthIndex,
       normalized
     );
+    const nextDays = [
+      ...new Set(
+        isEditing
+          ? [...generatedDays, ...occupiedDays]
+          : generatedDays
+      )
+    ].sort((first, second) => first - second);
     setSelectedDays(nextDays);
     setDayOrigins(
       Object.fromEntries(
@@ -626,7 +633,7 @@ export function NewCalendarForm({
                     <span>
                       {formatPostingDay(day, selectedYear, selectedMonthIndex)}
                     </span>
-                    <FiX aria-hidden="true" />
+                    <FiCheck aria-hidden="true" />
                   </button>
                 ))}
               </div>
