@@ -1597,7 +1597,8 @@ export class AdminService {
       data: { plannedProductionDate },
       include: {
         client: { select: { id: true, name: true, nextcloudPath: true } },
-        designer: { select: { id: true, name: true, email: true } }
+        designer: { select: { id: true, name: true, email: true } },
+        outputs: { orderBy: { sortOrder: "asc" } }
       }
     });
 
@@ -3014,7 +3015,15 @@ export class AdminService {
         },
         select: {
           quantity: true,
-          effortPoints: true
+          effortPoints: true,
+          contentType: true,
+          outputs: {
+            select: {
+              contentType: true,
+              quantity: true,
+              effortPoints: true
+            }
+          }
         }
       })
     ]);
@@ -3027,12 +3036,73 @@ export class AdminService {
     };
 
     const standalonePieces = standalone.reduce(
-      (sum, item) => sum + item.quantity,
+      (sum, item) =>
+        sum +
+        (item.outputs.length > 0
+          ? item.outputs.reduce((outputSum, output) => outputSum + output.quantity, 0)
+          : item.quantity),
       0
     );
+    const standaloneByType = {
+      POST: standalone.reduce(
+        (sum, item) =>
+          sum +
+          (item.outputs.length > 0
+            ? item.outputs
+                .filter((output) => output.contentType === ContentType.POST)
+                .reduce((outputSum, output) => outputSum + output.quantity, 0)
+            : item.contentType === ContentType.POST
+              ? item.quantity
+              : 0),
+        0
+      ),
+      CAROUSEL: standalone.reduce(
+        (sum, item) =>
+          sum +
+          (item.outputs.length > 0
+            ? item.outputs
+                .filter((output) => output.contentType === ContentType.CAROUSEL)
+                .reduce((outputSum, output) => outputSum + output.quantity, 0)
+            : item.contentType === ContentType.CAROUSEL
+              ? item.quantity
+              : 0),
+        0
+      ),
+      REEL: standalone.reduce(
+        (sum, item) =>
+          sum +
+          (item.outputs.length > 0
+            ? item.outputs
+                .filter((output) => output.contentType === ContentType.REEL)
+                .reduce((outputSum, output) => outputSum + output.quantity, 0)
+            : item.contentType === ContentType.REEL
+              ? item.quantity
+              : 0),
+        0
+      ),
+      STORY: standalone.reduce(
+        (sum, item) =>
+          sum +
+          (item.outputs.length > 0
+            ? item.outputs
+                .filter((output) => output.contentType === ContentType.STORY)
+                .reduce((outputSum, output) => outputSum + output.quantity, 0)
+            : item.contentType === ContentType.STORY
+              ? item.quantity
+              : 0),
+        0
+      )
+    };
     const points =
       calendarItems.reduce((sum, item) => sum + item.effortPoints, 0) +
-      standalone.reduce((sum, item) => sum + item.effortPoints, 0);
+      standalone.reduce(
+        (sum, item) =>
+          sum +
+          (item.outputs.length > 0
+            ? item.outputs.reduce((outputSum, output) => outputSum + output.effortPoints, 0)
+            : item.effortPoints),
+        0
+      );
 
     return {
       clientId: client.id,
@@ -3040,10 +3110,10 @@ export class AdminService {
       periodStart: start.toISOString(),
       periodEnd: end.toISOString(),
       usage: {
-        post: calendarByType.POST,
-        carousel: calendarByType.CAROUSEL,
-        reel: calendarByType.REEL,
-        story: calendarByType.STORY,
+        post: calendarByType.POST + standaloneByType.POST,
+        carousel: calendarByType.CAROUSEL + standaloneByType.CAROUSEL,
+        reel: calendarByType.REEL + standaloneByType.REEL,
+        story: calendarByType.STORY + standaloneByType.STORY,
         standalone: standalonePieces,
         points
       },
@@ -3070,6 +3140,9 @@ export class AdminService {
         },
         designer: {
           select: { id: true, name: true, email: true }
+        },
+        outputs: {
+          orderBy: { sortOrder: "asc" }
         }
       },
       orderBy: [
@@ -3121,6 +3194,47 @@ export class AdminService {
       throw new BadRequestException("Selecione um designer ativo.");
     }
 
+    const normalizedOutputs =
+      dto.outputs && dto.outputs.length > 0
+        ? dto.outputs.map((output, index) => {
+            if (!Object.values(ContentType).includes(output.contentType)) {
+              throw new BadRequestException("Tipo de entrega inválido.");
+            }
+            const quantity = Number(output.quantity);
+            const effortPoints = Number(output.effortPoints);
+            if (!Number.isInteger(quantity) || quantity < 1 || quantity > 50) {
+              throw new BadRequestException("Quantidade inválida em uma entrega.");
+            }
+            if (!Number.isInteger(effortPoints) || effortPoints < 1 || effortPoints > 200) {
+              throw new BadRequestException("Pontos inválidos em uma entrega.");
+            }
+            return {
+              contentType: output.contentType,
+              formatLabel: output.formatLabel?.trim() || null,
+              quantity,
+              effortPoints,
+              sortOrder: index
+            };
+          })
+        : [
+            {
+              contentType: dto.contentType,
+              formatLabel: dto.formatLabel?.trim() || null,
+              quantity: dto.quantity,
+              effortPoints: dto.effortPoints,
+              sortOrder: 0
+            }
+          ];
+
+    const totalQuantity = normalizedOutputs.reduce(
+      (sum, output) => sum + output.quantity,
+      0
+    );
+    const totalEffortPoints = normalizedOutputs.reduce(
+      (sum, output) => sum + output.effortPoints,
+      0
+    );
+
     const createdAt = new Date();
     const [year, month] = saoPauloDateKey(createdAt).split("-");
     const folderName = `${safeNextcloudSegment(dto.title)}-${randomBytes(3).toString("hex")}`;
@@ -3141,10 +3255,13 @@ export class AdminService {
         designerId: designer.id,
         title: dto.title.trim(),
         briefing: dto.briefing.trim(),
-        contentType: dto.contentType,
-        formatLabel: dto.formatLabel?.trim() || null,
-        quantity: dto.quantity,
-        effortPoints: dto.effortPoints,
+        contentType: normalizedOutputs[0].contentType,
+        formatLabel: normalizedOutputs[0].formatLabel,
+        quantity: totalQuantity,
+        effortPoints: totalEffortPoints,
+        outputs: {
+          create: normalizedOutputs
+        },
         priority: dto.priority ?? ArtworkPriority.NORMAL,
         dueAt: dto.dueAt
           ? new Date(dto.dueAt)
