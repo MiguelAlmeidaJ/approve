@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  FiAlertCircle,
   FiCalendar,
   FiCheck,
+  FiCheckCircle,
   FiChevronLeft,
   FiChevronRight,
   FiClock,
@@ -404,47 +406,134 @@ export default async function ApprovalPage({
         </div>
       </header>
 
-      <section className="instagram-profile">
-        <div className="instagram-profile-avatar">
-          <span>{calendar.client.name.slice(0, 2).toUpperCase()}</span>
-        </div>
-
-        <div className="instagram-profile-info">
-          <div className="instagram-profile-title">
-            <h1>{calendar.client.slug.replaceAll("-", "_")}</h1>
-            <span className="instagram-calendar-chip">{calendar.title}</span>
-          </div>
-
-          <div className="instagram-stats">
-            <span>
-              <strong>{feedItems.length}</strong> publicações
-            </span>
-            <span>
-              <strong>{approved}</strong> aprovadas
-            </span>
-            <span>
-              <strong>{calendar.contentItems.length - approved}</strong>{" "}
-              pendentes
-            </span>
-          </div>
-
-          <div className="instagram-bio">
-            <strong>{calendar.client.name}</strong>
-            <span>
+      <section className="public-calendar-hero">
+        <div className="public-calendar-identity">
+          <span className="public-calendar-avatar">
+            {calendar.client.name.slice(0, 2).toUpperCase()}
+          </span>
+          <div>
+            <span className="micro-label">CALENDÁRIO DE CONTEÚDO</span>
+            <h1>{calendar.client.name}</h1>
+            <p>
               {calendar.client.niche ??
                 "Conteúdo planejado pela Terceiro Andar"}
-            </span>
-            <p>
-              {canReviewArtwork
-                ? "Clique em qualquer peça para revisar a arte, a legenda e aprovar a versão final."
-                : "As artes estão em ajuste ou já seguiram para a etapa de programação."}
             </p>
           </div>
         </div>
+
+        <div className="public-calendar-period">
+          <span>Período</span>
+          <strong>{calendar.title}</strong>
+          <small>
+            {new Intl.DateTimeFormat("pt-BR", {
+              month: "long",
+              year: "numeric",
+              timeZone: "UTC"
+            }).format(new Date(calendar.periodStart))}
+          </small>
+        </div>
+
+        <div className="public-calendar-progress-card">
+          <div className="public-calendar-progress-copy">
+            <span>Progresso da aprovação</span>
+            <strong>
+              {approved}/{calendar.contentItems.length}
+            </strong>
+          </div>
+          <div className="public-calendar-progress-track">
+            <span
+              style={{
+                width: `${
+                  calendar.contentItems.length === 0
+                    ? 0
+                    : Math.round(
+                        (approved / calendar.contentItems.length) * 100
+                      )
+                }%`
+              }}
+            />
+          </div>
+          <small>
+            {calendar.contentItems.length - approved} pendente(s)
+          </small>
+        </div>
+      </section>
+
+      <section className="public-calendar-summary">
+        <article>
+          <FiGrid aria-hidden="true" />
+          <div>
+            <small>Publicações</small>
+            <strong>{feedItems.length}</strong>
+          </div>
+        </article>
+        <article className={approved === calendar.contentItems.length ? "success" : ""}>
+          <FiCheckCircle aria-hidden="true" />
+          <div>
+            <small>Aprovadas</small>
+            <strong>{approved}</strong>
+          </div>
+        </article>
+        <article className={calendar.contentItems.length - approved > 0 ? "warning" : ""}>
+          <FiAlertCircle aria-hidden="true" />
+          <div>
+            <small>Pendentes</small>
+            <strong>{calendar.contentItems.length - approved}</strong>
+          </div>
+        </article>
+        <article>
+          <FiCalendar aria-hidden="true" />
+          <div>
+            <small>Status</small>
+            <strong>
+              {canReviewArtwork
+                ? "Em aprovação"
+                : calendar.stage === "PRODUCTION"
+                  ? "Em ajustes"
+                  : "Aprovado"}
+            </strong>
+          </div>
+        </article>
+      </section>
+
+      <section className="public-calendar-guidance">
+        <div>
+          <strong>
+            {canReviewArtwork
+              ? "Revise as peças abaixo"
+              : calendar.stage === "PRODUCTION"
+                ? "Ajustes em andamento"
+                : "Calendário aprovado"}
+          </strong>
+          <p>
+            {canReviewArtwork
+              ? "Clique em qualquer peça para conferir a arte e a legenda. Você pode aprovar ou solicitar alteração diretamente na visualização."
+              : calendar.stage === "PRODUCTION"
+                ? "Algumas peças estão sendo ajustadas pela equipe. As versões atualizadas aparecerão aqui quando estiverem prontas."
+                : "As peças já aprovadas seguem para programação e publicação."}
+          </p>
+        </div>
+        {canReviewArtwork && artworkReviewQueue[0] ? (
+          <Link
+            href={`/p/${token}?item=${artworkReviewQueue[0].id}`}
+            className="button button-primary"
+          >
+            Começar revisão
+            <FiChevronRight aria-hidden="true" />
+          </Link>
+        ) : null}
       </section>
 
       {stories.length > 0 ? (
-        <section className="instagram-stories" aria-label="Stories planejados">
+        <section className="public-stories-section" aria-label="Stories planejados">
+          <div className="public-section-heading">
+            <div>
+              <span className="micro-label">STORIES</span>
+              <h2>Conteúdos verticais</h2>
+            </div>
+            <small>{stories.length} item(ns)</small>
+          </div>
+          <div className="instagram-stories">
           {stories.map((item) => (
             <Link
               href={`/p/${token}?item=${item.id}`}
@@ -470,8 +559,17 @@ export default async function ApprovalPage({
               <strong>{item.title}</strong>
             </Link>
           ))}
+          </div>
         </section>
       ) : null}
+
+      <div className="public-feed-heading">
+        <div>
+          <span className="micro-label">FEED</span>
+          <h2>Publicações do calendário</h2>
+        </div>
+        <small>{feedItems.length} item(ns)</small>
+      </div>
 
       <div className="instagram-tabs">
         <span className="active">
