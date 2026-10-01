@@ -18038,3 +18038,317 @@ body::-webkit-scrollbar,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Client calendar public view */
+.public-calendar-hero {
+  margin-top: 28px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(180px, .7fr) minmax(220px, .8fr);
+  gap: 20px;
+  align-items: center;
+  border: 1px solid #e6e3e0;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.public-calendar-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.public-calendar-avatar {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: #141416;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.public-calendar-identity > div {
+  min-width: 0;
+}
+
+.public-calendar-identity h1 {
+  margin: 3px 0 4px;
+  color: #1d1b20;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.public-calendar-identity p,
+.public-calendar-period small,
+.public-calendar-progress-card small,
+.public-calendar-guidance p,
+.public-section-heading small,
+.public-feed-heading small {
+  margin: 0;
+  color: #878388;
+  font-size: 9px;
+}
+
+.public-calendar-period {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding-left: 18px;
+  border-left: 1px solid #ece9e6;
+}
+
+.public-calendar-period span,
+.public-calendar-progress-copy span {
+  color: #9a969b;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.public-calendar-period strong {
+  overflow: hidden;
+  color: #302d32;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-calendar-progress-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8f7f5;
+}
+
+.public-calendar-progress-copy {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.public-calendar-progress-copy strong {
+  color: #242126;
+  font-size: 18px;
+}
+
+.public-calendar-progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7e3e0;
+}
+
+.public-calendar-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pink);
+}
+
+.public-calendar-summary {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.public-calendar-summary article {
+  min-height: 78px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e8e5e2;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.public-calendar-summary article > svg {
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+  border-radius: 9px;
+  background: #f3f1ef;
+  color: #777278;
+}
+
+.public-calendar-summary article.success > svg {
+  background: #eaf8f1;
+  color: #267452;
+}
+
+.public-calendar-summary article.warning > svg {
+  background: #fff3e1;
+  color: #9b6d17;
+}
+
+.public-calendar-summary article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.public-calendar-summary small {
+  color: #918d92;
+  font-size: 8px;
+}
+
+.public-calendar-summary strong {
+  color: #242126;
+  font-size: 15px;
+}
+
+.public-calendar-guidance {
+  margin-top: 12px;
+  padding: 15px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid #eadde2;
+  border-radius: 13px;
+  background: #fffafd;
+}
+
+.public-calendar-guidance > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.public-calendar-guidance strong {
+  color: #3a3035;
+  font-size: 10px;
+}
+
+.public-stories-section {
+  margin-top: 26px;
+}
+
+.public-section-heading,
+.public-feed-heading {
+  min-height: 46px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.public-section-heading h2,
+.public-feed-heading h2 {
+  margin: 2px 0 0;
+  color: #252228;
+  font-size: 15px;
+}
+
+.public-stories-section .instagram-stories {
+  padding: 12px 0 20px;
+}
+
+.public-feed-heading {
+  margin-top: 12px;
+  padding-bottom: 8px;
+}
+
+.instagram-preview-page {
+  padding-top: 0;
+}
+
+.instagram-preview-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-inline: 16px;
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(10px);
+}
+
+.instagram-tabs {
+  margin-top: 0;
+  border-top: 1px solid #e6e3e0;
+}
+
+.instagram-feed-grid {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eae7e4;
+}
+
+.instagram-feed-tile {
+  background: #f7f6f4;
+}
+
+.instagram-feed-tile:hover .instagram-tile-overlay {
+  opacity: 1;
+}
+
+.instagram-tile-overlay {
+  background: rgba(16, 14, 18, .58);
+}
+
+.instagram-preview-footer {
+  margin-top: 34px;
+}
+
+@media (max-width: 900px) {
+  .public-calendar-hero {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .public-calendar-identity {
+    grid-column: 1 / -1;
+  }
+
+  .public-calendar-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .public-calendar-hero {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  .public-calendar-identity {
+    grid-column: auto;
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .public-calendar-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+
+  .public-calendar-identity h1 {
+    font-size: 21px;
+  }
+
+  .public-calendar-period {
+    padding-left: 0;
+    padding-top: 12px;
+    border-left: 0;
+    border-top: 1px solid #ece9e6;
+  }
+
+  .public-calendar-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .public-calendar-guidance {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .public-calendar-guidance .button {
+    width: 100%;
+  }
+}
