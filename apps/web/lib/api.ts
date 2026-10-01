@@ -277,6 +277,14 @@ export type StandaloneArtwork = {
   formatLabel: string | null;
   quantity: number;
   effortPoints: number;
+  outputs: Array<{
+    id: string;
+    contentType: ContentType;
+    formatLabel: string | null;
+    quantity: number;
+    effortPoints: number;
+    sortOrder: number;
+  }>;
   priority: ArtworkPriority;
   status: StandaloneArtworkStatus;
   dueAt: string | null;
