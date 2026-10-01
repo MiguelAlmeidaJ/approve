@@ -3223,11 +3223,6 @@ export class AdminService {
       (sum, output) => sum + output.quantity,
       0
     );
-    const totalEffortPoints = normalizedOutputs.reduce(
-      (sum, output) => sum + output.effortPoints,
-      0
-    );
-
     const createdAt = new Date();
     const [year, month] = saoPauloDateKey(createdAt).split("-");
     const folderName = `${safeNextcloudSegment(dto.title)}-${randomBytes(3).toString("hex")}`;
