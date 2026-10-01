@@ -84,6 +84,62 @@ export class NextcloudService {
     return this.list(this.clientDirectory(client), path);
   }
 
+  async listSystemForActor(
+    actor: InternalActor,
+    path = "/"
+  ): Promise<NextcloudFileItem[]> {
+    this.assertSystemAccess(actor);
+    return this.list("/", path);
+  }
+
+  async previewSystemForActor(
+    actor: InternalActor,
+    path: string,
+    range?: string
+  ) {
+    this.assertSystemAccess(actor);
+    const metadata = await this.getMetadata("/", path);
+
+    return {
+      metadata,
+      response: await this.downloadStoredPath(metadata.storedPath, range)
+    };
+  }
+
+  async validateSystemImageForActor(
+    actor: InternalActor,
+    path: string
+  ) {
+    this.assertSystemAccess(actor);
+    const metadata = await this.getMetadata("/", path);
+
+    if (!metadata.mimeType?.startsWith("image/")) {
+      throw new BadRequestException(
+        "Selecione um arquivo de imagem no Nextcloud."
+      );
+    }
+
+    return metadata;
+  }
+
+  async previewBrandAsset(kind: "logo" | "favicon", range?: string) {
+    const branding = await this.prisma.systemBranding.findUnique({
+      where: { id: "default" }
+    });
+    const path = kind === "logo" ? branding?.logoPath : branding?.faviconPath;
+
+    if (!path) {
+      throw new NotFoundException("Identidade visual não configurada.");
+    }
+
+    const metadata = await this.getMetadata("/", path);
+
+    return {
+      metadata,
+      response: await this.downloadStoredPath(metadata.storedPath, range)
+    };
+  }
+
   async previewForActor(
     actor: InternalActor,
     clientId: string,
@@ -470,6 +526,14 @@ export class NextcloudService {
     }
 
     return response;
+  }
+
+  private assertSystemAccess(actor: InternalActor) {
+    if (![UserRole.ADMIN, UserRole.DEV].includes(actor.role)) {
+      throw new ForbiddenException(
+        "Apenas administradores podem acessar arquivos da identidade visual."
+      );
+    }
   }
 
   private async getAccessibleClient(actor: InternalActor, clientId: string) {
