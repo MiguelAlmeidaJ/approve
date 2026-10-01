@@ -87,6 +87,16 @@ export type NextcloudFileItem = {
   size: number | null;
 };
 
+export type SystemBranding = {
+  id: string;
+  logoPath: string | null;
+  logoName: string | null;
+  faviconPath: string | null;
+  faviconName: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type ContentItem = {
   id: string;
   title: string;
@@ -518,6 +528,18 @@ export async function getUsers(): Promise<UserListItem[]> {
 
 export async function getFormats(): Promise<ContentFormat[]> {
   return (await adminGet<ContentFormat[]>("/api/admin/formats")) ?? [];
+}
+
+export async function getSystemBranding(): Promise<SystemBranding> {
+  return (
+    (await adminGet<SystemBranding>("/api/admin/system-branding")) ?? {
+      id: "default",
+      logoPath: null,
+      logoName: null,
+      faviconPath: null,
+      faviconName: null
+    }
+  );
 }
 
 export async function getBriefingTemplates(): Promise<BriefingTemplate[]> {
