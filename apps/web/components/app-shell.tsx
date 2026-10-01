@@ -414,11 +414,6 @@ export async function AppShell({
 
       <div className="app-content">
         <header className="app-topbar">
-          <div className="app-topbar-context">
-            <span>TERCEIRO ANDAR</span>
-            <strong>Sistema de aprovação</strong>
-          </div>
-
           <nav className="app-topbar-actions" aria-label="Atalhos">
             <Link
               href="/ajuda/pontos"
