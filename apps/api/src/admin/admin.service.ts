@@ -51,6 +51,7 @@ import {
   UpdateContentProductionStageDto,
   UpdateDemandPlannedDateDto,
   UpdateStandaloneArtworkStatusDto,
+  UpdateSystemBrandingDto,
   UpdateUserDto
 } from "./admin.dto";
 
@@ -297,6 +298,76 @@ export class AdminService {
         { name: "asc" }
       ]
     });
+  }
+
+  async getSystemBranding(actor: InternalActor) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    return (
+      (await this.prisma.systemBranding.findUnique({
+        where: { id: "default" }
+      })) ?? {
+        id: "default",
+        logoPath: null,
+        logoName: null,
+        faviconPath: null,
+        faviconName: null
+      }
+    );
+  }
+
+  async updateSystemBranding(
+    actor: InternalActor,
+    dto: UpdateSystemBrandingDto
+  ) {
+    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+
+    const logoPath = dto.logoPath?.trim() || null;
+    const faviconPath = dto.faviconPath?.trim() || null;
+    let logoName = dto.logoName?.trim() || null;
+    let faviconName = dto.faviconName?.trim() || null;
+
+    if (logoPath) {
+      const logo = await this.nextcloud.validateSystemImageForActor(
+        actor,
+        logoPath
+      );
+      logoName = logo.name;
+    }
+
+    if (faviconPath) {
+      const favicon = await this.nextcloud.validateSystemImageForActor(
+        actor,
+        faviconPath
+      );
+      faviconName = favicon.name;
+    }
+
+    const branding = await this.prisma.systemBranding.upsert({
+      where: { id: "default" },
+      create: {
+        id: "default",
+        logoPath,
+        logoName,
+        faviconPath,
+        faviconName
+      },
+      update: {
+        logoPath,
+        logoName,
+        faviconPath,
+        faviconName
+      }
+    });
+
+    await this.createAuditLog(actor, {
+      action: "SYSTEM_BRANDING_UPDATED",
+      entityType: "SystemBranding",
+      entityId: branding.id,
+      summary: "Identidade visual do sistema atualizada."
+    });
+
+    return branding;
   }
 
 
