@@ -1172,6 +1172,8 @@ export async function createStandaloneArtwork(formData: FormData) {
     designer.role === "DESIGNER"
       ? designer.id
       : required(formData, "designerId");
+  const outputsRaw = String(formData.get("outputs") ?? "").trim();
+  const outputs = outputsRaw ? JSON.parse(outputsRaw) : undefined;
 
   await adminPost("/api/admin/standalone-artworks", {
     clientId: required(formData, "clientId"),
@@ -1183,6 +1185,7 @@ export async function createStandaloneArtwork(formData: FormData) {
       String(formData.get("formatLabel") ?? "").trim() || undefined,
     quantity: Number(required(formData, "quantity")),
     effortPoints: Number(required(formData, "effortPoints")),
+    outputs,
     priority: required(formData, "priority"),
     dueAt: String(formData.get("dueAt") ?? "").trim()
       ? brazilLocalDateTimeToIso(String(formData.get("dueAt")))
