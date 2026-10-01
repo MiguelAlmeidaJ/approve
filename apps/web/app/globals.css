@@ -18352,3 +18352,322 @@ body::-webkit-scrollbar,
     width: 100%;
   }
 }
+
+
+/* Public client portal: presentation-ready approval layout */
+.instagram-preview-page {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 0 0 64px;
+  background: transparent;
+}
+
+body:has(.instagram-preview-page) {
+  background: #f5f4f2;
+}
+
+.instagram-preview-topbar {
+  width: 100%;
+  min-height: 72px;
+  padding: 0;
+  border-bottom: 1px solid #e5e2df;
+  background: rgba(255,255,255,.97);
+}
+
+.public-calendar-hero {
+  margin-top: 24px;
+  padding: 22px 24px;
+  box-shadow: 0 8px 26px rgba(31, 28, 33, .035);
+}
+
+.public-calendar-summary article {
+  box-shadow: 0 6px 18px rgba(31, 28, 33, .025);
+}
+
+.public-calendar-guidance {
+  box-shadow: 0 6px 18px rgba(31, 28, 33, .02);
+}
+
+.public-stories-section,
+.public-feed-heading {
+  margin-top: 28px;
+}
+
+.public-story-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 190px));
+  gap: 14px;
+  padding-top: 10px;
+}
+
+.public-story-card {
+  overflow: hidden;
+  border: 1px solid #e5e2df;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(31, 28, 33, .025);
+}
+
+.public-story-media {
+  position: relative;
+  overflow: hidden;
+  background: #efeeec;
+}
+
+.public-story-media .ig-art {
+  width: 100%;
+  height: 100%;
+}
+
+.public-story-media .ig-art.has-image .protected-public-media,
+.public-content-media .ig-art.has-image .protected-public-media {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.public-story-media .ig-art.has-image img,
+.public-story-media .ig-art.has-image video,
+.public-content-media .ig-art.has-image img,
+.public-content-media .ig-art.has-image video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background: #efeeec;
+}
+
+.public-story-media > .public-art-status {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+}
+
+.public-story-copy {
+  padding: 10px 11px 11px;
+  display: grid;
+  gap: 3px;
+}
+
+.public-story-copy strong {
+  overflow: hidden;
+  color: #2b282d;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-story-copy small {
+  color: #8c888d;
+  font-size: 7px;
+}
+
+.public-feed-heading {
+  min-height: auto;
+  padding: 0 0 10px;
+  border-bottom: 1px solid #e4e1de;
+}
+
+.public-content-grid {
+  padding-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.public-content-card {
+  overflow: hidden;
+  display: grid;
+  border: 1px solid #e3e0dd;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 28, 33, .035);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.public-content-card:hover {
+  border-color: #d3cfcb;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(31, 28, 33, .07);
+}
+
+.public-content-media {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #efeeec;
+  border-bottom: 1px solid #ece9e6;
+}
+
+.public-content-media .ig-art {
+  width: 100%;
+  height: 100%;
+}
+
+.public-content-media .ig-art.has-image {
+  background: #efeeec;
+}
+
+.public-content-type-icon {
+  width: 24px;
+  height: 24px;
+  padding: 5px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border-radius: 8px;
+  background: rgba(18, 17, 20, .78);
+  color: #fff;
+}
+
+.public-content-type-icon.text {
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  line-height: 14px;
+}
+
+.public-content-card-body {
+  padding: 13px 14px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.public-content-card-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.public-content-card-title > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.public-content-card-title strong {
+  overflow: hidden;
+  color: #29262b;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-content-card-title small {
+  color: #918d92;
+  font-size: 7px;
+}
+
+.public-art-status {
+  width: fit-content;
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: #f0eeec;
+  color: #68646a;
+  font-size: 7px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.public-art-status.aprovado {
+  background: #eaf8f1;
+  color: #267452;
+}
+
+.public-art-status.revisar {
+  background: #fff0f4;
+  color: #b3294c;
+}
+
+.public-art-status.ajuste-solicitado {
+  background: #fff4df;
+  color: #956a16;
+}
+
+.public-content-card-body > p {
+  margin: 0;
+  min-height: 34px;
+  overflow: hidden;
+  display: -webkit-box;
+  color: #6f6a70;
+  font-size: 8px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.public-content-open {
+  padding-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #efedea;
+  color: #4b474d;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.public-calendar-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #dcd8d5;
+  border-radius: 14px;
+  background: #fff;
+  color: #918d92;
+  font-size: 9px;
+}
+
+.instagram-preview-footer {
+  padding: 18px 4px 0;
+  background: transparent;
+}
+
+@media (max-width: 980px) {
+  .instagram-preview-page {
+    width: min(100% - 28px, 900px);
+  }
+
+  .public-content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .instagram-preview-page {
+    width: min(100% - 20px, 620px);
+  }
+
+  .instagram-preview-topbar {
+    min-height: 62px;
+  }
+
+  .public-calendar-hero {
+    margin-top: 14px;
+  }
+
+  .public-calendar-summary {
+    gap: 7px;
+  }
+
+  .public-calendar-summary article {
+    min-height: 66px;
+    padding: 10px;
+  }
+
+  .public-story-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .public-content-card {
+    border-radius: 14px;
+  }
+}
