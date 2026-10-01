@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  FiAlertCircle,
-  FiCalendar,
   FiCheck,
-  FiCheckCircle,
   FiChevronLeft,
   FiChevronRight,
   FiClock,
@@ -13,8 +10,7 @@ import {
   FiMessageCircle,
   FiMoreHorizontal,
   FiPlay,
-  FiSend,
-  FiSmartphone
+  FiSend
 } from "react-icons/fi";
 import { Brand } from "../../../components/brand";
 import { PublicArtworkReviewer } from "../../../components/public-artwork-reviewer";
@@ -66,23 +62,6 @@ function formatTime(value: string) {
     minute: "2-digit",
     timeZone: "America/Sao_Paulo"
   }).format(new Date(value));
-}
-
-function itemAspectRatio(item: ContentItem) {
-  if (item.formatPreset?.width && item.formatPreset?.height) {
-    return `${item.formatPreset.width} / ${item.formatPreset.height}`;
-  }
-
-  const match = item.format.match(/(\d+)\s*[x×]\s*(\d+)/i);
-  if (match) {
-    return `${match[1]} / ${match[2]}`;
-  }
-
-  if (item.contentType === "STORY" || item.contentType === "REEL") {
-    return "9 / 16";
-  }
-
-  return "4 / 5";
 }
 
 function artworkStatusLabel(item: ContentItem) {
