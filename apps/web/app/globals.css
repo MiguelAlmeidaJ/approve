@@ -21017,3 +21017,400 @@ body:has(.instagram-preview-page) {
     margin: 0;
   }
 }
+
+
+/* Mobile polish: compact auth + dense team management */
+@media (max-width: 640px) {
+  /* The mobile shell must fully replace every legacy sidebar layout. */
+  .app-frame > .sidebar {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .mobile-app-nav {
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 12px;
+  }
+
+  .mobile-app-nav .brand-logo {
+    max-width: 104px;
+    max-height: 34px;
+  }
+
+  .mobile-nav-toggle {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .app-topbar {
+    min-height: 48px;
+    top: 58px;
+    padding: 5px 12px;
+  }
+
+  .workspace {
+    padding: 20px 12px 48px;
+  }
+
+  /* Login: use the brand panel as a compact introduction, not a desktop hero. */
+  .login-page {
+    min-height: 100dvh;
+    display: block;
+    background: #fff;
+  }
+
+  .login-visual {
+    min-height: 0;
+    height: 245px;
+    padding: 24px 22px 22px;
+    align-items: flex-start;
+  }
+
+  .login-visual-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .login-visual-content > .brand {
+    margin-bottom: 30px;
+  }
+
+  .login-visual .brand-logo {
+    width: auto;
+    max-width: 138px;
+    max-height: 52px;
+  }
+
+  .login-visual .micro-label {
+    margin-bottom: 7px;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+  }
+
+  .login-visual h1 {
+    max-width: 300px;
+    margin: 0;
+    font-size: 36px;
+    line-height: .94;
+    letter-spacing: -1.2px;
+  }
+
+  .login-visual p {
+    display: none;
+  }
+
+  .login-art {
+    width: 128px;
+    right: -35px;
+    bottom: 24px;
+    gap: 8px;
+    transform: rotate(-6deg);
+    opacity: .9;
+  }
+
+  .login-art span {
+    height: 27px;
+    border-radius: 8px;
+  }
+
+  .login-panel {
+    min-height: calc(100dvh - 245px);
+    padding: 30px 22px max(36px, env(safe-area-inset-bottom));
+    display: block;
+  }
+
+  .login-form {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    gap: 16px;
+  }
+
+  .login-form .micro-label {
+    font-size: 9px;
+  }
+
+  .login-form h2 {
+    margin-bottom: 4px;
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .login-form > div > p {
+    font-size: 13px;
+  }
+
+  .login-form .field {
+    gap: 6px;
+  }
+
+  .login-form .field > span {
+    font-size: 12px;
+  }
+
+  .login-form input {
+    min-height: 50px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .login-form-help {
+    margin-top: -5px;
+  }
+
+  .login-form-help a {
+    font-size: 11px;
+  }
+
+  .login-form .button {
+    min-height: 50px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  /* Team page: make the summary useful without consuming an entire screen. */
+  .team-page-header {
+    margin-bottom: 18px;
+    gap: 14px;
+  }
+
+  .team-page-header h1 {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .team-page-header p {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .team-page-header .button {
+    min-height: 46px;
+  }
+
+  .team-overview {
+    margin-bottom: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    border-radius: 15px;
+  }
+
+  .team-overview article {
+    min-height: 92px !important;
+    padding: 14px 13px;
+    gap: 9px;
+    border-right: 1px solid var(--line) !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .team-overview article:nth-child(2n) {
+    border-right: 0 !important;
+  }
+
+  .team-overview article:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .team-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .team-overview article > div:nth-child(2) {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .team-overview article span {
+    font-size: 8px;
+  }
+
+  .team-overview article strong {
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  .team-list-toolbar {
+    margin-bottom: 10px;
+    padding: 7px;
+    gap: 7px;
+    border-radius: 13px;
+  }
+
+  .team-list-toolbar .search-control input {
+    min-height: 42px;
+    height: 42px;
+    font-size: 13px;
+  }
+
+  .team-role-filter {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .team-role-filter button {
+    min-width: 0;
+    min-height: 36px;
+    padding: 6px 4px;
+    font-size: 8px;
+  }
+
+  .team-result-count {
+    min-width: 0;
+    padding: 1px 3px 2px;
+    font-size: 8px;
+  }
+
+  .team-management-layout .user-grid {
+    gap: 8px;
+  }
+
+  .team-management-layout .user-card,
+  .team-management-layout .user-card.can-manage {
+    min-height: 0;
+    padding: 13px;
+    grid-template-columns: 42px minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto auto;
+    gap: 7px 10px;
+    align-items: center;
+    border-radius: 13px;
+  }
+
+  .team-management-layout .user-card-avatar {
+    width: 42px;
+    height: 42px;
+    grid-column: 1;
+    grid-row: 1 / 3;
+    border-radius: 11px;
+  }
+
+  .team-management-layout .user-card-copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .team-management-layout .user-card-copy h3 {
+    margin-bottom: 2px;
+    font-size: 12px;
+  }
+
+  .team-management-layout .user-card-copy p {
+    font-size: 8px;
+  }
+
+  .team-management-layout .role-chip {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+    font-size: 7px;
+  }
+
+  .team-management-layout .user-card-access {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    font-size: 8px;
+  }
+
+  .team-management-layout .user-card-context {
+    min-width: 0;
+    grid-column: 2 / 4;
+    grid-row: 3;
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px;
+    align-items: baseline;
+  }
+
+  .team-management-layout .user-card-context strong {
+    font-size: 11px;
+  }
+
+  .team-management-layout .user-card-context small {
+    margin: 0;
+    font-size: 7px;
+  }
+
+  .team-management-layout .user-card > a,
+  .team-management-layout .user-card > .button,
+  .team-management-layout .user-card > form {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .team-management-layout .user-card > a.button,
+  .team-management-layout .user-card > .button {
+    min-height: 36px;
+    padding-block: 7px;
+    font-size: 9px;
+  }
+
+  .team-management-layout {
+    gap: 14px;
+  }
+
+  .team-create-modal,
+  .user-edit-modal {
+    width: 100% !important;
+    max-height: 92dvh !important;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .user-edit-heading {
+    padding: 18px 16px 15px;
+  }
+
+  .user-edit-heading h2 {
+    font-size: 30px;
+  }
+
+  .user-edit-form {
+    padding: 16px;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .user-edit-form .form-actions,
+  .user-edit-form .edit-warning {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-visual {
+    height: 225px;
+    padding-inline: 18px;
+  }
+
+  .login-visual h1 {
+    max-width: 270px;
+    font-size: 32px;
+  }
+
+  .login-panel {
+    min-height: calc(100dvh - 225px);
+    padding-inline: 18px;
+  }
+
+  .team-overview {
+    grid-template-columns: 1fr !important;
+  }
+
+  .team-overview article,
+  .team-overview article:nth-child(2n),
+  .team-overview article:nth-last-child(-n + 2) {
+    min-height: 72px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .team-overview article:last-child {
+    border-bottom: 0;
+  }
+}
