@@ -13,6 +13,10 @@ import { UsersList } from "../../components/users-list";
 import { createUser, setUserActive, updateUser } from "../actions";
 import { requireRole } from "../../lib/auth";
 import { getUsers, type UserListItem } from "../../lib/api";
+import {
+  DEFAULT_DESIGNER_PERMISSIONS,
+  PERMISSION_OPTIONS
+} from "../../lib/permissions";
 
 function canEditUser(
   currentRole: "DEV" | "ADMIN",
@@ -204,6 +208,32 @@ export default async function TeamPage({
                 />
               </label>
 
+              <fieldset className="permission-editor field-span-2">
+                <legend>Permissões do designer</legend>
+                <p>
+                  Selecione apenas o que esta pessoa pode fazer além do acesso
+                  básico aos clientes e demandas atribuídas.
+                </p>
+                <div className="permission-grid">
+                  {PERMISSION_OPTIONS.map((permission) => (
+                    <label className="permission-option" key={permission.value}>
+                      <input
+                        type="checkbox"
+                        name="permission"
+                        value={permission.value}
+                        defaultChecked={DEFAULT_DESIGNER_PERMISSIONS.includes(
+                          permission.value
+                        )}
+                      />
+                      <span>
+                        <strong>{permission.label}</strong>
+                        <small>{permission.description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
               <div className="team-access-note team-create-note">
                 <FiShield aria-hidden="true" />
                 <span>
@@ -317,6 +347,34 @@ export default async function TeamPage({
                   required
                 />
               </label>
+
+              {selectedUser.role === "DESIGNER" ? (
+                <fieldset className="permission-editor field-span-2">
+                  <legend>Permissões do designer</legend>
+                  <p>
+                    Essas permissões são validadas novamente pela API; ocultar
+                    uma opção na interface não é a única proteção.
+                  </p>
+                  <div className="permission-grid">
+                    {PERMISSION_OPTIONS.map((permission) => (
+                      <label className="permission-option" key={permission.value}>
+                        <input
+                          type="checkbox"
+                          name="permission"
+                          value={permission.value}
+                          defaultChecked={selectedUser.permissions.includes(
+                            permission.value
+                          )}
+                        />
+                        <span>
+                          <strong>{permission.label}</strong>
+                          <small>{permission.description}</small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
               {selectedUser._count.clients > 0 ? (
                 <p className="edit-warning">
                   Esta pessoa possui {selectedUser._count.clients} cliente(s).
