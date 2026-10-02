@@ -35,6 +35,30 @@ export class NextcloudController {
     return this.nextcloudService.listSystemForActor(request.actor, path);
   }
 
+  @Get("admin/nextcloud/client-folders")
+  listClientFolders(
+    @Req() request: InternalActorRequest,
+    @Query("path") path = "/"
+  ) {
+    return this.nextcloudService.listClientFoldersForActor(
+      request.actor,
+      path
+    );
+  }
+
+  @Post("admin/nextcloud/client-folders")
+  createClientFolder(
+    @Req() request: InternalActorRequest,
+    @Body("path") path = "/",
+    @Body("name") name: string
+  ) {
+    return this.nextcloudService.createClientFolderForActor(
+      request.actor,
+      path,
+      name
+    );
+  }
+
   @Get("admin/nextcloud/system-file")
   async previewSystemFile(
     @Req() request: InternalActorRequest,
