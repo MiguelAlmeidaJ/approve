@@ -21898,3 +21898,91 @@ body:has(.instagram-preview-page) {
     top: 70px;
   }
 }
+
+
+/* User permission editor */
+.permission-editor {
+  margin: 2px 0 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #faf9f8;
+}
+
+.permission-editor legend {
+  padding: 0 7px;
+  color: #242126;
+  font-size: .875rem;
+  font-weight: 700;
+}
+
+.permission-editor > p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: .75rem;
+  line-height: 1.55;
+}
+
+.permission-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.permission-option {
+  min-width: 0;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid #e5e2df;
+  border-radius: 11px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.permission-option:has(input:checked) {
+  border-color: rgba(255, 1, 74, .35);
+  background: #fff7f9;
+  box-shadow: inset 0 0 0 1px rgba(255, 1, 74, .08);
+}
+
+.permission-option input {
+  width: 17px;
+  height: 17px;
+  min-height: 0;
+  margin: 2px 0 0;
+  accent-color: var(--pink);
+}
+
+.permission-option > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.permission-option strong {
+  color: #29262b;
+  font-size: .75rem;
+}
+
+.permission-option small {
+  color: var(--muted);
+  font-size: .6875rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .permission-editor {
+    padding: 14px;
+  }
+
+  .permission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .permission-option {
+    padding: 11px;
+  }
+}
