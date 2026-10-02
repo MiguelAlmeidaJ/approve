@@ -236,10 +236,10 @@ export class AdminService {
     });
   }
 
-  listDesigners(actor: InternalActor) {
+  async listDesigners(actor: InternalActor) {
     this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
 
-    return this.prisma.designer.findMany({
+    const designers = await this.prisma.designer.findMany({
       where: {
         role: UserRole.DESIGNER,
         active: true
@@ -261,12 +261,17 @@ export class AdminService {
         }
       }
     });
+
+    return designers.map((designer) => ({
+      ...designer,
+      permissions: normalizeUserPermissions(designer.permissions)
+    }));
   }
 
-  listUsers(actor: InternalActor) {
+  async listUsers(actor: InternalActor) {
     this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
 
-    return this.prisma.designer.findMany({
+    const users = await this.prisma.designer.findMany({
       where:
         actor.role === UserRole.ADMIN
           ? {
@@ -281,6 +286,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        permissions: true,
         active: true,
         weeklyCapacityPoints: true,
         createdAt: true,
@@ -291,6 +297,14 @@ export class AdminService {
         }
       }
     });
+
+    return users.map((user) => ({
+      ...user,
+      permissions:
+        user.role === UserRole.DESIGNER
+          ? normalizeUserPermissions(user.permissions)
+          : []
+    }));
   }
 
   listFormats(_actor: InternalActor) {
