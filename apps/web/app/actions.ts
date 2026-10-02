@@ -1307,6 +1307,10 @@ export async function updateSystemBranding(formData: FormData) {
   });
 
   revalidatePath("/identidade-visual");
+  revalidatePath("/login");
+  revalidatePath("/api/branding/logo");
+  revalidatePath("/api/branding/logo-dark");
+  revalidatePath("/api/branding/favicon");
   revalidatePath("/");
   revalidatePath("/cliente");
 }
