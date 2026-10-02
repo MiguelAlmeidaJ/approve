@@ -1,3 +1,5 @@
+"use client";
+
 export function Brand({
   compact = false,
   tone = "light"
@@ -9,6 +11,10 @@ export function Brand({
     tone === "dark"
       ? "/api/branding/logo-dark"
       : "/api/branding/logo";
+  const fallbackSrc =
+    tone === "dark"
+      ? "/brand-terceiro-andar-dark.svg"
+      : "/brand-terceiro-andar.svg";
 
   return (
     <div
@@ -25,6 +31,13 @@ export function Brand({
         alt="Terceiro Andar"
         className="brand-logo"
         draggable={false}
+        onError={(event) => {
+          if (event.currentTarget.src.endsWith(fallbackSrc)) {
+            return;
+          }
+
+          event.currentTarget.src = fallbackSrc;
+        }}
       />
     </div>
   );
