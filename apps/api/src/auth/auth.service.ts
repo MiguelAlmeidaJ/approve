@@ -11,6 +11,7 @@ import {
   scryptSync,
   timingSafeEqual
 } from "node:crypto";
+import { normalizeUserPermissions, UserRole } from "@approve/database";
 import { PrismaService } from "../prisma.service";
 import {
   ChangePasswordDto,
@@ -118,6 +119,10 @@ export class AuthService {
         name: designer.name,
         email: designer.email,
         role: designer.role,
+        permissions:
+          designer.role === UserRole.DESIGNER
+            ? normalizeUserPermissions(designer.permissions)
+            : [],
         active: designer.active,
         mustChangePassword: designer.mustChangePassword
       }
@@ -147,6 +152,10 @@ export class AuthService {
       name: session.designer.name,
       email: session.designer.email,
       role: session.designer.role,
+      permissions:
+        session.designer.role === UserRole.DESIGNER
+          ? normalizeUserPermissions(session.designer.permissions)
+          : [],
       active: session.designer.active,
       mustChangePassword: session.designer.mustChangePassword
     };
