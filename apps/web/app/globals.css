@@ -21521,3 +21521,235 @@ body:has(.instagram-preview-page) {
     flex-basis: 38px;
   }
 }
+
+
+/* Centered modern login */
+.login-page-simple {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 32px 20px;
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 1, 74, .08), transparent 360px),
+    linear-gradient(180deg, #faf9f8 0%, #f4f3f1 100%);
+}
+
+.login-page-simple::before,
+.login-page-simple::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(1px);
+}
+
+.login-page-simple::before {
+  width: 260px;
+  height: 72px;
+  top: 8%;
+  right: -90px;
+  background: var(--pink);
+  transform: rotate(-7deg);
+  opacity: .9;
+}
+
+.login-page-simple::after {
+  width: 220px;
+  height: 64px;
+  left: -110px;
+  bottom: 9%;
+  background: #111;
+  transform: rotate(8deg);
+  opacity: .08;
+}
+
+.login-shell {
+  width: min(460px, 100%);
+  padding: 38px 38px 30px;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 26px;
+  border: 1px solid rgba(24, 25, 27, .08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow:
+    0 24px 70px rgba(24, 25, 27, .08),
+    0 2px 8px rgba(24, 25, 27, .04);
+  backdrop-filter: blur(14px);
+}
+
+.login-brand {
+  display: flex;
+  justify-content: center;
+}
+
+.login-brand .brand-logo {
+  width: auto;
+  max-width: 170px;
+  max-height: 68px;
+  object-fit: contain;
+}
+
+.login-intro {
+  text-align: center;
+}
+
+.login-intro .micro-label {
+  margin-bottom: 8px;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+
+.login-intro h1 {
+  margin: 0;
+  color: #19191b;
+  font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
+  font-size: 52px;
+  line-height: .95;
+  text-transform: uppercase;
+}
+
+.login-intro p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.login-form-simple {
+  width: 100%;
+  gap: 16px;
+}
+
+.login-form-simple .field {
+  gap: 7px;
+}
+
+.login-form-simple .field > span {
+  color: #3d3e42;
+  font-size: 11px;
+}
+
+.login-form-simple input {
+  min-height: 52px;
+  padding: 13px 15px;
+  border-color: #dedbd8;
+  border-radius: 13px;
+  background: #faf9f7;
+  color: #18191b;
+  font-size: 14px;
+}
+
+.login-form-simple input::placeholder {
+  color: #a6a3a0;
+}
+
+.login-form-simple input:focus {
+  border-color: rgba(255, 1, 74, .55);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 1, 74, .08);
+}
+
+.login-form-simple .login-form-help {
+  margin-top: -4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-form-simple .login-form-help a {
+  color: var(--pink);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.login-form-simple .button {
+  min-height: 50px;
+  margin-top: 2px;
+  border-radius: 13px;
+  box-shadow: 0 10px 24px rgba(255, 1, 74, .18);
+  font-size: 12px;
+}
+
+.login-footnote {
+  color: #aaa6aa;
+  font-size: 9px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .login-page-simple {
+    min-height: 100dvh;
+    padding: 22px 16px;
+    place-items: center;
+  }
+
+  .login-page-simple::before {
+    width: 190px;
+    height: 54px;
+    top: 5%;
+    right: -86px;
+    opacity: .75;
+  }
+
+  .login-page-simple::after {
+    width: 180px;
+    height: 52px;
+    left: -100px;
+    bottom: 6%;
+  }
+
+  .login-shell {
+    width: min(100%, 420px);
+    padding: 30px 22px 24px;
+    gap: 22px;
+    border-radius: 20px;
+  }
+
+  .login-brand .brand-logo {
+    max-width: 148px;
+    max-height: 58px;
+  }
+
+  .login-intro h1 {
+    font-size: 44px;
+  }
+
+  .login-intro p {
+    margin-top: 9px;
+    font-size: 12px;
+  }
+
+  .login-form-simple input {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  .login-form-simple .button {
+    min-height: 50px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-page-simple {
+    padding: 16px 12px;
+  }
+
+  .login-shell {
+    padding: 26px 18px 22px;
+    gap: 19px;
+    border-radius: 18px;
+  }
+
+  .login-brand .brand-logo {
+    max-width: 132px;
+  }
+
+  .login-intro h1 {
+    font-size: 40px;
+  }
+}
