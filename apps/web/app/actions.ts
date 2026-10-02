@@ -260,8 +260,6 @@ export async function createClient(formData: FormData) {
       String(formData.get("prohibitedTerms") ?? "").trim() || undefined,
     hashtags: String(formData.get("hashtags") ?? "").trim() || undefined,
     references: String(formData.get("references") ?? "").trim() || undefined,
-    mlabsProfileId:
-      String(formData.get("mlabsProfileId") ?? "").trim() || undefined,
     monthlyPostLimit: String(formData.get("monthlyPostLimit") ?? "").trim()
       ? Number(formData.get("monthlyPostLimit"))
       : undefined,
@@ -330,7 +328,6 @@ export async function updateClient(formData: FormData) {
     prohibitedTerms: String(formData.get("prohibitedTerms") ?? "").trim(),
     hashtags: String(formData.get("hashtags") ?? "").trim(),
     references: String(formData.get("references") ?? "").trim(),
-    mlabsProfileId: String(formData.get("mlabsProfileId") ?? "").trim(),
     monthlyPostLimit: String(formData.get("monthlyPostLimit") ?? "").trim()
       ? Number(formData.get("monthlyPostLimit"))
       : undefined,
