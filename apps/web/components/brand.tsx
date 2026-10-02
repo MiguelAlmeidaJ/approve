@@ -9,8 +9,8 @@ export function Brand({
 }) {
   const src =
     tone === "dark"
-      ? "/api/branding/logo-dark"
-      : "/api/branding/logo";
+      ? "/api/branding/logo-dark?v=20261002"
+      : "/api/branding/logo?v=20261002";
   const fallbackSrc =
     tone === "dark"
       ? "/brand-terceiro-andar-dark.svg"
