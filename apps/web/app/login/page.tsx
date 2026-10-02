@@ -3,12 +3,12 @@ import { redirect } from "next/navigation";
 import { Brand } from "../../components/brand";
 import { PasswordInput } from "../../components/password-input";
 import { getDesigner } from "../../lib/auth";
-import { loginDesigner } from "./actions";
+import { loginAccount } from "./actions";
 
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const designer = await getDesigner();
 
@@ -16,7 +16,7 @@ export default async function LoginPage({
     redirect(designer.mustChangePassword ? "/nova-senha" : "/");
   }
 
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const errorMessage =
     error === "api"
       ? "Não foi possível conectar ao serviço de autenticação. Verifique se a API Nest está rodando e se API_URL aponta para a porta correta."
@@ -32,12 +32,12 @@ export default async function LoginPage({
         </div>
 
         <div className="login-intro">
-          <span className="micro-label">ÁREA DO DESIGNER</span>
+          <span className="micro-label">ACESSO AO SISTEMA</span>
           <h1>Entrar</h1>
-          <p>Use seu acesso da Terceiro Andar.</p>
+          <p>Entre como equipe ou cliente usando seu e-mail e senha.</p>
         </div>
 
-        <form action={loginDesigner} className="login-form login-form-simple">
+        <form action={loginAccount} className="login-form login-form-simple">\n          <input type="hidden" name="next" value={next ?? ""} />
           {errorMessage ? (
             <div className="form-error">{errorMessage}</div>
           ) : null}
