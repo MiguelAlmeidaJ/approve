@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FiUsers } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { NewCalendarForm } from "../../../components/new-calendar-form";
-import { requireRole } from "../../../lib/auth";
+import { requirePermission } from "../../../lib/auth";
 import {
   getAccessibleClients,
   getCommemorativeDates
@@ -25,7 +25,7 @@ export default async function NewCalendarPage({
 }: {
   searchParams: Promise<{ client?: string }>;
 }) {
-  const designer = await requireRole("ADMIN", "DEV");
+  const designer = await requirePermission("CALENDARS_MANAGE");
   const [clients, commemorativeDates] = await Promise.all([
     getAccessibleClients(designer),
     getCommemorativeDates()
