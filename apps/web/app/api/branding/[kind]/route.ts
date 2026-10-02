@@ -38,7 +38,9 @@ function cachedResponse(
     headers.set("last-modified", new Date(updatedAt).toUTCString());
   }
 
-  return new Response(body, { status: 200, headers });
+  const responseBody = Uint8Array.from(body).buffer;
+
+  return new Response(responseBody, { status: 200, headers });
 }
 
 export async function GET(
