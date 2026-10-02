@@ -90,6 +90,29 @@ migrations, executa o build completo, inicia ou recarrega a API e o web com as
 portas definidas no `.env` e salva o estado do PM2. Parar os processos antes do
 build também evita o bloqueio do binário do Prisma no Windows.
 
+### Primeiro usuário DEV
+
+Em uma instalação nova, depois de aplicar as migrations, crie apenas o primeiro
+usuário DEV pelo terminal:
+
+~~~bash
+pnpm user:create-dev
+~~~
+
+O comando pergunta nome, e-mail, senha e confirmação diretamente no terminal.
+A senha fica mascarada durante a digitação e as credenciais **não são lidas nem
+salvas no `.env`**.
+
+A senha deve ter pelo menos 8 caracteres e conter letra maiúscula, letra
+minúscula, número e caractere especial.
+
+Por segurança, o bootstrap só funciona quando ainda não existe nenhum usuário
+com perfil DEV. Se um DEV já existir, o comando não altera a conta nem redefine
+sua senha.
+
+Depois disso, entre no painel com esse DEV e crie os usuários ADMIN e DESIGNER
+pela gestão de usuários.
+
 ## Próximos passos
 
 - edição/exclusão de peças e histórico de versões;
