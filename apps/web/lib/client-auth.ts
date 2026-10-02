@@ -36,7 +36,7 @@ export async function requireClientAccount() {
   const client = await getClientAccount();
 
   if (!client) {
-    redirect("/cliente/login");
+    redirect("/login?next=/cliente");
   }
 
   return client;
