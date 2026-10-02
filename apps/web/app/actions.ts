@@ -5,6 +5,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDesigner, requireRole, SESSION_COOKIE } from "../lib/auth";
 import { canAccessClient, getApiUrl, getCalendar, getClient } from "../lib/api";
+import {
+  clearBrandingCache,
+  syncBrandingCache,
+  type BrandingKind
+} from "../lib/branding-cache";
 
 async function internalHeaders() {
   await requireDesigner();
@@ -1297,14 +1302,38 @@ export async function logoutDesigner() {
 export async function updateSystemBranding(formData: FormData) {
   await requireRole("ADMIN", "DEV");
 
+  const logoPath = String(formData.get("logoPath") ?? "").trim();
+  const darkLogoPath = String(formData.get("darkLogoPath") ?? "").trim();
+  const faviconPath = String(formData.get("faviconPath") ?? "").trim();
+
   await adminPatch("/api/admin/system-branding", {
-    logoPath: String(formData.get("logoPath") ?? "").trim(),
+    logoPath,
     logoName: String(formData.get("logoName") ?? "").trim(),
-    darkLogoPath: String(formData.get("darkLogoPath") ?? "").trim(),
+    darkLogoPath,
     darkLogoName: String(formData.get("darkLogoName") ?? "").trim(),
-    faviconPath: String(formData.get("faviconPath") ?? "").trim(),
+    faviconPath,
     faviconName: String(formData.get("faviconName") ?? "").trim()
   });
+
+  const cacheTargets: Array<[BrandingKind, string]> = [
+    ["logo", logoPath],
+    ["logo-dark", darkLogoPath],
+    ["favicon", faviconPath]
+  ];
+
+  await Promise.all(
+    cacheTargets.map(async ([kind, configuredPath]) => {
+      try {
+        if (configuredPath) {
+          await syncBrandingCache(kind);
+        } else {
+          await clearBrandingCache(kind);
+        }
+      } catch (error) {
+        console.error(`[branding] Falha ao atualizar cache local de ${kind}.`, error);
+      }
+    })
+  );
 
   revalidatePath("/identidade-visual");
   revalidatePath("/login");
