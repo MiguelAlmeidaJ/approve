@@ -31,3 +31,5 @@ export type {
   ReviewHistory,
   StandaloneArtwork
 } from "@prisma/client";
+
+export * from "./permissions";
