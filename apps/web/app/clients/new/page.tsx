@@ -3,11 +3,11 @@ import { FiArrowLeft } from "react-icons/fi";
 import { AppShell } from "../../../components/app-shell";
 import { ClientForm } from "../../../components/client-form";
 import { createClient } from "../../actions";
-import { requireDesigner } from "../../../lib/auth";
+import { requirePermission } from "../../../lib/auth";
 import { getDesigners } from "../../../lib/api";
 
 export default async function NewClientPage() {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("CLIENTS_MANAGE");
   const designers =
     designer.role === "DESIGNER" ? [] : await getDesigners();
 
