@@ -406,7 +406,6 @@ export type Client = {
   prohibitedTerms: string | null;
   hashtags: string | null;
   references: string | null;
-  mlabsProfileId: string | null;
   monthlyPostLimit: number | null;
   monthlyCarouselLimit: number | null;
   monthlyReelLimit: number | null;
@@ -443,7 +442,6 @@ export type CalendarWithClient = Calendar & {
     prohibitedTerms: string | null;
     hashtags: string | null;
     references: string | null;
-    mlabsProfileId: string | null;
     monthlyPostLimit: number | null;
     monthlyCarouselLimit: number | null;
     monthlyReelLimit: number | null;
