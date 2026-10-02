@@ -18,80 +18,69 @@ export default async function ForgotPasswordPage({
           : null;
 
   return (
-    <main className="login-page">
-      <section className="login-visual">
-        <div className="login-visual-content">
-          <Brand tone="dark" />
-          <span className="micro-label micro-label-light">
-            TERCEIRO ANDAR · ACESSO
-          </span>
-          <h1>Recupere seu acesso com segurança.</h1>
-          <p>
-            Informe seu e-mail e enviaremos uma senha temporária. No próximo
-            login você deverá definir uma nova senha forte.
-          </p>
+    <main className="login-page login-page-simple">
+      <section className="login-shell">
+        <div className="login-brand">
+          <Brand />
         </div>
-        <div className="login-art" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </section>
 
-      <section className="login-panel">
         {sent === "1" ? (
-          <div className="login-form">
-            <div>
+          <>
+            <div className="login-intro">
               <span className="micro-label">E-MAIL ENVIADO</span>
-              <h2>Confira sua caixa de entrada</h2>
+              <h1>Confira seu e-mail</h1>
               <p>
-                Se o e-mail estiver vinculado a um usuário ativo, você receberá
-                uma senha temporária para entrar no sistema.
+                Se o endereço estiver vinculado a um usuário ativo, enviaremos
+                uma senha temporária para acesso.
               </p>
             </div>
 
             <div className="auth-success">
-              A senha temporária substitui a senha anterior e exigirá uma nova
-              senha no próximo acesso.
+              A senha temporária substitui a anterior e será necessário definir
+              uma nova senha no próximo login.
             </div>
 
             <Link href="/login" className="button button-primary button-wide">
               Voltar para o login
             </Link>
-          </div>
+          </>
         ) : (
-          <form action={requestPasswordReset} className="login-form">
-            <div>
+          <>
+            <div className="login-intro">
               <span className="micro-label">RECUPERAR SENHA</span>
-              <h2>Esqueci minha senha</h2>
+              <h1>Esqueci minha senha</h1>
               <p>Digite o e-mail usado para acessar o painel.</p>
             </div>
 
-            {errorMessage ? (
-              <div className="form-error">{errorMessage}</div>
-            ) : null}
+            <form action={requestPasswordReset} className="login-form login-form-simple">
+              {errorMessage ? (
+                <div className="form-error">{errorMessage}</div>
+              ) : null}
 
-            <label className="field">
-              <span>E-mail</span>
-              <input
-                type="email"
-                name="email"
-                placeholder="nome@terceiroandar.com.br"
-                autoComplete="email"
-                required
-                autoFocus
-              />
-            </label>
+              <label className="field">
+                <span>E-mail</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="nome@terceiroandar.com.br"
+                  autoComplete="email"
+                  required
+                  autoFocus
+                />
+              </label>
 
-            <button type="submit" className="button button-primary button-wide">
-              Enviar senha temporária
-            </button>
+              <button type="submit" className="button button-primary button-wide">
+                Enviar senha temporária
+              </button>
 
-            <div className="login-form-help login-form-help-center">
-              <Link href="/login">Voltar para o login</Link>
-            </div>
-          </form>
+              <div className="login-form-help login-form-help-center">
+                <Link href="/login">Voltar para o login</Link>
+              </div>
+            </form>
+          </>
         )}
+
+        <span className="login-footnote">Terceiro Andar · Aprovação de conteúdo</span>
       </section>
     </main>
   );
