@@ -92,6 +92,49 @@ export class NextcloudService {
     return this.list("/", path);
   }
 
+  async listClientFoldersForActor(
+    actor: InternalActor,
+    path = "/"
+  ): Promise<NextcloudFileItem[]> {
+    this.assertClientFolderManagementAccess(actor);
+
+    const items = await this.list("/", path);
+    return items.filter((item) => item.isDirectory);
+  }
+
+  async createClientFolderForActor(
+    actor: InternalActor,
+    parentPath: string,
+    name: string
+  ) {
+    this.assertClientFolderManagementAccess(actor);
+
+    const safeName = name
+      .replaceAll("\\", "-")
+      .replaceAll("/", "-")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim();
+
+    if (!safeName || safeName === "." || safeName === "..") {
+      throw new BadRequestException("Informe um nome de pasta válido.");
+    }
+
+    const parent = this.normalizeRelativePath(parentPath || "/");
+    const path = this.joinRelative(parent, safeName);
+
+    await this.ensureRelativeDirectory("/", path);
+
+    return {
+      name: safeName,
+      path,
+      isDirectory: true,
+      mimeType: null,
+      etag: null,
+      fileId: null,
+      size: null
+    } satisfies NextcloudFileItem;
+  }
+
   async previewSystemForActor(
     actor: InternalActor,
     path: string,
@@ -606,6 +649,18 @@ export class NextcloudService {
     if (actor.role !== UserRole.ADMIN && actor.role !== UserRole.DEV) {
       throw new ForbiddenException(
         "Apenas administradores podem acessar arquivos da identidade visual."
+      );
+    }
+  }
+
+  private assertClientFolderManagementAccess(actor: InternalActor) {
+    if (
+      actor.role !== UserRole.ADMIN &&
+      actor.role !== UserRole.DEV &&
+      !actor.permissions.includes("CLIENTS_MANAGE")
+    ) {
+      throw new ForbiddenException(
+        "Você não tem permissão para gerenciar pastas de clientes no Nextcloud."
       );
     }
   }
