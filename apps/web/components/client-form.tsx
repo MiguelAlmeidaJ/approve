@@ -20,6 +20,7 @@ import {
 import type { Client, DesignerListItem } from "../lib/api";
 import { ClientLogoField } from "./client-logo-field";
 import { PhoneInput } from "./phone-input";
+import { ClientNextcloudFolderPicker } from "./client-nextcloud-folder-picker";
 
 export function ClientForm({
   action,
@@ -107,22 +108,13 @@ export function ClientForm({
               </div>
             </label>
 
-            <label className="field field-span-2">
+            <div className="field field-span-2">
               <span>Pasta do cliente no Nextcloud</span>
-              <div className="input-with-icon">
-                <FiFolder aria-hidden="true" />
-                <input
-                  name="nextcloudPath"
-                  defaultValue={client?.nextcloudPath ?? ""}
-                  placeholder="Ex.: /CLIENTE ACME"
-                />
-              </div>
-              <small className="field-helper">
-                Caminho relativo a NEXTCLOUD_ROOT_PATH. Se ficar vazio, usamos
-                /{client?.slug || "slug-do-cliente"}. Use / apenas se este
-                cliente realmente puder acessar toda a pasta raiz configurada.
-              </small>
-            </label>
+              <ClientNextcloudFolderPicker
+                initialPath={client?.nextcloudPath ?? ""}
+                suggestedName={client?.name ?? ""}
+              />
+            </div>
           </div>
         </section>
 
