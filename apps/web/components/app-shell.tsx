@@ -27,6 +27,7 @@ import {
 import { logoutDesigner, markNotificationRead } from "../app/actions";
 import { getNotifications, type Designer } from "../lib/api";
 import { Brand } from "./brand";
+import { hasUserPermission } from "../lib/permissions";
 import { MobileAppNav } from "./mobile-app-nav";
 
 export type AppSection =
@@ -94,6 +95,7 @@ export async function AppShell({
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
+  const canSeeReports = hasUserPermission(designer, "REPORTS_VIEW");
   const notifications = await getNotifications();
   const unreadNotifications = notifications.filter(
     (notification) => !notification.readAt
@@ -304,45 +306,47 @@ export async function AppShell({
             </div>
           </details>
 
-          <details
-            className="sidebar-menu-group"
-            open={groupIsActive(activeSection, ["reports", "productivity"])}
-          >
-            <summary>
-              <span>
-                <FiBarChart2 className="nav-icon" aria-hidden="true" />
-                Resultados
-              </span>
-              <FiChevronDown
-                className="sidebar-menu-chevron"
-                aria-hidden="true"
-              />
-            </summary>
-            <div className="sidebar-submenu">
-              <Link
-                href="/relatorios"
-                className={
-                  activeSection === "reports"
-                    ? "sidebar-submenu-link active"
-                    : "sidebar-submenu-link"
-                }
-              >
-                <FiPieChart aria-hidden="true" />
-                Relatórios
-              </Link>
-              <Link
-                href="/produtividade"
-                className={
-                  activeSection === "productivity"
-                    ? "sidebar-submenu-link active"
-                    : "sidebar-submenu-link"
-                }
-              >
-                <FiAward aria-hidden="true" />
-                Produtividade
-              </Link>
-            </div>
-          </details>
+          {canSeeReports ? (
+            <details
+              className="sidebar-menu-group"
+              open={groupIsActive(activeSection, ["reports", "productivity"])}
+            >
+              <summary>
+                <span>
+                  <FiBarChart2 className="nav-icon" aria-hidden="true" />
+                  Resultados
+                </span>
+                <FiChevronDown
+                  className="sidebar-menu-chevron"
+                  aria-hidden="true"
+                />
+              </summary>
+              <div className="sidebar-submenu">
+                <Link
+                  href="/relatorios"
+                  className={
+                    activeSection === "reports"
+                      ? "sidebar-submenu-link active"
+                      : "sidebar-submenu-link"
+                  }
+                >
+                  <FiPieChart aria-hidden="true" />
+                  Relatórios
+                </Link>
+                <Link
+                  href="/produtividade"
+                  className={
+                    activeSection === "productivity"
+                      ? "sidebar-submenu-link active"
+                      : "sidebar-submenu-link"
+                  }
+                >
+                  <FiAward aria-hidden="true" />
+                  Produtividade
+                </Link>
+              </div>
+            </details>
+          ) : null}
 
           {canSeeUsers || canSeeConfig ? (
             <details
