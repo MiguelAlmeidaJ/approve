@@ -3,9 +3,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE } from "../../lib/auth";
+import { CLIENT_SESSION_COOKIE } from "../../lib/client-auth";
 import { getApiUrl } from "../../lib/api";
 
-type LoginPayload = {
+type DesignerLoginPayload = {
   token: string;
   expiresAt: string;
   designer: {
@@ -13,66 +14,108 @@ type LoginPayload = {
   };
 };
 
-export async function loginDesigner(formData: FormData) {
+type ClientLoginPayload = {
+  token: string;
+  expiresAt: string;
+};
+
+async function loginRequest(endpoint: string, email: string, password: string) {
+  return fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json"
+    },
+    body: JSON.stringify({ email, password }),
+    cache: "no-store",
+    redirect: "manual"
+  });
+}
+
+export async function loginAccount(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const endpoint = `${getApiUrl()}/api/auth/login`;
+  const requestedNext = String(formData.get("next") ?? "").trim();
 
-  let response: Response;
+  let designerResponse: Response;
 
   try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json"
-      },
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-      redirect: "manual"
-    });
+    designerResponse = await loginRequest(
+      `${getApiUrl()}/api/auth/login`,
+      email,
+      password
+    );
   } catch (error) {
-    console.error("[auth] Não foi possível conectar à API:", endpoint, error);
+    console.error("[auth] Não foi possível conectar à API.", error);
     redirect("/login?error=api");
   }
 
-  const contentType = response.headers.get("content-type") ?? "";
-  const rawBody = await response.text();
+  if (designerResponse.ok) {
+    const payload = (await designerResponse.json()) as DesignerLoginPayload;
 
-  if (!contentType.includes("application/json")) {
+    if (!payload.token || !payload.expiresAt) {
+      console.error("[auth] Resposta de login de equipe incompleta.", payload);
+      redirect("/login?error=api");
+    }
+
+    const cookieStore = await cookies();
+    cookieStore.delete(CLIENT_SESSION_COOKIE);
+    cookieStore.set(SESSION_COOKIE, payload.token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      expires: new Date(payload.expiresAt)
+    });
+
+    redirect(payload.designer?.mustChangePassword ? "/nova-senha" : "/");
+  }
+
+  if (designerResponse.status !== 401) {
     console.error(
-      "[auth] A API de login respondeu com conteúdo não JSON.",
-      {
-        endpoint,
-        status: response.status,
-        contentType,
-        preview: rawBody.slice(0, 160)
-      }
+      "[auth] Login da equipe respondeu com erro inesperado.",
+      designerResponse.status,
+      await designerResponse.text()
     );
     redirect("/login?error=api");
   }
 
-  if (!response.ok) {
-    redirect("/login?error=credentials");
-  }
-
-  let payload: LoginPayload;
+  let clientResponse: Response;
 
   try {
-    payload = JSON.parse(rawBody) as LoginPayload;
+    clientResponse = await loginRequest(
+      `${getApiUrl()}/api/client-auth/login`,
+      email,
+      password
+    );
   } catch (error) {
-    console.error("[auth] JSON inválido recebido da API de login.", error);
+    console.error("[auth] Não foi possível consultar login do cliente.", error);
     redirect("/login?error=api");
   }
 
+  if (!clientResponse.ok) {
+    if (clientResponse.status !== 401) {
+      console.error(
+        "[auth] Login do cliente respondeu com erro inesperado.",
+        clientResponse.status,
+        await clientResponse.text()
+      );
+      redirect("/login?error=api");
+    }
+
+    redirect("/login?error=credentials");
+  }
+
+  const payload = (await clientResponse.json()) as ClientLoginPayload;
+
   if (!payload.token || !payload.expiresAt) {
-    console.error("[auth] Resposta de login incompleta.", payload);
+    console.error("[auth] Resposta de login do cliente incompleta.", payload);
     redirect("/login?error=api");
   }
 
   const cookieStore = await cookies();
-
-  cookieStore.set(SESSION_COOKIE, payload.token, {
+  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.set(CLIENT_SESSION_COOKIE, payload.token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -80,7 +123,12 @@ export async function loginDesigner(formData: FormData) {
     expires: new Date(payload.expiresAt)
   });
 
-  redirect(payload.designer?.mustChangePassword ? "/nova-senha" : "/");
+  const next =
+    requestedNext.startsWith("/p/") || requestedNext.startsWith("/cliente")
+      ? requestedNext
+      : "/cliente";
+
+  redirect(next);
 }
 
 export async function requestPasswordReset(formData: FormData) {
