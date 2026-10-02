@@ -21986,3 +21986,117 @@ body:has(.instagram-preview-page) {
     padding: 11px;
   }
 }
+
+
+/* Nextcloud client folder picker */
+.client-folder-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.client-folder-picker-value {
+  min-height: 56px;
+  padding: 9px 10px 9px 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfaf9;
+}
+
+.client-folder-picker-value > svg {
+  width: 18px;
+  height: 18px;
+  color: #8b8b8f;
+}
+
+.client-folder-picker-value > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.client-folder-picker-value small {
+  color: var(--muted);
+  font-size: .6875rem;
+}
+
+.client-folder-picker-value strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: .875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-folder-create {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px) auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: #faf9f7;
+}
+
+.client-folder-create > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-folder-create > div > svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  color: var(--pink);
+}
+
+.client-folder-create > div > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.client-folder-create strong {
+  font-size: .8125rem;
+}
+
+.client-folder-create small {
+  color: var(--muted);
+  font-size: .6875rem;
+}
+
+.client-folder-create input {
+  min-height: 42px;
+}
+
+.client-folder-browser .nextcloud-file-card.directory {
+  min-height: 112px;
+}
+
+.client-folder-browser .nextcloud-file-preview {
+  color: #6b6c71;
+}
+
+@media (max-width: 760px) {
+  .client-folder-picker-value {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .client-folder-picker-value .button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .client-folder-create {
+    grid-template-columns: 1fr;
+  }
+
+  .client-folder-create .button {
+    width: 100%;
+  }
+}
