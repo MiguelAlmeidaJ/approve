@@ -3566,6 +3566,7 @@ export class AdminService {
   }
 
   async getProductivity(actor: InternalActor) {
+    this.requirePermission(actor, "REPORTS_VIEW");
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
