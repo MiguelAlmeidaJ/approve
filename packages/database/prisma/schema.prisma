@@ -165,7 +165,6 @@ model Client {
   prohibitedTerms    String?            @db.Text
   hashtags           String?            @db.Text
   references         String?            @db.Text
-  mlabsProfileId     String?
   monthlyPostLimit       Int?
   monthlyCarouselLimit   Int?
   monthlyReelLimit       Int?
