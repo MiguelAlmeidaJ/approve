@@ -15,6 +15,8 @@ import {
   ContentType,
   NotificationType,
   StandaloneArtworkStatus,
+  normalizeUserPermissions,
+  type UserPermission,
   UserRole
 } from "@approve/database";
 import { randomBytes, scryptSync } from "node:crypto";
@@ -248,6 +250,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        permissions: true,
         active: true,
         weeklyCapacityPoints: true,
         createdAt: true,
@@ -666,6 +669,10 @@ export class AdminService {
         email,
         passwordHash: hashPassword(dto.password),
         role: targetRole,
+        permissions:
+          targetRole === UserRole.DESIGNER
+            ? normalizeUserPermissions(dto.permissions)
+            : [],
         weeklyCapacityPoints: dto.weeklyCapacityPoints ?? 30,
         mustChangePassword: true
       },
@@ -674,6 +681,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        permissions: true,
         active: true,
         createdAt: true
       }
@@ -748,6 +756,10 @@ export class AdminService {
         name: dto.name.trim(),
         email,
         role: dto.role,
+        permissions:
+          dto.role === UserRole.DESIGNER
+            ? normalizeUserPermissions(dto.permissions)
+            : [],
         ...(dto.weeklyCapacityPoints !== undefined
           ? { weeklyCapacityPoints: dto.weeklyCapacityPoints }
           : {}),
@@ -763,6 +775,7 @@ export class AdminService {
         name: true,
         email: true,
         role: true,
+        permissions: true,
         active: true,
         createdAt: true
       }
@@ -945,6 +958,7 @@ export class AdminService {
   }
 
   async createClient(actor: InternalActor, dto: CreateClientDto) {
+    this.requirePermission(actor, "CLIENTS_MANAGE");
     const baseSlug = (dto.slug || dto.name)
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -1040,6 +1054,7 @@ export class AdminService {
     id: string,
     dto: UpdateClientDto
   ) {
+    this.requirePermission(actor, "CLIENTS_MANAGE");
     await this.assertClientAccess(actor, id);
 
     const current = await this.prisma.client.findUnique({
@@ -1190,7 +1205,7 @@ export class AdminService {
   }
 
   async createCalendar(actor: InternalActor, dto: CreateCalendarDto) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CALENDARS_MANAGE");
     const client = await this.assertClientAccess(actor, dto.clientId);
 
     if (!client.active) {
@@ -1253,7 +1268,7 @@ export class AdminService {
     calendarId: string,
     dto: UpdateCalendarDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CALENDARS_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active) {
@@ -2251,7 +2266,7 @@ export class AdminService {
     contentItemId: string,
     dto: MarkScheduledDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "SCHEDULING_MANAGE");
 
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
@@ -2287,7 +2302,7 @@ export class AdminService {
   }
 
   async markPublished(actor: InternalActor, contentItemId: string) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "SCHEDULING_MANAGE");
 
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
@@ -2327,7 +2342,7 @@ export class AdminService {
     contentItemId: string,
     dto: MarkSchedulingErrorDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "SCHEDULING_MANAGE");
 
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
@@ -2851,7 +2866,7 @@ export class AdminService {
     itemId: string,
     dto: UpdateContentMetricsDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "REPORTS_VIEW");
     const item = await this.prisma.contentItem.findUnique({
       where: { id: itemId },
       select: { id: true, stage: true }
@@ -3825,6 +3840,21 @@ export class AdminService {
     throw new ForbiddenException(
       "Você não tem permissão para editar este usuário."
     );
+  }
+
+  private requirePermission(
+    actor: InternalActor,
+    permission: UserPermission
+  ) {
+    if (actor.role === UserRole.ADMIN || actor.role === UserRole.DEV) {
+      return;
+    }
+
+    if (!actor.permissions.includes(permission)) {
+      throw new ForbiddenException(
+        "Você não tem permissão para executar esta ação."
+      );
+    }
   }
 
   private requireRoles(actor: InternalActor, ...roles: UserRole[]) {
