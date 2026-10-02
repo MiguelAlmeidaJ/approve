@@ -20,5 +20,5 @@ export async function logoutClient() {
   }
 
   cookieStore.delete(CLIENT_SESSION_COOKIE);
-  redirect("/cliente/login");
+  redirect("/login");
 }
