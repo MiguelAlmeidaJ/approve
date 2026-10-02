@@ -21753,3 +21753,44 @@ body:has(.instagram-preview-page) {
     font-size: 40px;
   }
 }
+
+
+/* Larger mobile header brand */
+@media (max-width: 820px) {
+  .mobile-app-nav .brand {
+    width: 128px;
+    max-width: 128px;
+    height: 40px;
+  }
+
+  .mobile-app-nav .brand-compact {
+    width: 128px;
+    max-width: 128px;
+    height: 40px;
+    overflow: visible;
+  }
+
+  .mobile-app-nav .brand-compact .brand-logo,
+  .mobile-app-nav .brand-logo {
+    width: 128px;
+    max-width: 128px;
+    height: 40px;
+    max-height: 40px;
+    object-fit: contain;
+    object-position: left center;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-app-nav .brand,
+  .mobile-app-nav .brand-compact {
+    width: 116px;
+    max-width: 116px;
+  }
+
+  .mobile-app-nav .brand-compact .brand-logo,
+  .mobile-app-nav .brand-logo {
+    width: 116px;
+    max-width: 116px;
+  }
+}
