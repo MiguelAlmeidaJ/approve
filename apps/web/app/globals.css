@@ -1,6 +1,13 @@
+
+/* Typography scale
+ * Font sizes use rem so the UI respects browser/user text scaling.
+ * Legacy extremes were compressed toward a more readable product UI range:
+ * very small labels were raised, while oversized headings were moderated.
+ */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 :root {
+  /* 1rem follows the browser default (normally 16px). */
   --pink: #ff014a;
   --pink-soft: #ffe6ed;
   --black: #000000;
@@ -110,7 +117,7 @@ p {
 }
 
 .brand-name {
-  font-size: 19px;
+  font-size: 1.125rem;
   line-height: 1;
   font-weight: 700;
   letter-spacing: -1.2px;
@@ -129,7 +136,7 @@ p {
   margin-bottom: 8px;
   color: var(--pink);
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 1.5px;
 }
@@ -148,7 +155,7 @@ p {
   justify-content: center;
   gap: 8px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .button:hover {
@@ -180,7 +187,7 @@ p {
   border: 0;
   background: transparent;
   color: var(--pink);
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -230,7 +237,7 @@ p {
   max-width: 600px;
   margin: 8px 0 18px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(56px, 7vw, 92px);
+  font-size: clamp(2.875rem, 7vw, 4.5625rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -286,7 +293,7 @@ p {
 .login-form h2 {
   margin-bottom: 6px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 52px;
+  font-size: 2.6875rem;
   text-transform: uppercase;
 }
 
@@ -300,7 +307,7 @@ p {
   border-radius: 10px;
   background: var(--pink-soft);
   color: #9b1239;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 /* Internal app */
@@ -330,7 +337,7 @@ p {
   display: block;
   margin-top: 9px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -347,7 +354,7 @@ p {
   gap: 10px;
   border-radius: 10px;
   color: #55575b;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .nav-link {
@@ -379,7 +386,7 @@ p {
   align-items: center;
   justify-content: space-between;
   color: #9a9b9e;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -393,7 +400,7 @@ p {
   border-radius: 7px;
   background: var(--pink-soft);
   color: var(--pink);
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .client-nav-list {
@@ -421,7 +428,7 @@ p {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .client-nav-link.active .client-avatar {
@@ -431,7 +438,7 @@ p {
 .sidebar-empty {
   padding: 10px 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .sidebar-footer {
@@ -448,7 +455,7 @@ p {
   height: 36px;
   border-radius: 50%;
   background: var(--pink);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .designer-meta {
@@ -464,12 +471,12 @@ p {
 }
 
 .designer-meta strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .designer-meta span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .app-content {
@@ -508,7 +515,7 @@ p {
   border-radius: 10px;
   background: var(--white);
   color: #555159;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .app-topbar-action:hover,
@@ -536,7 +543,7 @@ p {
   border-radius: 999px;
   background: var(--pink);
   color: var(--white);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 800;
   line-height: 1;
 }
@@ -572,7 +579,7 @@ p {
 
 .page-header h1,
 .calendar-header h1 {
-  font-size: clamp(40px, 5vw, 65px);
+  font-size: clamp(2.125rem, 5vw, 3.3125rem);
   line-height: 0.95;
 }
 
@@ -594,7 +601,7 @@ p {
   display: block;
   margin-bottom: 22px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .overview-strip {
@@ -622,12 +629,12 @@ p {
 
 .overview-strip span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .overview-strip strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 42px;
+  font-size: 2.25rem;
 }
 
 .section {
@@ -643,12 +650,12 @@ p {
 
 .section-title-row h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .section-title-row > span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .client-card-grid {
@@ -688,24 +695,24 @@ p {
   border-radius: 13px;
   background: var(--pink);
   color: var(--white);
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
 .arrow-link {
   color: var(--muted);
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .client-card h3 {
   margin: 0 0 5px;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .client-card p,
 .latest-calendar {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .latest-calendar {
@@ -736,7 +743,7 @@ p {
   border-radius: 14px;
   background: var(--pink);
   color: var(--white);
-  font-size: 24px;
+  font-size: 1.375rem;
 }
 
 .empty-card h3,
@@ -749,7 +756,7 @@ p {
   max-width: 460px;
   margin-bottom: 20px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .calendar-list-simple {
@@ -785,23 +792,23 @@ p {
 
 .calendar-month-block span {
   color: var(--pink);
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .calendar-month-block strong {
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .calendar-row-main h3 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .calendar-row-main p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .calendar-progress {
@@ -827,7 +834,7 @@ p {
 
 .calendar-progress small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 /* Forms */
@@ -856,7 +863,7 @@ p {
 
 .field > span {
   color: #4f5155;
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -870,7 +877,7 @@ textarea {
   background: #fafaf8;
   color: var(--ink);
   padding: 12px 13px;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 input:focus,
@@ -896,7 +903,7 @@ textarea {
   border-radius: 10px;
   background: var(--pink-soft);
   color: #7d1834;
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -926,13 +933,13 @@ textarea {
 
 .calendar-meta-bar span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 
 .calendar-meta-bar strong {
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .share-inline {
@@ -944,7 +951,7 @@ textarea {
 .share-inline code {
   overflow: hidden;
   color: #4c4e52;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -981,7 +988,7 @@ textarea {
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.76);
   color: var(--white);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -1013,7 +1020,7 @@ textarea {
   position: relative;
   z-index: 2;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(30px, 4vw, 52px);
+  font-size: clamp(1.6875rem, 4vw, 2.6875rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -1033,7 +1040,7 @@ textarea {
   margin-bottom: 10px;
   position: relative;
   z-index: 2;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 1.6px;
 }
@@ -1084,12 +1091,12 @@ textarea {
 }
 
 .feed-card-info strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .feed-card-info span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .status-dot {
@@ -1131,14 +1138,14 @@ textarea {
 }
 
 .composer-heading h2 {
-  font-size: 38px;
+  font-size: 2.0625rem;
 }
 
 .composer-heading p {
   max-width: 440px;
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -1195,7 +1202,7 @@ textarea {
 }
 
 .content-modal-head h2 {
-  font-size: 32px;
+  font-size: 1.75rem;
 }
 
 .modal-close {
@@ -1205,7 +1212,7 @@ textarea {
   place-items: center;
   border-radius: 50%;
   background: #f0f0ed;
-  font-size: 24px;
+  font-size: 1.375rem;
 }
 
 .content-modal-body {
@@ -1236,7 +1243,7 @@ textarea {
   border-radius: 999px;
   background: #f1f1ee;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -1252,7 +1259,7 @@ textarea {
   margin: 8px 0 0;
   white-space: pre-wrap;
   color: #3f4145;
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 
@@ -1265,14 +1272,14 @@ textarea {
   gap: 10px;
   align-items: center;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .status-pill {
   padding: 6px 9px;
   border-radius: 999px;
   color: var(--white);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -1313,11 +1320,11 @@ textarea {
 
 .public-topbar span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .public-topbar strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .public-heading {
@@ -1335,7 +1342,7 @@ textarea {
 .public-heading h1 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(52px, 8vw, 88px);
+  font-size: clamp(2.6875rem, 8vw, 4.375rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -1344,7 +1351,7 @@ textarea {
   max-width: 660px;
   margin: 16px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 
@@ -1362,13 +1369,13 @@ textarea {
 
 .public-progress strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 36px;
+  font-size: 1.9375rem;
   line-height: 1;
 }
 
 .public-progress span {
   margin-top: 4px;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .public-feed-grid {
@@ -1395,7 +1402,7 @@ textarea {
 
 .public-footer > span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .approval-modal .modal-copy {
@@ -1416,7 +1423,7 @@ textarea {
 
 .not-found h1 {
   margin: 0;
-  font-size: clamp(52px, 8vw, 84px);
+  font-size: clamp(2.6875rem, 8vw, 4.1875rem);
   line-height: 0.92;
 }
 
@@ -1566,7 +1573,7 @@ textarea {
   }
 
   .login-visual h1 {
-    font-size: 54px;
+    font-size: 2.8125rem;
   }
 
   .login-panel {
@@ -1579,7 +1586,7 @@ textarea {
 
   .page-header h1,
   .calendar-header h1 {
-    font-size: 48px;
+    font-size: 2.5rem;
   }
 
   .client-card-grid,
@@ -1647,7 +1654,7 @@ textarea {
   }
 
   .public-heading h1 {
-    font-size: 56px;
+    font-size: 2.875rem;
   }
 
   .modal-layer {
@@ -1664,7 +1671,7 @@ textarea {
   }
 
   .content-modal-head h2 {
-    font-size: 27px;
+    font-size: 1.5rem;
   }
 
   .modal-copy {
@@ -1700,7 +1707,7 @@ textarea {
   display: inline-grid;
   place-items: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .nav-link.active .nav-icon {
@@ -1718,7 +1725,7 @@ textarea {
   margin-top: 3px;
   padding: 2px 6px;
   border-radius: 999px;
-  font-size: 8px !important;
+  font-size: 0.75rem !important;
   font-weight: 700;
   letter-spacing: 0.6px;
   text-transform: uppercase;
@@ -1741,7 +1748,7 @@ textarea {
 
 .section-title-row > a {
   color: var(--pink);
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -1763,12 +1770,12 @@ textarea {
 }
 
 .client-responsibility strong {
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .client-responsibility small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .assignment-form {
@@ -1810,25 +1817,25 @@ textarea {
   border-radius: 12px;
   background: var(--black);
   color: var(--white);
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .designer-card h3 {
   margin: 0 0 3px;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .designer-card p,
 .designer-card small {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .designer-card > strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 26px;
+  font-size: 1.5rem;
 }
 
 .role-chip {
@@ -1836,7 +1843,7 @@ textarea {
   border-radius: 999px;
   background: var(--pink-soft);
   color: #a3153e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -1853,7 +1860,7 @@ textarea {
 .permission-note h2 {
   margin-bottom: 8px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 32px;
+  font-size: 1.75rem;
   text-transform: uppercase;
 }
 
@@ -1861,7 +1868,7 @@ textarea {
 .permission-note p {
   margin-bottom: 22px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -1883,12 +1890,12 @@ textarea {
 
 .config-card span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .config-card strong {
   overflow-wrap: anywhere;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .config-note {
@@ -1911,13 +1918,13 @@ textarea {
 
 .permission-matrix strong {
   color: var(--pink);
-  font-size: 11px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
 }
 
 .permission-matrix span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 980px) {
@@ -1969,7 +1976,7 @@ textarea {
   }
 
   .designer-card > strong {
-    font-size: 22px;
+    font-size: 1.3125rem;
   }
 
   .config-grid {
@@ -2047,7 +2054,7 @@ textarea {
 .list-result-count {
   padding: 0 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
@@ -2060,7 +2067,7 @@ textarea {
   border-radius: 14px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: 0.875rem;
   text-align: center;
 }
 
@@ -2075,7 +2082,7 @@ textarea {
 .pagination > span {
   min-width: 110px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-align: center;
 }
 
@@ -2184,12 +2191,12 @@ textarea {
 }
 
 .planner-sla-intro strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .planner-sla-intro small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.45;
 }
 
@@ -2198,7 +2205,7 @@ textarea {
   border-radius: 999px;
   background: #fff0f4;
   color: #a3153e;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: normal;
   font-weight: 800;
   text-transform: uppercase;
@@ -2231,7 +2238,7 @@ textarea {
   border-radius: 8px;
   background: #f1f0ed;
   color: #777378;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 800;
 }
 
@@ -2240,7 +2247,7 @@ textarea {
   display: flex;
   align-items: flex-end;
   color: #343136;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 750;
   line-height: 1.35;
 }
@@ -2252,7 +2259,7 @@ textarea {
   padding-inline: 10px;
   border-radius: 10px;
   background: #fafaf8;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -2306,7 +2313,7 @@ textarea {
 .client-logo-field > p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -2334,13 +2341,13 @@ textarea {
 }
 
 .client-logo-pending strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-logo-pending span {
   max-width: 620px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -2417,7 +2424,7 @@ textarea {
   place-items: center;
   background: #18171a;
   color: #fff;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 800;
 }
 
@@ -2429,7 +2436,7 @@ textarea {
 
 .commercial-public-title small {
   color: #8a858a;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 750;
   letter-spacing: 0.65px;
   text-transform: uppercase;
@@ -2437,7 +2444,7 @@ textarea {
 
 .commercial-public-title strong {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2453,7 +2460,7 @@ textarea {
   align-items: center;
   gap: 6px;
   color: #6e696f;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -2474,7 +2481,7 @@ textarea {
   border-radius: 9px;
   background: #18171a;
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 750;
 }
 
@@ -2489,7 +2496,7 @@ textarea {
   align-items: center;
   gap: 7px;
   color: #858086;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .commercial-public-context svg {
@@ -2508,7 +2515,7 @@ textarea {
   min-width: 0;
   overflow: hidden;
   color: #4f4a50;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2527,7 +2534,7 @@ textarea {
 
 .instagram-profile-avatar-ring > .public-client-logo > span {
   border-radius: 50%;
-  font-size: 28px;
+  font-size: 1.5625rem;
 }
 
 .instagram-post-account > .instagram-post-avatar.public-client-logo {
@@ -2573,7 +2580,7 @@ textarea {
   max-width: 330px;
   margin: 0;
   color: #777278;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -2602,7 +2609,7 @@ textarea {
 
 .commercial-public-footer-client small {
   color: #989398;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 750;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -2616,12 +2623,12 @@ textarea {
 }
 
 .commercial-public-footer-client strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .commercial-public-footer-client em {
   color: #777278;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: normal;
 }
 
@@ -2634,7 +2641,7 @@ textarea {
   gap: 18px;
   border-top: 1px solid #e2dfda;
   color: #918c92;
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .commercial-public-footer-meta span:first-child {
@@ -2708,7 +2715,7 @@ textarea {
   }
 
   .instagram-profile-avatar-ring > .public-client-logo > span {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .commercial-public-footer-main {
@@ -2772,7 +2779,7 @@ textarea {
 
 .header-stat span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
@@ -2780,7 +2787,7 @@ textarea {
   grid-column: 3;
   grid-row: 1 / 3;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 30px;
+  font-size: 1.6875rem;
 }
 
 .user-management-layout {
@@ -2812,7 +2819,7 @@ textarea {
   border-radius: 13px;
   background: var(--black);
   color: var(--white);
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -2841,13 +2848,13 @@ textarea {
 
 .user-card-copy h3 {
   margin: 0 0 3px;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .user-card-copy p {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .role-chip-admin {
@@ -2872,14 +2879,14 @@ textarea {
 
 .user-card-context strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 23px;
+  font-size: 1.3125rem;
   line-height: 1;
 }
 
 .user-card-context small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .user-create-panel {
@@ -2931,7 +2938,7 @@ textarea {
 .user-edit-heading h2 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 38px;
+  font-size: 2.0625rem;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -2939,7 +2946,7 @@ textarea {
 .user-edit-heading p {
   margin: 8px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .user-edit-form {
@@ -2965,7 +2972,7 @@ textarea {
   border-radius: 10px;
   background: #fff6e8;
   color: #80500c;
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -3014,7 +3021,7 @@ textarea {
 .builder-topline strong,
 .builder-field-heading strong {
   display: block;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .builder-topline small,
@@ -3022,7 +3029,7 @@ textarea {
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .builder-step {
@@ -3035,7 +3042,7 @@ textarea {
   background: var(--black);
   color: var(--white);
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .year-switcher {
@@ -3065,7 +3072,7 @@ textarea {
 .year-switcher strong {
   min-width: 52px;
   text-align: center;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .month-picker {
@@ -3085,7 +3092,7 @@ textarea {
   border-radius: 11px;
   background: #fafaf8;
   color: #55575b;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -3122,7 +3129,7 @@ textarea {
 .calendar-title-field input {
   min-height: 52px;
   padding-inline: 16px;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .calendar-creator-actions {
@@ -3194,14 +3201,14 @@ textarea {
 
 .calendar-preview-heading span {
   color: #a9aaad;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .calendar-preview-heading h2 {
   margin: 3px 0 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(28px, 3vw, 38px);
+  font-size: clamp(1.5625rem, 3vw, 2.0625rem);
   line-height: 0.95;
   text-transform: uppercase;
 }
@@ -3227,7 +3234,7 @@ textarea {
 
 .mini-calendar-labels span {
   color: #77797e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-align: center;
 }
@@ -3238,7 +3245,7 @@ textarea {
   place-items: center;
   border-radius: 8px;
   color: #cacbce;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .mini-calendar-days .first-day {
@@ -3284,13 +3291,13 @@ textarea {
 .calendar-preview-meta span {
   min-width: 0;
   color: #7f8185;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .calendar-preview-meta strong {
   margin-top: 2px;
   color: var(--white);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 @media (max-width: 1080px) {
@@ -3394,7 +3401,7 @@ textarea {
 .team-page-header h1 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(58px, 7vw, 82px);
+  font-size: clamp(3rem, 7vw, 4.125rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -3433,14 +3440,14 @@ textarea {
 
 .team-view-badge span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
 
 .team-view-badge strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .team-overview {
@@ -3477,7 +3484,7 @@ textarea {
 
 .team-overview article span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
   text-transform: uppercase;
@@ -3485,7 +3492,7 @@ textarea {
 
 .team-overview article strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 36px;
+  font-size: 1.9375rem;
   line-height: 0.8;
 }
 
@@ -3493,7 +3500,7 @@ textarea {
   grid-column: 2;
   margin-top: -8px;
   color: #a0a1a4;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .team-stat-icon {
@@ -3536,7 +3543,7 @@ textarea {
   border-radius: 999px;
   background: var(--pink-soft);
   color: #a3153e;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -3574,7 +3581,7 @@ textarea {
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -3592,7 +3599,7 @@ textarea {
   min-width: 72px;
   padding: 0 7px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -3614,14 +3621,14 @@ textarea {
 .team-create-panel h2 {
   margin: 0 0 8px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 34px;
+  font-size: 1.875rem;
   text-transform: uppercase;
 }
 
 .team-create-panel > p {
   margin-bottom: 22px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -3646,7 +3653,7 @@ textarea {
   align-items: center;
   gap: 5px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -3665,7 +3672,7 @@ textarea {
 
 .team-management-layout .user-card-context strong {
   font-family: "Poppins", Arial, sans-serif;
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.2;
 }
 
@@ -3878,7 +3885,7 @@ textarea {
   align-items: center;
   gap: 7px;
   color: #4d4f53;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -3893,7 +3900,7 @@ textarea {
   border: 0;
   background: transparent;
   color: var(--pink);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -3924,7 +3931,7 @@ textarea {
 }
 
 .weekday-option > span {
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -3990,12 +3997,12 @@ textarea {
 }
 
 .posting-patterns strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .posting-patterns small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .selected-posting-days {
@@ -4037,12 +4044,12 @@ textarea {
 }
 
 .schedule-summary strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .schedule-summary span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -4063,7 +4070,7 @@ textarea {
   border-radius: 999px;
   background: var(--white);
   color: #4b4d51;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .posting-day-chips button:hover {
@@ -4105,7 +4112,7 @@ textarea {
   align-items: center;
   gap: 7px;
   color: #d7d7d7;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 1.1px;
   text-transform: uppercase;
@@ -4123,7 +4130,7 @@ textarea {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.055);
   color: #9b9b9b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planner-preview-panel .calendar-preview-heading {
@@ -4131,13 +4138,13 @@ textarea {
 }
 
 .planner-preview-panel .calendar-preview-heading h2 {
-  font-size: clamp(34px, 3vw, 46px);
+  font-size: clamp(1.875rem, 3vw, 2.4375rem);
 }
 
 .planner-preview-hint {
   margin: 0 0 14px;
   color: #8b8b8b;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -4155,7 +4162,7 @@ textarea {
 
 .interactive-calendar .mini-calendar-labels span {
   color: #69696b;
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
@@ -4178,7 +4185,7 @@ textarea {
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.075);
   color: #d7d7d7;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .interactive-calendar .mini-calendar-days > button:hover {
@@ -4234,13 +4241,13 @@ textarea {
 
 .preview-schedule-note span {
   color: #69696b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .preview-schedule-note strong {
   overflow: hidden;
   color: var(--white);
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4344,7 +4351,7 @@ textarea {
 .client-editor-header h1 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(58px, 7vw, 82px);
+  font-size: clamp(3rem, 7vw, 4.125rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -4412,7 +4419,7 @@ textarea {
 .client-overview-strip article > span:last-child {
   display: grid;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.7px;
 }
@@ -4421,7 +4428,7 @@ textarea {
   margin-top: 2px;
   color: var(--ink);
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 28px;
+  font-size: 1.5625rem;
   line-height: 1;
 }
 
@@ -4481,7 +4488,7 @@ textarea {
 .client-card-heading h3 {
   margin: 7px 0 0;
   overflow: hidden;
-  font-size: 16px;
+  font-size: 1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4496,7 +4503,7 @@ textarea {
   border-radius: 999px;
   background: var(--pink-soft);
   color: #a3153e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.45px;
@@ -4534,7 +4541,7 @@ textarea {
   align-items: center;
   gap: 8px;
   color: #686a6f;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-contact-list svg {
@@ -4575,13 +4582,13 @@ textarea {
 
 .client-directory-footer small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
 .client-directory-footer strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4594,13 +4601,13 @@ textarea {
 
 .client-calendar-count strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 24px;
+  font-size: 1.375rem;
   line-height: 0.9;
 }
 
 .client-calendar-count span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .client-editor-layout {
@@ -4636,12 +4643,12 @@ textarea {
 }
 
 .client-form-section-head strong {
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .client-form-section-head small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-form-icon {
@@ -4694,7 +4701,7 @@ textarea {
 
 .field-helper {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .client-assignment-locked {
@@ -4717,13 +4724,13 @@ textarea {
 .client-assignment-locked span {
   display: grid;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .client-assignment-locked strong {
   color: var(--ink);
-  font-size: 11px;
+  font-size: 0.8125rem;
   text-transform: none;
 }
 
@@ -4778,7 +4785,7 @@ textarea {
 .client-access-preview h2 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 46px;
+  font-size: 2.4375rem;
   line-height: 0.92;
   text-transform: uppercase;
 }
@@ -4786,7 +4793,7 @@ textarea {
 .client-access-preview > p {
   margin: 18px 0 28px;
   color: #999b9f;
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 
@@ -4809,16 +4816,16 @@ textarea {
   grid-row: 1 / 3;
   color: var(--pink);
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 20px;
+  font-size: 1.1875rem;
 }
 
 .client-access-flow strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-access-flow small {
   color: #77797d;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .client-detail-actions {
@@ -4857,19 +4864,19 @@ textarea {
   border-radius: 15px;
   background: var(--pink);
   color: var(--white);
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
 .client-profile-main h2 {
   margin: 7px 0 2px;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .client-profile-main p {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-profile-stat {
@@ -4892,14 +4899,14 @@ textarea {
   min-width: 0;
   display: grid;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .client-profile-stat strong {
   margin-top: 3px;
   overflow: hidden;
   color: var(--ink);
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4917,17 +4924,17 @@ textarea {
 
 .client-responsibility-copy small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .client-responsibility-copy strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .client-responsibility-copy em {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-style: normal;
 }
 
@@ -4955,12 +4962,12 @@ textarea {
 }
 
 .client-portal-user strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .client-portal-user span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .client-portal-intro {
@@ -4970,7 +4977,7 @@ textarea {
 .client-portal-intro h1 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(54px, 7vw, 78px);
+  font-size: clamp(2.8125rem, 7vw, 3.9375rem);
   line-height: 0.92;
   text-transform: uppercase;
 }
@@ -5006,13 +5013,13 @@ textarea {
 
 .client-portal-calendar h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .client-portal-calendar p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .client-portal-progress {
@@ -5039,7 +5046,7 @@ textarea {
 
 .client-portal-progress small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .client-login-page {
@@ -5074,7 +5081,7 @@ textarea {
 .client-login-copy h1 {
   margin: 8px 0 18px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(58px, 7vw, 90px);
+  font-size: clamp(3rem, 7vw, 4.5rem);
   line-height: 0.9;
   text-transform: uppercase;
 }
@@ -5100,7 +5107,7 @@ textarea {
 .client-login-form h2 {
   margin: 0;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 50px;
+  font-size: 2.625rem;
   text-transform: uppercase;
 }
 
@@ -5244,7 +5251,7 @@ textarea {
 .content-composer-heading h2 {
   margin: 2px 0 8px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(34px, 4vw, 48px);
+  font-size: clamp(1.875rem, 4vw, 2.5rem);
   line-height: 0.95;
   text-transform: uppercase;
 }
@@ -5253,7 +5260,7 @@ textarea {
   max-width: 620px;
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.55;
 }
 
@@ -5265,7 +5272,7 @@ textarea {
   border-radius: 999px;
   background: #f1f1ee;
   color: #5d5f63;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -5302,7 +5309,7 @@ textarea {
   background: var(--black);
   color: var(--white);
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
 }
 
@@ -5312,12 +5319,12 @@ textarea {
 }
 
 .composer-block-title strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .composer-block-title small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .content-type-grid {
@@ -5380,12 +5387,12 @@ textarea {
 }
 
 .content-type-grid strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .content-type-grid small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .content-type-check {
@@ -5439,12 +5446,12 @@ textarea {
 }
 
 .placement-grid strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .placement-grid small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .placement-grid i {
@@ -5503,13 +5510,13 @@ textarea {
 
 .posting-date-grid strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 23px;
+  font-size: 1.3125rem;
   line-height: 1;
 }
 
 .posting-date-grid span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -5542,7 +5549,7 @@ textarea {
   border-radius: 11px;
   background: #fff1f5;
   color: #9f2046;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .content-composer-footer {
@@ -5559,7 +5566,7 @@ textarea {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .content-composer-footer > div svg {
@@ -5577,7 +5584,7 @@ textarea {
   align-items: center;
   gap: 3px;
   color: #77797d;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: normal;
 }
 
@@ -5600,7 +5607,7 @@ textarea {
   border-radius: 999px;
   background: #f1f1ee;
   color: #5d5f63;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .preview-art .art-kicker {
@@ -5667,7 +5674,7 @@ textarea {
 
 .format-card-preview span {
   color: #6d6f73;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .format-card-copy {
@@ -5676,7 +5683,7 @@ textarea {
 
 .format-card-copy h3 {
   margin: 8px 0 9px;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .format-destinations {
@@ -5693,7 +5700,7 @@ textarea {
   border-radius: 999px;
   background: #f1f1ee;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .format-destinations svg {
@@ -5710,14 +5717,14 @@ textarea {
 .format-create-panel h2 {
   margin: 0 0 7px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 38px;
+  font-size: 2.0625rem;
   text-transform: uppercase;
 }
 
 .format-create-panel > p {
   margin: 0 0 20px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -5735,7 +5742,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #fafaf8;
-  font-size: 9px;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -5770,12 +5777,12 @@ textarea {
 
 .instagram-preview-topbar > div span {
   color: #737373;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .instagram-preview-topbar > div a {
   color: var(--pink);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -5807,7 +5814,7 @@ textarea {
   border-radius: 50%;
   background: #111;
   color: #fff;
-  font-size: 26px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
@@ -5824,7 +5831,7 @@ textarea {
 .instagram-profile-title h1 {
   margin: 0;
   font-family: "Poppins", Arial, sans-serif;
-  font-size: 20px;
+  font-size: 1.1875rem;
   font-weight: 400;
   text-transform: none;
 }
@@ -5834,7 +5841,7 @@ textarea {
   border-radius: 8px;
   background: #efefef;
   color: #333;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -5842,7 +5849,7 @@ textarea {
   margin: 20px 0 17px;
   display: flex;
   gap: 26px;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .instagram-stats strong {
@@ -5852,7 +5859,7 @@ textarea {
 .instagram-bio {
   display: grid;
   gap: 2px;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .instagram-bio p {
@@ -5908,7 +5915,7 @@ textarea {
   max-width: 76px;
   overflow: hidden;
   color: #262626;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5929,7 +5936,7 @@ textarea {
   gap: 5px;
   border-top: 1px solid transparent;
   color: #8e8e8e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.6px;
 }
@@ -5991,7 +5998,7 @@ textarea {
 }
 
 .ig-art > span {
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.8px;
 }
@@ -5999,7 +6006,7 @@ textarea {
 .ig-art > strong {
   max-width: 90%;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(20px, 3vw, 34px);
+  font-size: clamp(1.1875rem, 3vw, 1.875rem);
   line-height: 0.95;
   text-transform: uppercase;
 }
@@ -6020,7 +6027,7 @@ textarea {
 }
 
 .instagram-carousel-mark {
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .instagram-tile-overlay {
@@ -6044,7 +6051,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -6059,7 +6066,7 @@ textarea {
   place-items: center;
   border-top: 1px solid #dbdbdb;
   color: #777;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .instagram-preview-footer {
@@ -6070,7 +6077,7 @@ textarea {
   justify-content: space-between;
   border-top: 1px solid #efefef;
   color: #8e8e8e;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .instagram-post-modal {
@@ -6132,7 +6139,7 @@ textarea {
   border-radius: 50%;
   background: #111;
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -6141,17 +6148,17 @@ textarea {
 }
 
 .instagram-post-account strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .instagram-post-account small {
   color: #737373;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .instagram-modal-close {
   color: #262626;
-  font-size: 21px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -6160,7 +6167,7 @@ textarea {
   flex: 1;
   overflow-y: auto;
   color: #262626;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 
@@ -6177,7 +6184,7 @@ textarea {
 
 .instagram-last-feedback span {
   color: #a3153e;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -6263,7 +6270,7 @@ textarea {
   .instagram-profile-avatar span {
     width: 82px;
     height: 82px;
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 }
 
@@ -6300,12 +6307,12 @@ textarea {
   .instagram-profile-avatar span {
     width: 64px;
     height: 64px;
-    font-size: 14px;
+    font-size: 0.9375rem;
   }
 
   .instagram-stats {
     gap: 12px;
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .instagram-feed-grid {
@@ -6350,7 +6357,7 @@ textarea {
   }
 
   .instagram-profile-title h1 {
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .instagram-stories {
@@ -6362,7 +6369,7 @@ textarea {
   }
 
   .ig-art > strong {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
@@ -6413,14 +6420,14 @@ textarea {
 
 .nextcloud-picker-toolbar strong,
 .nextcloud-browser header strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .nextcloud-picker-toolbar small,
 .nextcloud-browser header small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6434,7 +6441,7 @@ textarea {
   border-radius: 11px;
   background: #0082c9;
   color: #fff;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.4px;
 }
@@ -6449,7 +6456,7 @@ textarea {
   border-radius: 13px;
   color: #9a9b9e;
   background: #fcfcfa;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .nextcloud-picker-empty svg {
@@ -6504,14 +6511,14 @@ textarea {
 
 .nextcloud-selected-assets small {
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .nextcloud-selected-assets strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6591,7 +6598,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .nextcloud-browser-nav > button:disabled {
@@ -6601,14 +6608,14 @@ textarea {
 .nextcloud-browser-nav code {
   overflow: hidden;
   color: #686a6f;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .nextcloud-browser-nav > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .nextcloud-browser-body {
@@ -6625,7 +6632,7 @@ textarea {
   gap: 8px;
   color: #8c8e92;
   text-align: center;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .nextcloud-browser-state.error {
@@ -6702,7 +6709,7 @@ textarea {
 
 .nextcloud-file-name strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6710,7 +6717,7 @@ textarea {
 .nextcloud-file-name small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6746,7 +6753,7 @@ textarea {
 
 .nextcloud-browser footer > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .calendar-archived-banner {
@@ -6767,12 +6774,12 @@ textarea {
 }
 
 .calendar-archived-banner strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .calendar-archived-banner span {
   color: #887557;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .calendar-danger-zone {
@@ -6794,13 +6801,13 @@ textarea {
 .calendar-danger-zone strong {
   display: block;
   margin: 3px 0 5px;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .calendar-danger-zone p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -6828,7 +6835,7 @@ textarea {
   border-radius: 999px;
   background: #eee8dc;
   color: #796a50;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -6962,18 +6969,18 @@ body {
 
 .page-header h1,
 .calendar-header h1 {
-  font-size: clamp(40px, 4.4vw, 58px);
+  font-size: clamp(2.125rem, 4.4vw, 3rem);
 }
 
 .clients-page-header h1,
 .client-detail-header h1,
 .client-editor-header h1,
 .team-page-header h1 {
-  font-size: clamp(44px, 5vw, 62px);
+  font-size: clamp(2.3125rem, 5vw, 3.1875rem);
 }
 
 .content-composer-heading h2 {
-  font-size: clamp(30px, 3.2vw, 42px);
+  font-size: clamp(1.6875rem, 3.2vw, 2.25rem);
 }
 
 .content-composer-standalone {
@@ -7018,7 +7025,7 @@ body {
   border-radius: 9px;
   background: #fafaf8;
   color: #606267;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -7065,7 +7072,7 @@ body {
   .client-detail-header h1,
   .client-editor-header h1,
   .team-page-header h1 {
-    font-size: 42px;
+    font-size: 2.25rem;
   }
 
   .client-directory-actions {
@@ -7074,7 +7081,7 @@ body {
 
   .client-action-button {
     min-height: 38px;
-    font-size: 9px;
+    font-size: 0.75rem;
   }
 }
 
@@ -7131,14 +7138,14 @@ body {
 
 .calendar-kpi-grid span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
 
 .calendar-kpi-grid strong {
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 28px;
+  font-size: 1.5625rem;
   line-height: 1;
 }
 
@@ -7164,14 +7171,14 @@ body {
 }
 
 .calendar-public-access strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .calendar-public-access code {
   max-width: 100%;
   overflow: hidden;
   color: #686a6f;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7201,12 +7208,12 @@ body {
 
 .calendar-section-heading h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .calendar-section-heading > span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .calendar-schedule-grid {
@@ -7267,13 +7274,13 @@ body {
 }
 
 .calendar-schedule-day strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: capitalize;
 }
 
 .calendar-schedule-day small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .calendar-day-state {
@@ -7281,7 +7288,7 @@ body {
   border-radius: 999px;
   background: #edf7f1;
   color: #16734d;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -7317,13 +7324,13 @@ body {
 }
 
 .content-reschedule-panel > div > strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .content-reschedule-panel > div > p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -7647,7 +7654,7 @@ body {
   flex: 1 1 auto;
   padding: 18px 16px;
   overflow-y: auto;
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 
@@ -7669,7 +7676,7 @@ body {
 .public-review-actions .button {
   min-height: 42px;
   padding-inline: 10px;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .review-dialog-layer {
@@ -7719,7 +7726,7 @@ body {
 .review-dialog h2 {
   margin: 0 0 5px;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 30px;
+  font-size: 1.6875rem;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -7727,7 +7734,7 @@ body {
 .review-dialog header p {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -7842,56 +7849,56 @@ h6,
 .client-detail-header h1,
 .client-editor-header h1,
 .team-page-header h1 {
-  font-size: clamp(34px, 3.7vw, 50px) !important;
+  font-size: clamp(1.875rem, 3.7vw, 2.625rem) !important;
   line-height: 1.02;
   letter-spacing: -0.045em;
   font-weight: 700;
 }
 
 .content-composer-heading h2 {
-  font-size: clamp(28px, 3vw, 38px) !important;
+  font-size: clamp(1.5625rem, 3vw, 2.0625rem) !important;
   line-height: 1.04;
   letter-spacing: -0.035em;
 }
 
 .login-form h2 {
-  font-size: 42px;
+  font-size: 2.25rem;
   line-height: 1;
   letter-spacing: -0.035em;
 }
 
 .login-visual h1 {
-  font-size: clamp(48px, 6vw, 74px);
+  font-size: clamp(2.5rem, 6vw, 3.75rem);
   line-height: 0.96;
   letter-spacing: -0.05em;
 }
 
 .public-heading h1 {
-  font-size: clamp(44px, 6vw, 68px);
+  font-size: clamp(2.3125rem, 6vw, 3.4375rem);
   line-height: 0.98;
   letter-spacing: -0.045em;
 }
 
 .not-found h1 {
-  font-size: clamp(44px, 6vw, 68px);
+  font-size: clamp(2.3125rem, 6vw, 3.4375rem);
 }
 
 .designer-create-panel h2,
 .config-note h2,
 .permission-note h2,
 .format-create-panel h2 {
-  font-size: 28px;
+  font-size: 1.5625rem;
   letter-spacing: -0.03em;
 }
 
 .micro-label {
-  font-size: 10px;
+  font-size: 0.8125rem;
   letter-spacing: 1.35px;
 }
 
 .overview-strip strong,
 .calendar-kpi-grid strong {
-  font-size: 32px;
+  font-size: 1.75rem;
   letter-spacing: -0.035em;
 }
 
@@ -7978,7 +7985,7 @@ h6,
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.62);
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -8003,7 +8010,7 @@ body::-webkit-scrollbar,
   .client-detail-header h1,
   .client-editor-header h1,
   .team-page-header h1 {
-    font-size: 36px !important;
+    font-size: 1.9375rem !important;
   }
 
   .instagram-carousel-arrow {
@@ -8068,7 +8075,7 @@ body::-webkit-scrollbar,
 .team-user-row .user-card-copy h3 {
   margin: 0;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -8080,7 +8087,7 @@ body::-webkit-scrollbar,
   gap: 5px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -8095,7 +8102,7 @@ body::-webkit-scrollbar,
   margin-top: 3px;
   overflow: hidden;
   color: #939599;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -8110,7 +8117,7 @@ body::-webkit-scrollbar,
   position: relative;
   padding-left: 10px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   white-space: nowrap;
 }
 
@@ -8156,7 +8163,7 @@ body::-webkit-scrollbar,
 .team-user-metric strong,
 .team-user-created strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -8165,7 +8172,7 @@ body::-webkit-scrollbar,
 .team-user-metric small,
 .team-user-created small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   white-space: nowrap;
 }
 
@@ -8178,7 +8185,7 @@ body::-webkit-scrollbar,
   justify-content: center;
   gap: 5px;
   border-radius: 9px;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -8214,7 +8221,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: #f6f6f3;
   color: #6f7175;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -8233,11 +8240,11 @@ body::-webkit-scrollbar,
 }
 
 .team-create-panel h2 {
-  font-size: 28px;
+  font-size: 1.5625rem;
 }
 
 .user-edit-heading h2 {
-  font-size: 30px;
+  font-size: 1.6875rem;
 }
 
 @media (max-width: 1280px) {
@@ -8423,7 +8430,7 @@ body::-webkit-scrollbar,
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.35px;
   text-transform: uppercase;
@@ -8490,13 +8497,13 @@ body::-webkit-scrollbar,
 }
 
 .account-status-zone strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .account-status-zone p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -8561,7 +8568,7 @@ body::-webkit-scrollbar,
   position: absolute;
   right: 5px;
   bottom: 5px;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -8670,7 +8677,7 @@ body::-webkit-scrollbar,
 
 .login-form-help a {
   color: var(--pink);
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -8689,7 +8696,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: #eff9f4;
   color: #246546;
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.55;
 }
 
@@ -8713,12 +8720,12 @@ body::-webkit-scrollbar,
   justify-content: space-between;
   gap: 12px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .password-strength-head strong {
   color: var(--ink);
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .password-strength-bar {
@@ -8748,7 +8755,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 6px;
   color: #77797d;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .password-rule svg {
@@ -8763,7 +8770,7 @@ body::-webkit-scrollbar,
 
 .password-match {
   margin-top: -7px;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -8812,7 +8819,7 @@ body::-webkit-scrollbar,
 
 .sidebar-brand > span {
   margin-top: 7px;
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 1.8px;
 }
 
@@ -8879,7 +8886,7 @@ body::-webkit-scrollbar,
 
 .dashboard-kpi-grid small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   letter-spacing: 0.45px;
   text-transform: uppercase;
 }
@@ -8887,7 +8894,7 @@ body::-webkit-scrollbar,
 .dashboard-kpi-grid strong {
   grid-column: 2;
   grid-row: 1 / 3;
-  font-size: 32px;
+  font-size: 1.75rem;
   line-height: 1;
   letter-spacing: -0.045em;
 }
@@ -8895,7 +8902,7 @@ body::-webkit-scrollbar,
 .dashboard-kpi-grid p {
   margin: 0;
   color: #9a9b9e;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .dashboard-main-grid {
@@ -8923,19 +8930,19 @@ body::-webkit-scrollbar,
 
 .dashboard-panel-heading .micro-label {
   margin-bottom: 3px;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-panel-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
   letter-spacing: -0.025em;
 }
 
 .dashboard-panel-heading p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-panel-heading > a,
@@ -8944,7 +8951,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 5px;
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -8985,7 +8992,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: var(--pink);
   color: #fff;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -8997,7 +9004,7 @@ body::-webkit-scrollbar,
 
 .dashboard-client-row > div > strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9005,7 +9012,7 @@ body::-webkit-scrollbar,
 .dashboard-client-row small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9020,7 +9027,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #fff4d9;
   color: #a46900;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -9055,14 +9062,14 @@ body::-webkit-scrollbar,
 }
 
 .dashboard-approval-score > div:first-child strong {
-  font-size: 34px;
+  font-size: 1.875rem;
   line-height: 1;
   letter-spacing: -0.05em;
 }
 
 .dashboard-approval-score > div:first-child span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-approval-ring {
@@ -9078,7 +9085,7 @@ body::-webkit-scrollbar,
 }
 
 .dashboard-approval-ring span {
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -9100,11 +9107,11 @@ body::-webkit-scrollbar,
 .dashboard-status-list p {
   margin: 0;
   color: #606267;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-status-list strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .status-dot {
@@ -9181,7 +9188,7 @@ body::-webkit-scrollbar,
 
 .dashboard-calendar-copy strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9189,11 +9196,11 @@ body::-webkit-scrollbar,
 .dashboard-calendar-copy small,
 .dashboard-calendar-stat small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .dashboard-calendar-stat strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .dashboard-calendar-arrow {
@@ -9223,12 +9230,12 @@ body::-webkit-scrollbar,
 
 .dashboard-empty strong {
   color: var(--ink);
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .dashboard-empty p {
   margin: 0;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 @media (max-width: 1180px) {
@@ -9330,7 +9337,7 @@ body::-webkit-scrollbar,
 
 .calendar-workflow-header h1 {
   margin: 0;
-  font-size: clamp(34px, 3.7vw, 50px);
+  font-size: clamp(1.875rem, 3.7vw, 2.625rem);
   line-height: 1;
   letter-spacing: -0.045em;
 }
@@ -9339,7 +9346,7 @@ body::-webkit-scrollbar,
   max-width: 640px;
   margin: 9px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 
@@ -9391,7 +9398,7 @@ body::-webkit-scrollbar,
   border: 1px solid #deded9;
   border-radius: 50%;
   background: #f6f6f3;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -9420,14 +9427,14 @@ body::-webkit-scrollbar,
 
 .workflow-step strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .workflow-step small {
   color: #a0a1a4;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .workflow-callout {
@@ -9476,7 +9483,7 @@ body::-webkit-scrollbar,
 
 .workflow-callout h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
   letter-spacing: -0.025em;
 }
 
@@ -9484,13 +9491,13 @@ body::-webkit-scrollbar,
   max-width: 720px;
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
 .workflow-progress-note {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -9520,19 +9527,19 @@ body::-webkit-scrollbar,
 
 .workflow-summary small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.45px;
   text-transform: uppercase;
 }
 
 .workflow-summary strong {
-  font-size: 23px;
+  font-size: 1.3125rem;
   line-height: 1;
 }
 
 .workflow-summary .workflow-summary-name {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -9556,12 +9563,12 @@ body::-webkit-scrollbar,
 
 .workflow-section-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .workflow-section-heading > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .workflow-item-list {
@@ -9598,7 +9605,7 @@ body::-webkit-scrollbar,
 }
 
 .workflow-item-date strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: capitalize;
 }
 
@@ -9607,7 +9614,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .workflow-item-date svg {
@@ -9643,17 +9650,17 @@ body::-webkit-scrollbar,
 }
 
 .workflow-item-type strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .workflow-item-type small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .workflow-item-copy strong {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9661,7 +9668,7 @@ body::-webkit-scrollbar,
 .workflow-item-copy span {
   overflow: hidden;
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -9671,7 +9678,7 @@ body::-webkit-scrollbar,
   margin: 2px 0 0;
   overflow: hidden;
   color: #5f6165;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9698,7 +9705,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: #fff;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .workflow-item-art > span svg {
@@ -9714,7 +9721,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.65);
   color: #fff;
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .workflow-item-art.empty {
@@ -9735,7 +9742,7 @@ body::-webkit-scrollbar,
   max-width: 180px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -9747,7 +9754,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f0f0ed;
   color: #6f7175;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -9785,7 +9792,7 @@ body::-webkit-scrollbar,
 .button-small {
   min-height: 34px;
   padding: 7px 9px;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .workflow-publishing-error {
@@ -9794,7 +9801,7 @@ body::-webkit-scrollbar,
   align-items: flex-start;
   gap: 4px;
   color: #ad214a;
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.35;
 }
 
@@ -9823,13 +9830,13 @@ body::-webkit-scrollbar,
 }
 
 .workflow-empty strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .workflow-empty p {
   margin: 0 0 7px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .calendar-public-link-card {
@@ -9856,7 +9863,7 @@ body::-webkit-scrollbar,
 
 .calendar-public-link-card strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9864,7 +9871,7 @@ body::-webkit-scrollbar,
 .calendar-public-link-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 /* Planning editor */
@@ -9896,7 +9903,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: var(--black);
   color: #fff;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -9912,12 +9919,12 @@ body::-webkit-scrollbar,
 }
 
 .planning-editor-heading strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .planning-editor-heading span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planning-type-grid {
@@ -9950,7 +9957,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planning-editor-footer svg {
@@ -9990,7 +9997,7 @@ body::-webkit-scrollbar,
 .artwork-brief-heading h2,
 .artwork-upload-heading h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 1.3125rem;
   letter-spacing: -0.03em;
 }
 
@@ -9999,7 +10006,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f0f0ed;
   color: #66686c;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -10033,13 +10040,13 @@ body::-webkit-scrollbar,
 .artwork-brief-grid small,
 .artwork-copy-block small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
 .artwork-brief-grid strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -10053,7 +10060,7 @@ body::-webkit-scrollbar,
 .artwork-copy-block p {
   margin: 5px 0 0;
   color: #505257;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.65;
   white-space: pre-wrap;
 }
@@ -10087,7 +10094,7 @@ body::-webkit-scrollbar,
 .artwork-upload-heading p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -10104,7 +10111,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #f2f2ef;
   color: #66686c;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -10118,7 +10125,7 @@ body::-webkit-scrollbar,
   border-radius: 9px;
   background: #fff4d9;
   color: #8c600a;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -10151,13 +10158,13 @@ body::-webkit-scrollbar,
 }
 
 .planning-public-topbar span {
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .planning-public-topbar small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .planning-public-hero {
@@ -10172,7 +10179,7 @@ body::-webkit-scrollbar,
 
 .planning-public-hero h1 {
   margin: 3px 0 8px;
-  font-size: clamp(32px, 4.5vw, 48px);
+  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
   letter-spacing: -0.045em;
 }
 
@@ -10180,7 +10187,7 @@ body::-webkit-scrollbar,
   max-width: 650px;
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.55;
 }
 
@@ -10195,13 +10202,13 @@ body::-webkit-scrollbar,
 }
 
 .planning-public-progress strong {
-  font-size: 22px;
+  font-size: 1.3125rem;
   line-height: 1;
 }
 
 .planning-public-progress span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .planning-public-list {
@@ -10235,7 +10242,7 @@ body::-webkit-scrollbar,
   border-radius: 9px;
   background: var(--black);
   color: #fff;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -10245,7 +10252,7 @@ body::-webkit-scrollbar,
 }
 
 .planning-public-card-index strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   text-transform: capitalize;
 }
 
@@ -10254,7 +10261,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .planning-public-card-head {
@@ -10266,14 +10273,14 @@ body::-webkit-scrollbar,
 
 .planning-public-type {
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .planning-public-card-head h2 {
   margin: 3px 0 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .planning-public-copy-grid {
@@ -10296,7 +10303,7 @@ body::-webkit-scrollbar,
 
 .planning-public-copy-grid small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
@@ -10304,7 +10311,7 @@ body::-webkit-scrollbar,
 .planning-public-copy-grid p {
   margin: 6px 0 0;
   color: #3f4145;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -10324,13 +10331,13 @@ body::-webkit-scrollbar,
 
 .planning-public-feedback strong {
   color: #a3153e;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planning-public-feedback p {
   margin: 3px 0 0;
   color: #6e3244;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planning-public-card .public-review-actions {
@@ -10347,7 +10354,7 @@ body::-webkit-scrollbar,
   border-radius: 9px;
   background: #eaf8f1;
   color: #18724e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -10373,7 +10380,7 @@ body::-webkit-scrollbar,
 
 .planning-public-footer span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 @media (max-width: 1180px) {
@@ -10598,7 +10605,7 @@ body::-webkit-scrollbar,
   max-width: 170px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -10608,7 +10615,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f0f0ed;
   color: #686a6e;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -10686,12 +10693,12 @@ body::-webkit-scrollbar,
 }
 
 .client-weekday-option strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .client-weekday-option small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .client-weekday-option input:checked + span {
@@ -10709,7 +10716,7 @@ body::-webkit-scrollbar,
 .client-rhythm-help {
   margin: -4px 22px 19px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -10765,13 +10772,13 @@ body::-webkit-scrollbar,
 
 .commemorative-summary small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
 .commemorative-summary strong {
-  font-size: 24px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
@@ -10793,19 +10800,19 @@ body::-webkit-scrollbar,
 
 .commemorative-section-heading h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: 1.125rem;
   letter-spacing: -0.03em;
 }
 
 .commemorative-section-heading p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .commemorative-section-heading > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -10843,14 +10850,14 @@ body::-webkit-scrollbar,
 }
 
 .commemorative-date-box strong {
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1;
 }
 
 .commemorative-date-box span {
   margin-top: 3px;
   color: #d7d7d7;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.7px;
 }
@@ -10861,7 +10868,7 @@ body::-webkit-scrollbar,
 
 .commemorative-scope {
   color: var(--pink);
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.6px;
   text-transform: uppercase;
@@ -10870,7 +10877,7 @@ body::-webkit-scrollbar,
 .commemorative-card-copy h3 {
   margin: 2px 0 3px;
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -10878,7 +10885,7 @@ body::-webkit-scrollbar,
 .commemorative-card-copy p {
   margin: 0;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.4;
 }
 
@@ -10913,32 +10920,32 @@ body::-webkit-scrollbar,
 }
 
 .commemorative-custom-date strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .commemorative-custom-date small,
 .commemorative-custom-scope small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .commemorative-custom-copy h3 {
   margin: 0;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .commemorative-custom-copy p {
   margin: 0;
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .commemorative-custom-scope span {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -10973,14 +10980,14 @@ body::-webkit-scrollbar,
 }
 
 .commemorative-empty strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .commemorative-empty p {
   max-width: 420px;
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .commemorative-modal {
@@ -11016,12 +11023,12 @@ body::-webkit-scrollbar,
 }
 
 .commemorative-active-toggle strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .commemorative-active-toggle small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .commemorative-form .form-actions {
@@ -11046,7 +11053,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 5px;
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.45px;
   text-transform: uppercase;
@@ -11072,12 +11079,12 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #fff;
   color: #5e6064;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .calendar-opportunity-chip strong {
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .interactive-calendar .commemorative {
@@ -11126,19 +11133,19 @@ body::-webkit-scrollbar,
 
 .calendar-opportunities-heading h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .calendar-opportunities-heading p {
   max-width: 660px;
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .calendar-opportunities-heading > a {
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -11173,13 +11180,13 @@ body::-webkit-scrollbar,
 }
 
 .calendar-opportunity-date strong {
-  font-size: 14px;
+  font-size: 0.9375rem;
   line-height: 1;
 }
 
 .calendar-opportunity-date span {
   margin-top: 2px;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -11191,14 +11198,14 @@ body::-webkit-scrollbar,
 
 .calendar-opportunity-card > div:last-child > span {
   color: var(--pink);
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .calendar-opportunity-card > div:last-child > strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -11206,7 +11213,7 @@ body::-webkit-scrollbar,
 .calendar-opportunity-card > div:last-child > small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -11296,14 +11303,14 @@ body::-webkit-scrollbar,
 
 .planning-date-opportunity strong {
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   letter-spacing: 0.35px;
   text-transform: uppercase;
 }
 
 .planning-date-opportunity span {
   color: #585a5e;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -11362,12 +11369,12 @@ body::-webkit-scrollbar,
 }
 
 .planner-auto-skeleton-note strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planner-auto-skeleton-note span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.45;
 }
 
@@ -11399,18 +11406,18 @@ body::-webkit-scrollbar,
 
 .workflow-deadline-banner span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.45px;
 }
 
 .workflow-deadline-banner strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .workflow-deadline-banner p {
   margin: 0 0 0 auto;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -11448,7 +11455,7 @@ body::-webkit-scrollbar,
 
 .dashboard-action-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .dashboard-action-heading > a {
@@ -11456,7 +11463,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 5px;
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -11503,13 +11510,13 @@ body::-webkit-scrollbar,
 }
 
 .dashboard-action strong {
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1;
 }
 
 .dashboard-action span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.35;
 }
 
@@ -11553,7 +11560,7 @@ body::-webkit-scrollbar,
 }
 
 .dashboard-deadlines-title strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-deadlines > div:last-child {
@@ -11587,16 +11594,16 @@ body::-webkit-scrollbar,
 }
 
 .deadline-row strong {
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .deadline-row small {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .deadline-row time {
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -11672,14 +11679,14 @@ body::-webkit-scrollbar,
 .production-summary small,
 .report-kpis small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .production-summary strong,
 .report-kpis strong {
-  font-size: 21px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -11721,7 +11728,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: var(--pink);
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -11733,7 +11740,7 @@ body::-webkit-scrollbar,
 
 .production-row strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -11742,7 +11749,7 @@ body::-webkit-scrollbar,
 .production-row-content span {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -11788,13 +11795,13 @@ body::-webkit-scrollbar,
 }
 
 .production-empty strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .production-empty p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 /* Notifications */
@@ -11843,18 +11850,18 @@ body::-webkit-scrollbar,
 }
 
 .notification-copy strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .notification-copy p {
   margin: 0;
   color: #5f6165;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .notification-copy small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .notification-actions {
@@ -11917,19 +11924,19 @@ body::-webkit-scrollbar,
 
 .template-card h3 {
   margin: 0;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .template-card p {
   margin: 5px 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
 .template-card small {
   color: #8c8e91;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .template-card > .button {
@@ -11957,7 +11964,7 @@ body::-webkit-scrollbar,
   gap: 7px;
   border-radius: 9px;
   background: #f5f5f2;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -12004,12 +12011,12 @@ body::-webkit-scrollbar,
 }
 
 .report-table-head strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .report-table-head span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .report-table {
@@ -12043,7 +12050,7 @@ body::-webkit-scrollbar,
 
 .report-row strong {
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12051,7 +12058,7 @@ body::-webkit-scrollbar,
 .report-row small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12096,7 +12103,7 @@ body::-webkit-scrollbar,
 
 .content-detail-card-head h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .content-detail-card-head > svg {
@@ -12107,7 +12114,7 @@ body::-webkit-scrollbar,
 
 .content-detail-card-head > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -12140,13 +12147,13 @@ body::-webkit-scrollbar,
 .content-detail-brief-grid small,
 .content-detail-text small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .content-detail-brief-grid strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -12160,7 +12167,7 @@ body::-webkit-scrollbar,
 .content-detail-text p {
   margin: 4px 0 0;
   color: #525459;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -12175,7 +12182,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: #f7f7f4;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
   text-align: center;
 }
 
@@ -12199,18 +12206,18 @@ body::-webkit-scrollbar,
 }
 
 .content-comment strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .content-comment small {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .content-comment p {
   margin: 5px 0 0;
   color: #56585c;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -12229,7 +12236,7 @@ body::-webkit-scrollbar,
   border: 1px solid var(--line);
   border-radius: 9px;
   font: inherit;
-  font-size: 8px;
+  font-size: 0.75rem;
   resize: vertical;
 }
 
@@ -12242,7 +12249,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .content-comment-visibility input {
@@ -12284,17 +12291,17 @@ body::-webkit-scrollbar,
 }
 
 .approval-history-list strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .approval-history-list small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .approval-history-list p {
   margin: 3px 0 0;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .version-empty {
@@ -12306,7 +12313,7 @@ body::-webkit-scrollbar,
   border-radius: 9px;
   background: #f7f7f4;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .art-version-list {
@@ -12328,7 +12335,7 @@ body::-webkit-scrollbar,
 }
 
 .art-version > div:first-child strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .art-version > div:first-child span {
@@ -12336,7 +12343,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #eaf8f1;
   color: #18724e;
-  font-size: 6px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -12360,7 +12367,7 @@ body::-webkit-scrollbar,
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-align: center;
 }
 
@@ -12382,11 +12389,11 @@ body::-webkit-scrollbar,
 
 .content-metrics-grid small {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .content-metrics-grid strong {
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .metrics-form {
@@ -12405,7 +12412,7 @@ body::-webkit-scrollbar,
   display: grid;
   gap: 3px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .metrics-form input {
@@ -12423,7 +12430,7 @@ body::-webkit-scrollbar,
 .metrics-note {
   margin: 9px 0 0;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .content-detail-meta {
@@ -12447,12 +12454,12 @@ body::-webkit-scrollbar,
   display: grid;
   gap: 1px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .content-detail-meta strong {
   color: var(--ink);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 /* Public comment thread */
@@ -12466,7 +12473,7 @@ body::-webkit-scrollbar,
 }
 
 .public-comment-thread > strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .public-comment {
@@ -12481,13 +12488,13 @@ body::-webkit-scrollbar,
 
 .public-comment span {
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
 .public-comment p {
   margin: 3px 0 0;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -12522,12 +12529,12 @@ body::-webkit-scrollbar,
 }
 
 .editorial-month-head span {
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .editorial-month-head strong {
-  font-size: 13px;
+  font-size: 0.875rem;
   text-transform: capitalize;
 }
 
@@ -12545,7 +12552,7 @@ body::-webkit-scrollbar,
 .editorial-weekdays span {
   padding: 8px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-align: center;
   text-transform: uppercase;
@@ -12582,7 +12589,7 @@ body::-webkit-scrollbar,
 }
 
 .editorial-day-number strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .editorial-day-number svg {
@@ -12597,7 +12604,7 @@ body::-webkit-scrollbar,
   border-radius: 5px;
   background: #fff0f4;
   color: #a3153e;
-  font-size: 6px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12613,14 +12620,14 @@ body::-webkit-scrollbar,
 
 .editorial-content strong {
   overflow: hidden;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .editorial-content small {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .editorial-stage-pre_changes_requested,
@@ -12793,7 +12800,7 @@ body::-webkit-scrollbar,
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .sidebar-search input::placeholder {
@@ -12862,14 +12869,14 @@ body::-webkit-scrollbar,
 .my-day-summary small,
 .capacity-summary small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
 .my-day-summary strong,
 .capacity-summary strong {
-  font-size: 21px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -12929,7 +12936,7 @@ body::-webkit-scrollbar,
 .my-day-task-copy > span {
   overflow: hidden;
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -12937,7 +12944,7 @@ body::-webkit-scrollbar,
 
 .my-day-task-copy strong {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12945,7 +12952,7 @@ body::-webkit-scrollbar,
 .my-day-task-copy small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12959,7 +12966,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #f5f5f2;
   color: #696b70;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -13001,14 +13008,14 @@ body::-webkit-scrollbar,
 
 .my-day-empty strong,
 .search-empty-state strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .my-day-empty p,
 .search-empty-state p {
   margin: 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 /* Capacity */
@@ -13046,7 +13053,7 @@ body::-webkit-scrollbar,
   border-radius: 10px;
   background: var(--black);
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -13060,7 +13067,7 @@ body::-webkit-scrollbar,
 .capacity-person strong,
 .capacity-metric strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -13069,7 +13076,7 @@ body::-webkit-scrollbar,
 .capacity-metric small,
 .capacity-metric span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .capacity-meter {
@@ -13086,7 +13093,7 @@ body::-webkit-scrollbar,
 
 .capacity-meter-head span,
 .capacity-meter-head strong {
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .capacity-meter-track {
@@ -13114,7 +13121,7 @@ body::-webkit-scrollbar,
 .capacity-status {
   padding: 5px 7px;
   border-radius: 999px;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -13175,13 +13182,13 @@ body::-webkit-scrollbar,
 }
 
 .audit-copy strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .audit-copy p {
   margin: 0;
   color: #5f6165;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .audit-copy > span,
@@ -13190,7 +13197,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .audit-copy svg,
@@ -13234,7 +13241,7 @@ body::-webkit-scrollbar,
   outline: 0;
   background: transparent;
   font: inherit;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .global-search-results {
@@ -13244,7 +13251,7 @@ body::-webkit-scrollbar,
 
 .search-results-summary {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .search-result-group {
@@ -13270,13 +13277,13 @@ body::-webkit-scrollbar,
 }
 
 .search-result-group > header strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .search-result-group > header span {
   margin-left: auto;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .search-result-group > div {
@@ -13301,12 +13308,12 @@ body::-webkit-scrollbar,
 }
 
 .search-result-group a strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .search-result-group a small {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 /* Visual proofing and annotation */
@@ -13357,7 +13364,7 @@ body::-webkit-scrollbar,
   border-radius: 50%;
   background: var(--pink);
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
@@ -13410,7 +13417,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.68);
   color: #fff;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-art-annotation-help {
@@ -13420,7 +13427,7 @@ body::-webkit-scrollbar,
   gap: 6px;
   background: #191919;
   color: #d7d7d7;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-art-annotation-help svg {
@@ -13450,7 +13457,7 @@ body::-webkit-scrollbar,
 }
 
 .public-art-annotation-form-head strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .public-art-annotation-form-head button {
@@ -13479,7 +13486,7 @@ body::-webkit-scrollbar,
 }
 
 .public-art-annotation-list > strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .public-art-annotation-list article {
@@ -13496,7 +13503,7 @@ body::-webkit-scrollbar,
   border-radius: 50%;
   background: var(--pink);
   color: #fff;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -13505,20 +13512,20 @@ body::-webkit-scrollbar,
 }
 
 .public-art-annotation-list article strong {
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-art-annotation-list article p {
   margin: 2px 0 0;
   color: #57595d;
-  font-size: 7px;
+  font-size: 0.6875rem;
   line-height: 1.4;
 }
 
 .public-review-progress {
   margin-bottom: 7px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-align: right;
 }
 
@@ -13537,7 +13544,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: #5f6165;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -13546,7 +13553,7 @@ body::-webkit-scrollbar,
 }
 
 .public-piece-navigation strong {
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-piece-navigation svg {
@@ -13560,7 +13567,7 @@ body::-webkit-scrollbar,
   place-items: center;
   background: #111;
   color: #aaa;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 /* Internal proofing */
@@ -13612,7 +13619,7 @@ body::-webkit-scrollbar,
   border-radius: 50%;
   background: var(--pink);
   color: #fff;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -13627,18 +13634,18 @@ body::-webkit-scrollbar,
 }
 
 .internal-annotation-list strong {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .internal-annotation-list p {
   margin: 0;
   color: #56585c;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .internal-annotation-list small {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 0.6875rem;
 }
 
 .art-version-comparison {
@@ -13671,7 +13678,7 @@ body::-webkit-scrollbar,
   padding: 7px 8px;
   background: #fff;
   color: #65676b;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-align: center;
 }
 
@@ -13689,7 +13696,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #fff0f4;
   color: var(--pink);
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -13825,7 +13832,7 @@ body::-webkit-scrollbar,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -13865,7 +13872,7 @@ body::-webkit-scrollbar,
   gap: 7px;
   border-radius: 7px;
   color: #8d8f93;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 500;
 }
 
@@ -13913,7 +13920,7 @@ body::-webkit-scrollbar,
 
 .sidebar-brand > span {
   color: #7b818c !important;
-  font-size: 10px !important;
+  font-size: 0.8125rem !important;
   font-weight: 600;
 }
 
@@ -13925,7 +13932,7 @@ body::-webkit-scrollbar,
   min-height: 44px;
   padding: 10px 12px;
   color: #20242c !important;
-  font-size: 15px !important;
+  font-size: 0.9375rem !important;
   font-weight: 500;
 }
 
@@ -13960,7 +13967,7 @@ body::-webkit-scrollbar,
 .sidebar-menu-group > summary > span {
   gap: 10px;
   color: #20242c !important;
-  font-size: 15px !important;
+  font-size: 0.9375rem !important;
   font-weight: 500;
 }
 
@@ -14002,7 +14009,7 @@ body::-webkit-scrollbar,
   gap: 9px;
   border-radius: 9px;
   color: #5f6672 !important;
-  font-size: 13px !important;
+  font-size: 0.875rem !important;
   font-weight: 500;
 }
 
@@ -14033,12 +14040,12 @@ body::-webkit-scrollbar,
 
 .sidebar-footer .designer-meta strong {
   color: #20242c !important;
-  font-size: 13px !important;
+  font-size: 0.875rem !important;
 }
 
 .sidebar-footer .designer-meta > span:not(.sidebar-role) {
   color: #7b818c !important;
-  font-size: 11px !important;
+  font-size: 0.8125rem !important;
 }
 
 .sidebar-footer .icon-button {
@@ -14053,15 +14060,15 @@ body::-webkit-scrollbar,
 
 @media (max-width: 820px) {
   .sidebar .nav-link {
-    font-size: 14px !important;
+    font-size: 0.9375rem !important;
   }
 
   .sidebar-menu-group > summary > span {
-    font-size: 14px !important;
+    font-size: 0.9375rem !important;
   }
 
   .sidebar-submenu-link {
-    font-size: 13px !important;
+    font-size: 0.875rem !important;
   }
 }
 
@@ -14079,7 +14086,7 @@ body::-webkit-scrollbar,
 
 .sidebar-brand > span {
   color: #7b818c !important;
-  font-size: 11px !important;
+  font-size: 0.8125rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em;
 }
@@ -14096,7 +14103,7 @@ body::-webkit-scrollbar,
   min-height: 46px;
   padding: 10px 13px;
   border-radius: 13px;
-  font-size: 16px !important;
+  font-size: 1rem !important;
   font-weight: 500;
   line-height: 1.2;
 }
@@ -14126,13 +14133,13 @@ body::-webkit-scrollbar,
   min-height: 46px;
   padding: 10px 13px;
   border-radius: 13px;
-  font-size: 16px !important;
+  font-size: 1rem !important;
   font-weight: 500;
 }
 
 .sidebar-menu-group > summary > span {
   gap: 11px;
-  font-size: 16px !important;
+  font-size: 1rem !important;
   font-weight: 500;
   line-height: 1.2;
 }
@@ -14176,7 +14183,7 @@ body::-webkit-scrollbar,
   padding: 9px 10px;
   gap: 9px;
   border-radius: 10px;
-  font-size: 14px !important;
+  font-size: 0.9375rem !important;
   font-weight: 500;
   line-height: 1.2;
 }
@@ -14208,13 +14215,13 @@ body::-webkit-scrollbar,
 
 .sidebar-footer .designer-meta strong {
   color: #20242c !important;
-  font-size: 14px !important;
+  font-size: 0.9375rem !important;
   font-weight: 600;
 }
 
 .sidebar-footer .designer-meta > span:not(.sidebar-role) {
   color: #6f7682 !important;
-  font-size: 12px !important;
+  font-size: 0.875rem !important;
 }
 
 .sidebar-footer .icon-button {
@@ -14232,11 +14239,11 @@ body::-webkit-scrollbar,
   .sidebar .nav-link,
   .sidebar-menu-group > summary,
   .sidebar-menu-group > summary > span {
-    font-size: 15px !important;
+    font-size: 0.9375rem !important;
   }
 
   .sidebar-submenu-link {
-    font-size: 14px !important;
+    font-size: 0.9375rem !important;
   }
 }
 
@@ -14272,7 +14279,7 @@ body::-webkit-scrollbar,
   place-items: center;
   background: #fff0f4;
   color: #ff0a54;
-  font-size: 19px;
+  font-size: 1.125rem;
 }
 
 .calendar-showcase-summary article div {
@@ -14282,13 +14289,13 @@ body::-webkit-scrollbar,
 
 .calendar-showcase-summary strong {
   color: #171719;
-  font-size: 24px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
 .calendar-showcase-summary small {
   color: #77757a;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .calendar-showcase-toolbar {
@@ -14309,7 +14316,7 @@ body::-webkit-scrollbar,
 .calendar-showcase-count {
   padding: 0 6px;
   color: #8a878b;
-  font-size: 12px;
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
@@ -14378,13 +14385,13 @@ body::-webkit-scrollbar,
 
 .calendar-showcase-month span {
   color: #ff346e;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.05em;
 }
 
 .calendar-showcase-month strong {
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -14394,21 +14401,21 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f4f3f2;
   color: #666469;
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .calendar-showcase-card h3 {
   margin: -4px 0 0;
   color: #18181a;
-  font-size: 19px;
+  font-size: 1.125rem;
   line-height: 1.25;
 }
 
 .calendar-showcase-period {
   margin: -7px 0 0;
   color: #908d91;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .calendar-showcase-metrics {
@@ -14431,12 +14438,12 @@ body::-webkit-scrollbar,
 
 .calendar-showcase-metrics strong {
   color: #1e1d20;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .calendar-showcase-metrics small {
   color: #989599;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .calendar-showcase-progress {
@@ -14462,14 +14469,14 @@ body::-webkit-scrollbar,
 
 .calendar-showcase-progress small {
   color: #8d8a8e;
-  font-size: 10px;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
 .calendar-showcase-footer {
   padding-top: 2px;
   color: #77747a;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .calendar-showcase-footer > span {
@@ -14500,12 +14507,12 @@ body::-webkit-scrollbar,
 
 .nextcloud-upload-strip strong {
   color: #1d1c1f;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .nextcloud-upload-strip small {
   color: #8d8a8f;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .nextcloud-upload-folder {
@@ -14515,7 +14522,7 @@ body::-webkit-scrollbar,
 
 .nextcloud-upload-folder span {
   color: #6f6c71;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -14555,7 +14562,7 @@ body::-webkit-scrollbar,
   border-bottom: 1px solid #ffd2dd;
   background: #fff3f6;
   color: #a10f36;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 1100px) {
@@ -14644,13 +14651,13 @@ body::-webkit-scrollbar,
 .standalone-kpis small,
 .productivity-kpis small {
   color: #8c898e;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .standalone-kpis strong,
 .productivity-kpis strong {
   color: #171719;
-  font-size: 24px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
@@ -14692,7 +14699,7 @@ body::-webkit-scrollbar,
 
 .section-heading h2 {
   margin: 3px 0 0;
-  font-size: 20px;
+  font-size: 1.1875rem;
   color: #18181a;
 }
 
@@ -14734,14 +14741,14 @@ body::-webkit-scrollbar,
 
 .standalone-card-head h3 {
   margin: 7px 0 2px;
-  font-size: 16px;
+  font-size: 1rem;
   color: #18181a;
 }
 
 .standalone-card-head p {
   margin: 0;
   color: #858287;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .standalone-priority,
@@ -14750,7 +14757,7 @@ body::-webkit-scrollbar,
   align-items: center;
   width: fit-content;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: .03em;
   text-transform: uppercase;
@@ -14799,7 +14806,7 @@ body::-webkit-scrollbar,
 .standalone-briefing {
   margin: 0;
   color: #615e63;
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -14818,7 +14825,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #f1efed;
   color: #6d696e;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-meta .is-overdue {
@@ -14829,7 +14836,7 @@ body::-webkit-scrollbar,
 
 .standalone-path {
   color: #7a777b;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-path code {
@@ -14868,7 +14875,7 @@ body::-webkit-scrollbar,
   padding: 13px 14px;
   border-top: 1px solid #ece9e7;
   color: #565359;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .productivity-row:first-child {
@@ -14878,7 +14885,7 @@ body::-webkit-scrollbar,
 .productivity-head {
   background: #f8f7f6;
   color: #8a878c;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -14962,7 +14969,7 @@ body::-webkit-scrollbar,
 .input-with-suffix span {
   padding: 0 12px;
   color: #817d82;
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -14997,18 +15004,18 @@ body::-webkit-scrollbar,
 .contract-usage-card small,
 .contract-usage-card em {
   color: #858186;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-style: normal;
 }
 
 .contract-usage-card strong {
   color: #1b1a1d;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .contract-usage-card strong span {
   color: #99959a;
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -15056,7 +15063,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #fff;
   color: #6f6b70;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -15113,7 +15120,7 @@ body::-webkit-scrollbar,
 
 .demand-filters label > span {
   color: #777379;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -15165,13 +15172,13 @@ body::-webkit-scrollbar,
 
 .operational-kanban-help strong {
   color: #1d1b1f;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .operational-kanban-help span,
 .operational-kanban-help em {
   color: #7c787d;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-style: normal;
 }
 
@@ -15184,7 +15191,7 @@ body::-webkit-scrollbar,
   border-radius: 12px;
   background: #fff5f7;
   color: #a8294b;
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -15232,12 +15239,12 @@ body::-webkit-scrollbar,
 
 .kanban-column-head strong {
   color: #1c1a1e;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-column-head small {
   color: #8a868b;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-column-icon {
@@ -15260,7 +15267,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #e9e6e3;
   color: #5e5a60;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 800;
 }
 
@@ -15270,7 +15277,7 @@ body::-webkit-scrollbar,
   gap: 8px;
   margin-bottom: 10px;
   color: #8b878c;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-cards {
@@ -15285,7 +15292,7 @@ body::-webkit-scrollbar,
   border: 1px dashed #d7d3d0;
   border-radius: 12px;
   color: #aaa6aa;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .kanban-card {
@@ -15328,7 +15335,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: #777278;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -15338,7 +15345,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f0eeec;
   color: #757176;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -15364,19 +15371,19 @@ body::-webkit-scrollbar,
 
 .kanban-card-main strong {
   color: #1c1a1e;
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.35;
 }
 
 .kanban-card-main span {
   color: #555158;
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .kanban-card-main small {
   color: #949095;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-card-meta {
@@ -15388,7 +15395,7 @@ body::-webkit-scrollbar,
   border-radius: 7px;
   background: #f4f2f0;
   color: #6f6b70;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -15404,7 +15411,7 @@ body::-webkit-scrollbar,
 
 .kanban-card-footer > span {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-card-footer a {
@@ -15412,7 +15419,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 4px;
   color: #242126;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
 }
@@ -15456,13 +15463,13 @@ body::-webkit-scrollbar,
 }
 
 .kanban-extra-badge strong {
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.2;
 }
 
 .kanban-extra-badge small {
   color: #b55a72;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.35;
 }
 
@@ -15497,7 +15504,7 @@ body::-webkit-scrollbar,
 
 .kanban-assignee small {
   color: #99959a;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -15505,7 +15512,7 @@ body::-webkit-scrollbar,
 .kanban-assignee strong {
   overflow: hidden;
   color: #4d494f;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -15519,7 +15526,7 @@ body::-webkit-scrollbar,
   padding: 0 7px;
   background: #fff;
   color: #4b474d;
-  font-size: 9px;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -15542,12 +15549,12 @@ body::-webkit-scrollbar,
 
 .kanban-capacity-title strong {
   color: #201e22;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-capacity-title span {
   color: #777379;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -15576,7 +15583,7 @@ body::-webkit-scrollbar,
 .kanban-capacity-card strong {
   overflow: hidden;
   color: #302d32;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -15584,7 +15591,7 @@ body::-webkit-scrollbar,
 .kanban-capacity-card > div:first-child span,
 .kanban-capacity-card small {
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-capacity-track {
@@ -15660,13 +15667,13 @@ body::-webkit-scrollbar,
 
 .kanban-focus-head strong {
   color: #1f1d21;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-focus-head span,
 .kanban-focus-head small {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-focus-list {
@@ -15703,7 +15710,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #242126;
   color: #fff;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -15716,14 +15723,14 @@ body::-webkit-scrollbar,
 .kanban-focus-main strong {
   overflow: hidden;
   color: #2a272c;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .kanban-focus-main span {
   color: #878388;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-focus-meta {
@@ -15734,13 +15741,13 @@ body::-webkit-scrollbar,
 
 .kanban-focus-meta > span {
   color: #4c484e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
 .kanban-focus-meta small {
   color: #918d92;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-focus-item > a,
@@ -15749,7 +15756,7 @@ body::-webkit-scrollbar,
   border: 0;
   background: transparent;
   color: #2b282d;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
@@ -15852,13 +15859,13 @@ body::-webkit-scrollbar,
 
 .kanban-week-head strong {
   color: #1f1d21;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-week-head span,
 .kanban-week-head small {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-week-grid {
@@ -15903,13 +15910,13 @@ body::-webkit-scrollbar,
 
 .kanban-week-day > header strong {
   color: #2a272c;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .kanban-week-day > header span,
 .kanban-week-day > header em {
   color: #878388;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-style: normal;
 }
 
@@ -15944,7 +15951,7 @@ body::-webkit-scrollbar,
   justify-content: space-between;
   gap: 8px;
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-week-alert {
@@ -15955,7 +15962,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #fff0f3;
   color: #b3294c;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -15985,7 +15992,7 @@ body::-webkit-scrollbar,
 .kanban-week-cards > a strong {
   overflow: hidden;
   color: #343136;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -15993,12 +16000,12 @@ body::-webkit-scrollbar,
 .kanban-week-cards > a small,
 .kanban-week-cards > small {
   color: #969297;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .kanban-week-cards > a em {
   color: #69656b;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: normal;
   font-weight: 800;
   white-space: nowrap;
@@ -16035,12 +16042,12 @@ body::-webkit-scrollbar,
 
 .kanban-performance-head strong {
   color: #1f1d21;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-performance-head span {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-performance-grid {
@@ -16068,7 +16075,7 @@ body::-webkit-scrollbar,
 .kanban-performance-grid strong {
   overflow: hidden;
   color: #302d32;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -16076,7 +16083,7 @@ body::-webkit-scrollbar,
 .kanban-performance-grid span,
 .kanban-performance-grid small {
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-performance-track {
@@ -16138,13 +16145,13 @@ body::-webkit-scrollbar,
 
 .kanban-agenda-head strong {
   color: #1f1d21;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-agenda-head span,
 .kanban-agenda-head small {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-agenda-scroll {
@@ -16179,7 +16186,7 @@ body::-webkit-scrollbar,
 
 .kanban-agenda-corner span {
   color: #7c787d;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -16195,12 +16202,12 @@ body::-webkit-scrollbar,
 
 .kanban-agenda-day-head strong {
   color: #2b282d;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .kanban-agenda-day-head span {
   color: #8d898e;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-agenda-designer {
@@ -16231,14 +16238,14 @@ body::-webkit-scrollbar,
 .kanban-agenda-designer strong {
   overflow: hidden;
   color: #343136;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .kanban-agenda-designer small {
   color: #939095;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-agenda-cell {
@@ -16268,7 +16275,7 @@ body::-webkit-scrollbar,
   justify-content: space-between;
   gap: 6px;
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-agenda-cell-head em {
@@ -16305,7 +16312,7 @@ body::-webkit-scrollbar,
 
 .kanban-agenda-items > small {
   color: #aaa6aa;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-agenda-item {
@@ -16334,14 +16341,14 @@ body::-webkit-scrollbar,
 .kanban-agenda-item strong {
   overflow: hidden;
   color: #343136;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .kanban-agenda-item span {
   color: #8b878c;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 @media (max-width: 700px) {
@@ -16390,12 +16397,12 @@ body::-webkit-scrollbar,
 
 .kanban-alerts-head strong {
   color: #1f1d21;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .kanban-alerts-head span {
   color: #858186;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-alerts-summary {
@@ -16408,7 +16415,7 @@ body::-webkit-scrollbar,
 .kanban-alerts-summary span {
   padding: 5px 7px;
   border-radius: 999px;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -16439,12 +16446,12 @@ body::-webkit-scrollbar,
 }
 
 .kanban-alerts-clear strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .kanban-alerts-clear small {
   color: #75897d;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .kanban-alerts-list {
@@ -16475,20 +16482,20 @@ body::-webkit-scrollbar,
 
 .kanban-alert-item strong {
   color: #343136;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .kanban-alert-item span {
   overflow: hidden;
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .kanban-alert-item > a {
   color: #2c292e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
 }
@@ -16511,7 +16518,7 @@ body::-webkit-scrollbar,
 
 .kanban-alerts-more {
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-align: right;
 }
@@ -16549,13 +16556,13 @@ body::-webkit-scrollbar,
   padding: 6px 8px;
   background: #fff;
   color: #2b282d;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
 .kanban-alert-actions a {
   color: #2c292e;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
 }
@@ -16588,13 +16595,13 @@ body::-webkit-scrollbar,
 
 .standalone-form-section-head strong {
   color: #262328;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .standalone-form-section-head small,
 .field-hint {
   color: #8a868b;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .field-hint {
@@ -16609,7 +16616,7 @@ body::-webkit-scrollbar,
   padding: 0 0 0 5px;
   background: transparent;
   color: var(--pink);
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -16633,18 +16640,18 @@ body::-webkit-scrollbar,
 
 .standalone-responsible-readonly small {
   color: #918d92;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .standalone-responsible-readonly strong {
   color: #37343a;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-responsible-readonly em {
   color: #777278;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-style: normal;
   font-weight: 700;
 }
@@ -16667,21 +16674,21 @@ body::-webkit-scrollbar,
 }
 
 .standalone-nextcloud-auto strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-nextcloud-auto span {
   overflow: hidden;
   color: #52685a;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .standalone-nextcloud-auto small {
   color: #748779;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .standalone-contract-preview {
@@ -16717,12 +16724,12 @@ body::-webkit-scrollbar,
 }
 
 .standalone-contract-head strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-contract-head small {
   color: #8a868b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .standalone-contract-grid {
@@ -16741,18 +16748,18 @@ body::-webkit-scrollbar,
 
 .standalone-contract-grid small {
   color: #8a868b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .standalone-contract-grid strong {
   color: #39363b;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-contract-preview p {
   margin: 0;
   color: #a33a56;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -16794,7 +16801,7 @@ body::-webkit-scrollbar,
 .points-help-hero svg {
   margin-top: 2px;
   color: var(--pink);
-  font-size: 20px;
+  font-size: 1.1875rem;
 }
 
 .points-help-hero article > div {
@@ -16804,14 +16811,14 @@ body::-webkit-scrollbar,
 
 .points-help-hero span {
   color: #9a969b;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: .8px;
 }
 
 .points-help-hero strong {
   color: #242126;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .points-help-hero p,
@@ -16820,7 +16827,7 @@ body::-webkit-scrollbar,
 .points-help-final p {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -16846,14 +16853,14 @@ body::-webkit-scrollbar,
 
 .points-help-card-head svg {
   color: var(--pink);
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .points-help-card-head h2,
 .points-help-section h2 {
   margin: 0 0 4px;
   color: #262328;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .points-capacity-examples {
@@ -16877,12 +16884,12 @@ body::-webkit-scrollbar,
 }
 
 .points-capacity-examples strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .points-capacity-examples small {
   color: #8a868b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .points-status {
@@ -16915,7 +16922,7 @@ body::-webkit-scrollbar,
   display: block;
   margin-bottom: 4px;
   color: #6e5320;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .points-help-section {
@@ -16941,7 +16948,7 @@ body::-webkit-scrollbar,
 .points-reference-head {
   background: #f7f5f3;
   color: #8c888d;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -16952,12 +16959,12 @@ body::-webkit-scrollbar,
 
 .points-reference-row strong {
   color: #333036;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .points-reference-row small {
   color: #878388;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .points-pill {
@@ -16966,7 +16973,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f2f0ee;
   color: #575259;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -17007,12 +17014,12 @@ body::-webkit-scrollbar,
 
 .points-week-example span {
   color: #68646a;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .points-week-example strong {
   color: #333036;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .points-week-example .total {
@@ -17028,7 +17035,7 @@ body::-webkit-scrollbar,
   margin: 0;
   padding-left: 18px;
   color: #656167;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.8;
 }
 
@@ -17042,12 +17049,12 @@ body::-webkit-scrollbar,
 
 .points-help-final > svg:first-child {
   color: var(--pink);
-  font-size: 20px;
+  font-size: 1.1875rem;
 }
 
 .points-help-final > svg:last-child {
   color: #4f8f69;
-  font-size: 20px;
+  font-size: 1.1875rem;
 }
 
 .points-help-final > div {
@@ -17056,7 +17063,7 @@ body::-webkit-scrollbar,
 }
 
 .points-help-final strong {
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 900px) {
@@ -17154,13 +17161,13 @@ body::-webkit-scrollbar,
 
 .app-notification-dropdown-head strong {
   color: #262328;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .app-notification-dropdown-head span,
 .app-notification-dropdown-head > a {
   color: #8a868b;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .app-notification-dropdown-head > a {
@@ -17214,19 +17221,19 @@ body::-webkit-scrollbar,
 
 .app-notification-copy strong {
   color: #302d32;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .app-notification-copy p {
   margin: 0;
   color: #777278;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
 .app-notification-copy small {
   color: #aaa6aa;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .app-notification-item-actions {
@@ -17246,7 +17253,7 @@ body::-webkit-scrollbar,
   justify-content: center;
   background: #fff;
   color: #39363b;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -17267,11 +17274,11 @@ body::-webkit-scrollbar,
 }
 
 .app-notification-empty svg {
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .app-notification-empty span {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .app-notification-dropdown-footer {
@@ -17281,7 +17288,7 @@ body::-webkit-scrollbar,
   border-top: 1px solid #efedea;
   background: #faf9f8;
   color: #4d494f;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -17338,13 +17345,13 @@ body::-webkit-scrollbar,
 
 .dashboard-overview-clean span {
   color: #737077;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
 .dashboard-overview-clean strong {
   color: #202024;
-  font-size: 30px;
+  font-size: 1.6875rem;
   line-height: 1;
 }
 
@@ -17355,7 +17362,7 @@ body::-webkit-scrollbar,
 .dashboard-overview-clean p {
   margin: 0;
   color: #99959a;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-focus-grid {
@@ -17383,13 +17390,13 @@ body::-webkit-scrollbar,
 
 .dashboard-focus-head .micro-label {
   margin-bottom: 3px;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .dashboard-focus-head h2 {
   margin: 0;
   color: #242126;
-  font-size: 17px;
+  font-size: 1.0625rem;
   letter-spacing: -0.025em;
 }
 
@@ -17398,7 +17405,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 5px;
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -17458,25 +17465,25 @@ body::-webkit-scrollbar,
 
 .dashboard-priority-item > div strong {
   color: #343136;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .dashboard-priority-item > div small {
   overflow: hidden;
   color: #918d92;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .dashboard-priority-item > b {
   color: #27242a;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .dashboard-priority-item > svg {
   color: #aaa6aa;
-  font-size: 13px;
+  font-size: 0.875rem;
 }
 
 .dashboard-deadline-list-clean {
@@ -17514,7 +17521,7 @@ body::-webkit-scrollbar,
 .dashboard-deadline-list-clean strong {
   overflow: hidden;
   color: #37343a;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -17522,7 +17529,7 @@ body::-webkit-scrollbar,
 .dashboard-deadline-list-clean small {
   overflow: hidden;
   color: #918d92;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -17530,7 +17537,7 @@ body::-webkit-scrollbar,
 .dashboard-deadline-list-clean time {
   flex: 0 0 auto;
   color: #6e6a70;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -17576,7 +17583,7 @@ body::-webkit-scrollbar,
 .dashboard-client-card-clean > div > strong {
   overflow: hidden;
   color: #343136;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -17584,7 +17591,7 @@ body::-webkit-scrollbar,
 .dashboard-client-card-clean small {
   overflow: hidden;
   color: #918d92;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -17605,11 +17612,11 @@ body::-webkit-scrollbar,
 }
 
 .dashboard-simple-empty svg {
-  font-size: 20px;
+  font-size: 1.1875rem;
 }
 
 .dashboard-simple-empty span {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 @media (max-width: 1050px) {
@@ -17667,13 +17674,13 @@ body::-webkit-scrollbar,
 
 .kanban-command-copy strong {
   color: #242126;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .kanban-command-copy span {
   overflow: hidden;
   color: #858186;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -17694,7 +17701,7 @@ body::-webkit-scrollbar,
   padding: 0 11px;
   background: transparent;
   color: #777278;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -17718,7 +17725,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f3f1ef;
   color: #6f6b70;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-style: normal;
   font-weight: 800;
 }
@@ -17779,12 +17786,12 @@ body::-webkit-scrollbar,
 
 .demand-filter-panel > summary strong {
   color: #2d2a2f;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .demand-filter-panel > summary small {
   color: #8e8a8f;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .demand-filter-count {
@@ -17792,7 +17799,7 @@ body::-webkit-scrollbar,
   border-radius: 999px;
   background: #f3f1ef;
   color: #6f6b70;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -17865,7 +17872,7 @@ body::-webkit-scrollbar,
   gap: 7px;
   border-radius: 9px;
   color: #777278;
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -17895,7 +17902,7 @@ body::-webkit-scrollbar,
 .help-docs-intro article > svg {
   margin-top: 2px;
   color: var(--pink);
-  font-size: 19px;
+  font-size: 1.125rem;
 }
 
 .help-docs-intro article > div {
@@ -17905,14 +17912,14 @@ body::-webkit-scrollbar,
 
 .help-docs-intro span {
   color: #99959a;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: .8px;
 }
 
 .help-docs-intro strong {
   color: #2b282d;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .help-docs-intro p,
@@ -17925,7 +17932,7 @@ body::-webkit-scrollbar,
 .help-daily-flow p {
   margin: 0;
   color: #7e7a80;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 
@@ -17944,7 +17951,7 @@ body::-webkit-scrollbar,
 .help-docs-section-head h2 {
   margin: 0;
   color: #242126;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .help-docs-card-grid {
@@ -17972,12 +17979,12 @@ body::-webkit-scrollbar,
 
 .help-docs-card > svg:first-child {
   color: var(--pink);
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .help-docs-card > svg:last-child {
   color: #aaa6aa;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .help-docs-card > div {
@@ -17986,7 +17993,7 @@ body::-webkit-scrollbar,
 }
 
 .help-docs-card strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .help-docs-table {
@@ -18013,18 +18020,18 @@ body::-webkit-scrollbar,
 .help-docs-table-row.head {
   background: #f7f5f3;
   color: #8e8a8f;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .help-docs-table-row strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .help-docs-table-row span {
   color: #777278;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .help-role-note {
@@ -18045,7 +18052,7 @@ body::-webkit-scrollbar,
 }
 
 .help-role-note strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .help-flow-index {
@@ -18076,7 +18083,7 @@ body::-webkit-scrollbar,
 
 .help-flow-index span {
   color: #555158;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -18112,7 +18119,7 @@ body::-webkit-scrollbar,
   border-radius: 8px;
   background: #242126;
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -18122,7 +18129,7 @@ body::-webkit-scrollbar,
 }
 
 .help-daily-flow strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .help-flow-section {
@@ -18155,13 +18162,13 @@ body::-webkit-scrollbar,
 
 .help-flow-section-head .micro-label {
   margin-bottom: 3px;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .help-flow-section-head h2 {
   margin: 0 0 4px;
   color: #242126;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .help-step-list {
@@ -18189,7 +18196,7 @@ body::-webkit-scrollbar,
 
 .help-step-list strong {
   color: #37343a;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .help-step-number {
@@ -18218,7 +18225,7 @@ body::-webkit-scrollbar,
 
 .help-status-grid svg {
   color: var(--pink);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .help-status-grid article > div {
@@ -18227,7 +18234,7 @@ body::-webkit-scrollbar,
 }
 
 .help-status-grid strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .help-docs-final-cta {
@@ -18244,7 +18251,7 @@ body::-webkit-scrollbar,
 
 .help-docs-final-cta > svg {
   color: var(--pink);
-  font-size: 19px;
+  font-size: 1.125rem;
 }
 
 .help-docs-final-cta > div {
@@ -18253,7 +18260,7 @@ body::-webkit-scrollbar,
 }
 
 .help-docs-final-cta strong {
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .help-docs-final-cta p {
@@ -18265,7 +18272,7 @@ body::-webkit-scrollbar,
   align-items: center;
   gap: 6px;
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -18382,7 +18389,7 @@ body::-webkit-scrollbar,
   margin: 0;
   overflow: hidden;
   color: #242126;
-  font-size: 20px;
+  font-size: 1.1875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -18397,7 +18404,7 @@ body::-webkit-scrollbar,
   place-items: center;
   background: #faf9f8;
   color: #555159;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .app-modal-close:hover {
@@ -18414,7 +18421,7 @@ body::-webkit-scrollbar,
 .app-modal-intro {
   margin: 0 0 16px;
   color: #7c787d;
-  font-size: 10px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -18537,13 +18544,13 @@ body::-webkit-scrollbar,
 
 .standalone-output-selector-head strong {
   color: #2f2c31;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .standalone-output-selector-head small,
 .standalone-output-selector-head > span {
   color: #8c888d;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .standalone-output-types {
@@ -18566,13 +18573,13 @@ body::-webkit-scrollbar,
 }
 
 .standalone-output-type span {
-  font-size: 9px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
 .standalone-output-type small {
   color: #99959a;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .standalone-output-type.active {
@@ -18608,16 +18615,16 @@ body::-webkit-scrollbar,
 }
 
 .standalone-output-config > div:first-child strong {
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .standalone-output-config > div:first-child small {
   color: #8d898e;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .standalone-output-config .field > span {
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .standalone-output-config select,
@@ -18625,7 +18632,7 @@ body::-webkit-scrollbar,
   min-height: 40px;
   padding-top: 9px;
   padding-bottom: 9px;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 700px) {
@@ -18667,7 +18674,7 @@ body::-webkit-scrollbar,
   border-radius: 18px;
   background: #141416;
   color: #fff;
-  font-size: 21px;
+  font-size: 1.25rem;
   font-weight: 800;
 }
 
@@ -18678,7 +18685,7 @@ body::-webkit-scrollbar,
 .public-calendar-identity h1 {
   margin: 3px 0 4px;
   color: #1d1b20;
-  font-size: 26px;
+  font-size: 1.5rem;
   line-height: 1;
 }
 
@@ -18690,7 +18697,7 @@ body::-webkit-scrollbar,
 .public-feed-heading small {
   margin: 0;
   color: #878388;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .public-calendar-period {
@@ -18704,7 +18711,7 @@ body::-webkit-scrollbar,
 .public-calendar-period span,
 .public-calendar-progress-copy span {
   color: #9a969b;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -18712,7 +18719,7 @@ body::-webkit-scrollbar,
 .public-calendar-period strong {
   overflow: hidden;
   color: #302d32;
-  font-size: 12px;
+  font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -18734,7 +18741,7 @@ body::-webkit-scrollbar,
 
 .public-calendar-progress-copy strong {
   color: #242126;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .public-calendar-progress-track {
@@ -18795,12 +18802,12 @@ body::-webkit-scrollbar,
 
 .public-calendar-summary small {
   color: #918d92;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .public-calendar-summary strong {
   color: #242126;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .public-calendar-guidance {
@@ -18823,7 +18830,7 @@ body::-webkit-scrollbar,
 
 .public-calendar-guidance strong {
   color: #3a3035;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .public-stories-section {
@@ -18843,7 +18850,7 @@ body::-webkit-scrollbar,
 .public-feed-heading h2 {
   margin: 2px 0 0;
   color: #252228;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .public-stories-section .instagram-stories {
@@ -18924,11 +18931,11 @@ body::-webkit-scrollbar,
     width: 58px;
     height: 58px;
     border-radius: 14px;
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
 
   .public-calendar-identity h1 {
-    font-size: 21px;
+    font-size: 1.25rem;
   }
 
   .public-calendar-period {
@@ -19051,14 +19058,14 @@ body:has(.instagram-preview-page) {
 .public-story-copy strong {
   overflow: hidden;
   color: #2b282d;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .public-story-copy small {
   color: #8c888d;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-feed-heading {
@@ -19124,7 +19131,7 @@ body:has(.instagram-preview-page) {
 .public-content-type-icon.text {
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 14px;
 }
 
@@ -19150,14 +19157,14 @@ body:has(.instagram-preview-page) {
 .public-content-card-title strong {
   overflow: hidden;
   color: #29262b;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .public-content-card-title small {
   color: #918d92;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .public-art-status {
@@ -19167,7 +19174,7 @@ body:has(.instagram-preview-page) {
   border-radius: 999px;
   background: #f0eeec;
   color: #68646a;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -19193,7 +19200,7 @@ body:has(.instagram-preview-page) {
   overflow: hidden;
   display: -webkit-box;
   color: #6f6a70;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -19206,7 +19213,7 @@ body:has(.instagram-preview-page) {
   justify-content: space-between;
   border-top: 1px solid #efedea;
   color: #4b474d;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -19218,7 +19225,7 @@ body:has(.instagram-preview-page) {
   border-radius: 14px;
   background: #fff;
   color: #918d92;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .instagram-preview-footer {
@@ -19301,7 +19308,7 @@ body:has(.instagram-preview-page) {
 .branding-source-head h2 {
   margin: 3px 0 0;
   color: #242126;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .branding-preview-status {
@@ -19312,7 +19319,7 @@ body:has(.instagram-preview-page) {
   border-radius: 999px;
   background: #eaf8f1;
   color: #267452;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -19336,7 +19343,7 @@ body:has(.instagram-preview-page) {
 
 .branding-preview-grid article > small {
   color: #918d92;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -19368,7 +19375,7 @@ body:has(.instagram-preview-page) {
   border-radius: 16px;
   background: #fff;
   color: #aaa6aa;
-  font-size: 24px;
+  font-size: 1.375rem;
 }
 
 .branding-favicon-preview img {
@@ -19395,7 +19402,7 @@ body:has(.instagram-preview-page) {
   max-width: 680px;
   margin: 0;
   color: #817d82;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -19422,13 +19429,13 @@ body:has(.instagram-preview-page) {
 
 .system-image-picker-copy strong {
   color: #312e33;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .system-image-picker-copy p {
   margin: 0;
   color: #8d898e;
-  font-size: 8px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -19469,13 +19476,13 @@ body:has(.instagram-preview-page) {
 
 .system-image-picker-current small {
   color: #99959a;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .system-image-picker-current strong {
   overflow: hidden;
   color: #39363b;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -19483,7 +19490,7 @@ body:has(.instagram-preview-page) {
 .system-image-picker-current code {
   overflow: hidden;
   color: #8b878c;
-  font-size: 7px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -19530,7 +19537,7 @@ body:has(.instagram-preview-page) {
 .system-nextcloud-folder > svg {
   flex: 0 0 auto;
   color: #8a858b;
-  font-size: 19px;
+  font-size: 1.125rem;
 }
 
 .system-nextcloud-folder > span {
@@ -19543,14 +19550,14 @@ body:has(.instagram-preview-page) {
 .system-nextcloud-image strong {
   overflow: hidden;
   color: #3a373c;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .system-nextcloud-folder small {
   color: #a29ea3;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .system-nextcloud-image {
@@ -19602,7 +19609,7 @@ body:has(.instagram-preview-page) {
   align-content: center;
   gap: 7px;
   color: #99959a;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .branding-save-bar {
@@ -19628,12 +19635,12 @@ body:has(.instagram-preview-page) {
 
 .branding-save-bar strong {
   color: #312e33;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .branding-save-bar span {
   color: #918d92;
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 @media (max-width: 900px) {
@@ -19725,7 +19732,7 @@ body:has(.instagram-preview-page) {
   border-radius: 50%;
   background: #141416;
   color: #fff;
-  font-size: 28px;
+  font-size: 1.5625rem;
   font-weight: 800;
 }
 
@@ -19745,7 +19752,7 @@ body:has(.instagram-preview-page) {
 .instagram-profile-title h1 {
   margin: 0;
   color: #18171a;
-  font-size: 24px;
+  font-size: 1.375rem;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -19755,7 +19762,7 @@ body:has(.instagram-preview-page) {
   border-radius: 8px;
   background: #f2f2f0;
   color: #4d4a4f;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -19764,7 +19771,7 @@ body:has(.instagram-preview-page) {
   align-items: center;
   gap: 30px;
   color: #37343a;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .instagram-stats span {
@@ -19775,7 +19782,7 @@ body:has(.instagram-preview-page) {
 
 .instagram-stats strong {
   color: #1d1b20;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .instagram-bio {
@@ -19786,18 +19793,18 @@ body:has(.instagram-preview-page) {
 
 .instagram-bio strong {
   color: #28252a;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .instagram-bio span {
   color: #6d6970;
-  font-size: 9px;
+  font-size: 0.75rem;
 }
 
 .instagram-bio p {
   margin: 4px 0 0;
   color: #6d6970;
-  font-size: 9px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 
@@ -19812,7 +19819,7 @@ body:has(.instagram-preview-page) {
   border-radius: 8px;
   background: #f1efed;
   color: #625e64;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -19836,7 +19843,7 @@ body:has(.instagram-preview-page) {
   align-items: center;
   gap: 5px;
   color: var(--pink);
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -19898,14 +19905,14 @@ body:has(.instagram-preview-page) {
 .instagram-story-highlight strong {
   width: 100%;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .instagram-story-highlight small {
   color: #9a969b;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .instagram-tabs-real {
@@ -19926,7 +19933,7 @@ body:has(.instagram-preview-page) {
   align-items: center;
   gap: 6px;
   color: #8a858b;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: .5px;
 }
@@ -20001,7 +20008,7 @@ body:has(.instagram-preview-page) {
 .instagram-grid-type.carousel {
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 1;
 }
 
@@ -20032,14 +20039,14 @@ body:has(.instagram-preview-page) {
 .instagram-grid-overlay strong {
   max-width: 90%;
   overflow: hidden;
-  font-size: 10px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .instagram-grid-overlay small {
   color: rgba(255,255,255,.78);
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .instagram-grid-overlay em {
@@ -20049,7 +20056,7 @@ body:has(.instagram-preview-page) {
   border-radius: 999px;
   background: rgba(255,255,255,.9);
   color: #302d32;
-  font-size: 7px;
+  font-size: 0.6875rem;
   font-style: normal;
   font-weight: 800;
 }
@@ -20084,17 +20091,17 @@ body:has(.instagram-preview-page) {
 
 .planner-date-toolbar span {
   color: rgba(255,255,255,.48);
-  font-size: 8px;
+  font-size: 0.75rem;
 }
 
 .planner-date-toolbar strong {
   color: #fff;
-  font-size: 10px;
+  font-size: 0.8125rem;
 }
 
 .planner-date-toolbar small {
   color: #ffb7c9;
-  font-size: 7px;
+  font-size: 0.6875rem;
 }
 
 .planner-delete-day {
@@ -20108,7 +20115,7 @@ body:has(.instagram-preview-page) {
   border-radius: 9px;
   background: rgba(255,255,255,.06);
   color: #fff;
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -20186,16 +20193,16 @@ body:has(.instagram-preview-page) {
 
   .instagram-profile-avatar-ring > span {
     border-width: 4px;
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .instagram-profile-title h1 {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .instagram-stats {
     gap: 14px;
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .instagram-bio {
@@ -20250,7 +20257,7 @@ body:has(.instagram-preview-page) {
 /* Login + public calendar portrait presentation refinements */
 .login-visual h1 {
   max-width: 560px;
-  font-size: clamp(42px, 5vw, 70px);
+  font-size: clamp(2.25rem, 5vw, 3.5625rem);
   line-height: 0.94;
 }
 
@@ -20463,7 +20470,7 @@ body:has(.instagram-preview-page) {
     place-items: center;
     background: #fff;
     color: #242126;
-    font-size: 21px;
+    font-size: 1.25rem;
   }
 
   .mobile-nav-layer {
@@ -20526,7 +20533,7 @@ body:has(.instagram-preview-page) {
     align-items: center;
     gap: 11px;
     color: #343137;
-    font-size: 14px;
+    font-size: 0.9375rem;
     font-weight: 600;
   }
 
@@ -20585,7 +20592,7 @@ body:has(.instagram-preview-page) {
 
   .mobile-nav-scroll details > div .mobile-nav-link {
     min-height: 42px;
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 
   .mobile-nav-user {
@@ -20606,7 +20613,7 @@ body:has(.instagram-preview-page) {
     border-radius: 50%;
     background: var(--pink);
     color: #fff;
-    font-size: 11px;
+    font-size: 0.8125rem;
     font-weight: 800;
   }
 
@@ -20623,12 +20630,12 @@ body:has(.instagram-preview-page) {
   }
 
   .mobile-nav-user strong {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
 
   .mobile-nav-user small {
     color: var(--muted);
-    font-size: 9px;
+    font-size: 0.75rem;
   }
 
   .mobile-nav-user button {
@@ -20681,14 +20688,14 @@ body:has(.instagram-preview-page) {
 
   .page-header h1,
   .calendar-header h1 {
-    font-size: clamp(34px, 10vw, 46px);
+    font-size: clamp(1.875rem, 10vw, 2.4375rem);
     line-height: .98;
   }
 
   .page-header p,
   .calendar-header p {
     margin-top: 9px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
 
   .calendar-actions,
@@ -20823,7 +20830,7 @@ body:has(.instagram-preview-page) {
   }
 
   .content-modal-head h2 {
-    font-size: 26px;
+    font-size: 1.5rem;
   }
 
   .content-modal-body {
@@ -20850,7 +20857,7 @@ body:has(.instagram-preview-page) {
   select,
   textarea {
     min-height: 44px;
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   textarea {
@@ -20879,12 +20886,12 @@ body:has(.instagram-preview-page) {
 
   .login-visual h1 {
     max-width: 480px;
-    font-size: clamp(40px, 12vw, 58px);
+    font-size: clamp(2.125rem, 12vw, 3rem);
   }
 
   .login-visual p {
     max-width: 440px;
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 
   .login-art {
@@ -20906,7 +20913,7 @@ body:has(.instagram-preview-page) {
   }
 
   .login-form h2 {
-    font-size: 42px;
+    font-size: 2.25rem;
   }
 }
 
@@ -20917,7 +20924,7 @@ body:has(.instagram-preview-page) {
 
   .page-header h1,
   .calendar-header h1 {
-    font-size: 36px;
+    font-size: 1.9375rem;
   }
 
   .calendar-meta-bar {
@@ -21085,14 +21092,14 @@ body:has(.instagram-preview-page) {
 
   .login-visual .micro-label {
     margin-bottom: 7px;
-    font-size: 9px;
+    font-size: 0.75rem;
     letter-spacing: 1.2px;
   }
 
   .login-visual h1 {
     max-width: 300px;
     margin: 0;
-    font-size: 36px;
+    font-size: 1.9375rem;
     line-height: .94;
     letter-spacing: -1.2px;
   }
@@ -21129,17 +21136,17 @@ body:has(.instagram-preview-page) {
   }
 
   .login-form .micro-label {
-    font-size: 9px;
+    font-size: 0.75rem;
   }
 
   .login-form h2 {
     margin-bottom: 4px;
-    font-size: 38px;
+    font-size: 2.0625rem;
     line-height: 1;
   }
 
   .login-form > div > p {
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 
   .login-form .field {
@@ -21147,7 +21154,7 @@ body:has(.instagram-preview-page) {
   }
 
   .login-form .field > span {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
 
   .login-form input {
@@ -21161,13 +21168,13 @@ body:has(.instagram-preview-page) {
   }
 
   .login-form-help a {
-    font-size: 11px;
+    font-size: 0.8125rem;
   }
 
   .login-form .button {
     min-height: 50px;
     border-radius: 12px;
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 
   /* Team page: make the summary useful without consuming an entire screen. */
@@ -21177,13 +21184,13 @@ body:has(.instagram-preview-page) {
   }
 
   .team-page-header h1 {
-    font-size: 38px;
+    font-size: 2.0625rem;
     line-height: 1;
   }
 
   .team-page-header p {
     margin-top: 8px;
-    font-size: 12px;
+    font-size: 0.875rem;
     line-height: 1.55;
   }
 
@@ -21227,11 +21234,11 @@ body:has(.instagram-preview-page) {
   }
 
   .team-overview article span {
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .team-overview article strong {
-    font-size: 30px;
+    font-size: 1.6875rem;
     line-height: 1;
   }
 
@@ -21245,7 +21252,7 @@ body:has(.instagram-preview-page) {
   .team-list-toolbar .search-control input {
     min-height: 42px;
     height: 42px;
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 
   .team-role-filter {
@@ -21259,13 +21266,13 @@ body:has(.instagram-preview-page) {
     min-width: 0;
     min-height: 36px;
     padding: 6px 4px;
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .team-result-count {
     min-width: 0;
     padding: 1px 3px 2px;
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .team-management-layout .user-grid {
@@ -21298,24 +21305,24 @@ body:has(.instagram-preview-page) {
 
   .team-management-layout .user-card-copy h3 {
     margin-bottom: 2px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
 
   .team-management-layout .user-card-copy p {
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .team-management-layout .role-chip {
     grid-column: 3;
     grid-row: 1;
     align-self: start;
-    font-size: 7px;
+    font-size: 0.6875rem;
   }
 
   .team-management-layout .user-card-access {
     grid-column: 2 / 4;
     grid-row: 2;
-    font-size: 8px;
+    font-size: 0.75rem;
   }
 
   .team-management-layout .user-card-context {
@@ -21329,12 +21336,12 @@ body:has(.instagram-preview-page) {
   }
 
   .team-management-layout .user-card-context strong {
-    font-size: 11px;
+    font-size: 0.8125rem;
   }
 
   .team-management-layout .user-card-context small {
     margin: 0;
-    font-size: 7px;
+    font-size: 0.6875rem;
   }
 
   .team-management-layout .user-card > a,
@@ -21348,7 +21355,7 @@ body:has(.instagram-preview-page) {
   .team-management-layout .user-card > .button {
     min-height: 36px;
     padding-block: 7px;
-    font-size: 9px;
+    font-size: 0.75rem;
   }
 
   .team-management-layout {
@@ -21367,7 +21374,7 @@ body:has(.instagram-preview-page) {
   }
 
   .user-edit-heading h2 {
-    font-size: 30px;
+    font-size: 1.6875rem;
   }
 
   .user-edit-form {
@@ -21390,7 +21397,7 @@ body:has(.instagram-preview-page) {
 
   .login-visual h1 {
     max-width: 270px;
-    font-size: 32px;
+    font-size: 1.75rem;
   }
 
   .login-panel {
@@ -21474,7 +21481,7 @@ body:has(.instagram-preview-page) {
     border-radius: 11px;
     background: rgba(255,255,255,.96);
     box-shadow: 0 2px 8px rgba(0,0,0,.035);
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .app-topbar-action:hover,
@@ -21600,7 +21607,7 @@ body:has(.instagram-preview-page) {
 
 .login-intro .micro-label {
   margin-bottom: 8px;
-  font-size: 10px;
+  font-size: 0.8125rem;
   letter-spacing: 1.8px;
 }
 
@@ -21608,7 +21615,7 @@ body:has(.instagram-preview-page) {
   margin: 0;
   color: #19191b;
   font-family: "Open Sans Condensed", "Arial Narrow", sans-serif;
-  font-size: 52px;
+  font-size: 2.6875rem;
   line-height: .95;
   text-transform: uppercase;
 }
@@ -21616,7 +21623,7 @@ body:has(.instagram-preview-page) {
 .login-intro p {
   margin: 12px 0 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 
@@ -21631,7 +21638,7 @@ body:has(.instagram-preview-page) {
 
 .login-form-simple .field > span {
   color: #3d3e42;
-  font-size: 11px;
+  font-size: 0.8125rem;
 }
 
 .login-form-simple input {
@@ -21641,7 +21648,7 @@ body:has(.instagram-preview-page) {
   border-radius: 13px;
   background: #faf9f7;
   color: #18191b;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .login-form-simple input::placeholder {
@@ -21662,7 +21669,7 @@ body:has(.instagram-preview-page) {
 
 .login-form-simple .login-form-help a {
   color: var(--pink);
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -21671,12 +21678,12 @@ body:has(.instagram-preview-page) {
   margin-top: 2px;
   border-radius: 13px;
   box-shadow: 0 10px 24px rgba(255, 1, 74, .18);
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 
 .login-footnote {
   color: #aaa6aa;
-  font-size: 9px;
+  font-size: 0.75rem;
   text-align: center;
 }
 
@@ -21715,22 +21722,22 @@ body:has(.instagram-preview-page) {
   }
 
   .login-intro h1 {
-    font-size: 44px;
+    font-size: 2.3125rem;
   }
 
   .login-intro p {
     margin-top: 9px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
 
   .login-form-simple input {
     min-height: 50px;
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .login-form-simple .button {
     min-height: 50px;
-    font-size: 13px;
+    font-size: 0.875rem;
   }
 }
 
@@ -21750,7 +21757,7 @@ body:has(.instagram-preview-page) {
   }
 
   .login-intro h1 {
-    font-size: 40px;
+    font-size: 2.125rem;
   }
 }
 
