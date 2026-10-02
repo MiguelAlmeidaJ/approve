@@ -1,10 +1,11 @@
-import type { UserRole } from "@approve/database";
+import type { UserPermission, UserRole } from "@approve/database";
 
 export type InternalActor = {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  permissions: UserPermission[];
 };
 
 export type InternalActorRequest = {
