@@ -30,6 +30,7 @@ import { logoutDesigner } from "../app/actions";
 import type { Designer } from "../lib/api";
 import { Brand } from "./brand";
 import type { AppSection } from "./app-shell";
+import { hasUserPermission } from "../lib/permissions";
 
 function initials(name: string) {
   return name
@@ -55,6 +56,7 @@ export function MobileAppNav({
   const canSeeUsers = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeFormats = designer.role === "ADMIN" || designer.role === "DEV";
   const canSeeConfig = designer.role === "DEV";
+  const canSeeReports = hasUserPermission(designer, "REPORTS_VIEW");
 
   const close = () => setOpen(false);
 
@@ -167,20 +169,22 @@ export function MobileAppNav({
                 </div>
               </details>
 
-              <details open={["reports", "productivity"].includes(activeSection)}>
-                <summary>
-                  <span><FiBarChart2 aria-hidden="true" />Resultados</span>
-                  <FiChevronDown aria-hidden="true" />
-                </summary>
-                <div>
-                  <Link href="/relatorios" onClick={close} className={itemClass(activeSection === "reports")}>
-                    <FiPieChart aria-hidden="true" />Relatórios
-                  </Link>
-                  <Link href="/produtividade" onClick={close} className={itemClass(activeSection === "productivity")}>
-                    <FiAward aria-hidden="true" />Produtividade
-                  </Link>
-                </div>
-              </details>
+              {canSeeReports ? (
+                <details open={["reports", "productivity"].includes(activeSection)}>
+                  <summary>
+                    <span><FiBarChart2 aria-hidden="true" />Resultados</span>
+                    <FiChevronDown aria-hidden="true" />
+                  </summary>
+                  <div>
+                    <Link href="/relatorios" onClick={close} className={itemClass(activeSection === "reports")}>
+                      <FiPieChart aria-hidden="true" />Relatórios
+                    </Link>
+                    <Link href="/produtividade" onClick={close} className={itemClass(activeSection === "productivity")}>
+                      <FiAward aria-hidden="true" />Produtividade
+                    </Link>
+                  </div>
+                </details>
+              ) : null}
 
               {canSeeUsers || canSeeConfig ? (
                 <details open={["audit", "identity", "config"].includes(activeSection)}>
