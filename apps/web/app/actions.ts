@@ -155,6 +155,8 @@ export async function createUser(formData: FormData) {
     email: required(formData, "email"),
     password: required(formData, "password"),
     role,
+    permissions: formData.getAll("permission").map(String),
+    weeklyCapacityPoints: Number(required(formData, "weeklyCapacityPoints")),
   });
 
   revalidatePath("/equipe");
@@ -174,6 +176,8 @@ export async function updateUser(formData: FormData) {
     name: required(formData, "name"),
     email: required(formData, "email"),
     role,
+    permissions: formData.getAll("permission").map(String),
+    weeklyCapacityPoints: Number(required(formData, "weeklyCapacityPoints")),
     ...(password ? { password } : {}),
   });
 
