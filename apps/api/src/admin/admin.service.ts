@@ -1435,7 +1435,7 @@ export class AdminService {
   }
 
   async archiveCalendar(actor: InternalActor, calendarId: string) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CALENDARS_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (calendar.archivedAt) {
@@ -1452,7 +1452,7 @@ export class AdminService {
   }
 
   async restoreCalendar(actor: InternalActor, calendarId: string) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CALENDARS_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
     const stage = this.inferCalendarStage(calendar.contentItems);
 
@@ -1589,6 +1589,7 @@ export class AdminService {
   }
 
   async submitPlanning(actor: InternalActor, calendarId: string) {
+    this.requirePermission(actor, "CONTENT_MANAGE");
     this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
@@ -2203,6 +2204,7 @@ export class AdminService {
   }
 
   async submitArtwork(actor: InternalActor, calendarId: string) {
+    this.requirePermission(actor, "PRODUCTION_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active || calendar.archivedAt) {
@@ -2510,7 +2512,7 @@ export class AdminService {
   }
 
   async rotateCalendarToken(actor: InternalActor, calendarId: string) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CALENDARS_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active) {
