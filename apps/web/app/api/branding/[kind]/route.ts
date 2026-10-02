@@ -1,12 +1,31 @@
 import { NextRequest } from "next/server";
 import { getApiUrl } from "../../../../lib/api";
 
+function fallbackPath(kind: "logo" | "logo-dark" | "favicon") {
+  return kind === "logo-dark"
+    ? "/brand-terceiro-andar-dark.svg"
+    : "/brand-terceiro-andar.svg";
+}
+
+function fallbackResponse(kind: "logo" | "logo-dark" | "favicon") {
+  return new Response(null, {
+    status: 307,
+    headers: {
+      // Keep this relative. In production the Next app can be behind a reverse
+      // proxy, and building the redirect from request.url may expose the
+      // internal localhost host/port to the browser.
+      location: fallbackPath(kind),
+      "cache-control": "no-store, max-age=0"
+    }
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ kind: string }> }
 ) {
   const { kind } = await params;
-  const normalizedKind =
+  const normalizedKind: "logo" | "logo-dark" | "favicon" =
     kind === "favicon" ? "favicon" : kind === "logo-dark" ? "logo-dark" : "logo";
   const endpoint = new URL(
     `/api/public/branding/${normalizedKind}`,
@@ -14,26 +33,26 @@ export async function GET(
   );
 
   const range = request.headers.get("range");
-  const response = await fetch(endpoint, {
-    headers: {
-      ...(range ? { range } : {})
-    },
-    cache: "no-store"
-  });
+
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint, {
+      headers: {
+        ...(range ? { range } : {})
+      },
+      cache: "no-store"
+    });
+  } catch (error) {
+    console.error(
+      `[branding] Falha ao consultar ${normalizedKind} na API.`,
+      error
+    );
+    return fallbackResponse(normalizedKind);
+  }
 
   if (!response.ok) {
-    return Response.redirect(
-      new URL(
-        normalizedKind === "favicon"
-          ? "/brand-terceiro-andar.svg"
-          : normalizedKind === "logo-dark" ||
-              request.nextUrl.searchParams.get("tone") === "dark"
-            ? "/brand-terceiro-andar-dark.svg"
-            : "/brand-terceiro-andar.svg",
-        request.url
-      ),
-      307
-    );
+    return fallbackResponse(normalizedKind);
   }
 
   const headers = new Headers();
