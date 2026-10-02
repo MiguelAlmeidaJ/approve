@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi";
 import type { Client, DesignerListItem } from "../lib/api";
 import { ClientLogoField } from "./client-logo-field";
+import { PhoneInput } from "./phone-input";
 
 export function ClientForm({
   action,
@@ -97,9 +98,8 @@ export function ClientForm({
               <span>Telefone de contato</span>
               <div className="input-with-icon">
                 <FiPhone aria-hidden="true" />
-                <input
+                <PhoneInput
                   name="phone"
-                  type="tel"
                   defaultValue={client?.phone ?? ""}
                   placeholder="(22) 99999-9999"
                   required
@@ -216,15 +216,6 @@ export function ClientForm({
                 name="region"
                 defaultValue={client?.region ?? ""}
                 placeholder="Ex.: Cabo Frio e Região dos Lagos"
-              />
-            </label>
-
-            <label className="field">
-              <span>Perfil mLabs</span>
-              <input
-                name="mlabsProfileId"
-                defaultValue={client?.mlabsProfileId ?? ""}
-                placeholder="ID do perfil quando a integração for conectada"
               />
             </label>
 
