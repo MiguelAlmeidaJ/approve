@@ -3,11 +3,13 @@ import { FiPlus } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
 import { CalendarsList } from "../../components/calendars-list";
 import { requireDesigner } from "../../lib/auth";
+import { hasUserPermission } from "../../lib/permissions";
 import { getAccessibleClients } from "../../lib/api";
 
 export default async function CalendarsPage() {
   const designer = await requireDesigner();
   const clients = await getAccessibleClients(designer);
+  const canManageCalendars = hasUserPermission(designer, "CALENDARS_MANAGE");
   const calendarCount = clients.reduce(
     (total, client) => total + client.calendars.length,
     0
@@ -23,7 +25,7 @@ export default async function CalendarsPage() {
             Todos os planejamentos editoriais dos clientes que você pode acessar.
           </p>
         </div>
-        {designer.role !== "DESIGNER" ? (
+        {canManageCalendars ? (
           <Link href="/calendars/new" className="button button-primary">
             <FiPlus aria-hidden="true" />
             Novo calendário
@@ -36,7 +38,7 @@ export default async function CalendarsPage() {
           <div className="empty-icon">□</div>
           <h3>Nenhum calendário</h3>
           <p>Crie o primeiro planejamento e escolha os dias de postagem.</p>
-          {designer.role !== "DESIGNER" ? (
+          {canManageCalendars ? (
             <Link href="/calendars/new" className="button button-primary">
               <FiPlus aria-hidden="true" />
               Criar calendário
