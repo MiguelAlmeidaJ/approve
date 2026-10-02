@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "../../components/brand";
+import { PasswordInput } from "../../components/password-input";
 import { getDesigner } from "../../lib/auth";
 import { loginDesigner } from "./actions";
 
@@ -54,8 +55,7 @@ export default async function LoginPage({
 
           <label className="field">
             <span>Senha</span>
-            <input
-              type="password"
+            <PasswordInput
               name="password"
               placeholder="••••••••"
               autoComplete="current-password"
