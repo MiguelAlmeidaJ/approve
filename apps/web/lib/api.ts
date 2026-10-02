@@ -1,6 +1,14 @@
 import { cookies } from "next/headers";
 
 export type UserRole = "DEV" | "ADMIN" | "DESIGNER";
+export type UserPermission =
+  | "CLIENTS_MANAGE"
+  | "CALENDARS_MANAGE"
+  | "CONTENT_MANAGE"
+  | "PRODUCTION_MANAGE"
+  | "STANDALONE_MANAGE"
+  | "SCHEDULING_MANAGE"
+  | "REPORTS_VIEW";
 export type CommemorativeScope = "NATIONAL" | "CUSTOM";
 export type CommentAuthorType = "INTERNAL" | "CLIENT" | "SYSTEM";
 export type NotificationType =
@@ -181,6 +189,7 @@ export type Designer = {
   name: string;
   email: string;
   role: UserRole;
+  permissions: UserPermission[];
   active: boolean;
   weeklyCapacityPoints?: number;
   mustChangePassword: boolean;
