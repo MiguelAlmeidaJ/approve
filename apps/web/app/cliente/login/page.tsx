@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Brand } from "../../../components/brand";
+import { PasswordInput } from "../../../components/password-input";
 import { getClientAccount } from "../../../lib/client-auth";
 import { loginClient } from "./actions";
 
@@ -17,29 +18,20 @@ export default async function ClientLoginPage({
   const { error, next } = await searchParams;
 
   return (
-    <main className="client-login-page">
-      <section className="client-login-visual">
-        <div className="client-login-copy">
-          <Brand tone="dark" />
-          <span className="micro-label micro-label-light">
-            ÁREA DO CLIENTE
-          </span>
-          <h1>Aprovar ficou simples.</h1>
-          <p>
-            Acesse seus calendários, revise as peças e concentre todas as
-            aprovações em um único lugar.
-          </p>
+    <main className="login-page login-page-simple">
+      <section className="login-shell">
+        <div className="login-brand">
+          <Brand />
         </div>
-      </section>
 
-      <section className="client-login-panel">
-        <form action={loginClient} className="client-login-form">
+        <div className="login-intro">
+          <span className="micro-label">ACESSO DO CLIENTE</span>
+          <h1>Entrar</h1>
+          <p>Use o e-mail e a senha fornecidos pela Terceiro Andar.</p>
+        </div>
+
+        <form action={loginClient} className="login-form login-form-simple">
           <input type="hidden" name="next" value={next ?? "/cliente"} />
-          <div>
-            <span className="micro-label">ACESSO DO CLIENTE</span>
-            <h2>Entrar</h2>
-            <p>Use o e-mail e a senha fornecidos pela Terceiro Andar.</p>
-          </div>
 
           {error ? (
             <div className="form-error">E-mail ou senha inválidos.</div>
@@ -47,14 +39,20 @@ export default async function ClientLoginPage({
 
           <label className="field">
             <span>E-mail</span>
-            <input type="email" name="email" autoComplete="email" required />
+            <input
+              type="email"
+              name="email"
+              placeholder="cliente@empresa.com"
+              autoComplete="email"
+              required
+            />
           </label>
 
           <label className="field">
             <span>Senha</span>
-            <input
-              type="password"
+            <PasswordInput
               name="password"
+              placeholder="••••••••"
               minLength={6}
               autoComplete="current-password"
               required
@@ -65,6 +63,8 @@ export default async function ClientLoginPage({
             Entrar na área do cliente
           </button>
         </form>
+
+        <span className="login-footnote">Terceiro Andar · Aprovação de conteúdo</span>
       </section>
     </main>
   );
