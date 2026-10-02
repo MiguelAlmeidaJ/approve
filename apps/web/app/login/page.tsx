@@ -24,34 +24,19 @@ export default async function LoginPage({
         : null;
 
   return (
-    <main className="login-page">
-      <section className="login-visual">
-        <div className="login-visual-content">
-          <Brand tone="dark" />
-          <span className="micro-label micro-label-light">
-            TERCEIRO ANDAR · APROVAÇÃO
-          </span>
-          <h1>Calendários claros. Aprovações simples.</h1>
-          <p>
-            Um espaço direto para organizar o conteúdo de cada cliente e
-            compartilhar a prévia do mês.
-          </p>
+    <main className="login-page login-page-simple">
+      <section className="login-shell">
+        <div className="login-brand">
+          <Brand />
         </div>
-        <div className="login-art" aria-hidden="true">
-          <span />
-          <span />
-          <span />
+
+        <div className="login-intro">
+          <span className="micro-label">ÁREA DO DESIGNER</span>
+          <h1>Entrar</h1>
+          <p>Use seu acesso da Terceiro Andar.</p>
         </div>
-      </section>
 
-      <section className="login-panel">
-        <form action={loginDesigner} className="login-form">
-          <div>
-            <span className="micro-label">ÁREA DO DESIGNER</span>
-            <h2>Entrar</h2>
-            <p>Use seu acesso da Terceiro Andar.</p>
-          </div>
-
+        <form action={loginDesigner} className="login-form login-form-simple">
           {errorMessage ? (
             <div className="form-error">{errorMessage}</div>
           ) : null}
@@ -87,6 +72,8 @@ export default async function LoginPage({
             Entrar no painel
           </button>
         </form>
+
+        <span className="login-footnote">Terceiro Andar · Aprovação de conteúdo</span>
       </section>
     </main>
   );
