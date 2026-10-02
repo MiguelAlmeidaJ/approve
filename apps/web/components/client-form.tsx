@@ -20,6 +20,7 @@ import {
 import type { Client, DesignerListItem } from "../lib/api";
 import { ClientLogoField } from "./client-logo-field";
 import { PhoneInput } from "./phone-input";
+import { PasswordInput } from "./password-input";
 import { ClientNextcloudFolderPicker } from "./client-nextcloud-folder-picker";
 
 export function ClientForm({
@@ -438,9 +439,8 @@ export function ClientForm({
               </span>
               <div className="input-with-icon">
                 <FiKey aria-hidden="true" />
-                <input
+                <PasswordInput
                   name="password"
-                  type="password"
                   placeholder={
                     isEditing
                       ? "Deixe vazio para manter a atual"
