@@ -5,6 +5,7 @@ import {
   ContentStage,
   ContentType,
   StandaloneArtworkStatus,
+  USER_PERMISSIONS,
   UserRole
 } from "@approve/database";
 import {
@@ -309,6 +310,13 @@ export class CreateDesignerDto {
   role?: UserRole;
 
   @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(USER_PERMISSIONS.length)
+  @IsString({ each: true })
+  permissions?: string[];
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(200)
@@ -325,6 +333,13 @@ export class UpdateUserDto {
 
   @IsEnum(UserRole)
   role!: UserRole;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(USER_PERMISSIONS.length)
+  @IsString({ each: true })
+  permissions?: string[];
 
   @IsOptional()
   @IsString()
