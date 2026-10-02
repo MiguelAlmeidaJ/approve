@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
 import { UsersList } from "../../components/users-list";
+import { PasswordInput } from "../../components/password-input";
 import { createUser, setUserActive, updateUser } from "../actions";
 import { requireRole } from "../../lib/auth";
 import { getUsers, type UserListItem } from "../../lib/api";
@@ -187,8 +188,7 @@ export default async function TeamPage({
 
               <label className="field">
                 <span>Senha inicial</span>
-                <input
-                  type="password"
+                <PasswordInput
                   name="password"
                   minLength={6}
                   placeholder="Senha inicial"
@@ -328,8 +328,7 @@ export default async function TeamPage({
                 <span>
                   Nova senha <small>(opcional)</small>
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   name="password"
                   minLength={6}
                   placeholder="Mantenha vazio para não alterar"
