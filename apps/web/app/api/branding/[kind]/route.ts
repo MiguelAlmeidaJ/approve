@@ -1,23 +1,44 @@
 import { NextRequest } from "next/server";
+import {
+  readBrandingCache,
+  writeBrandingCache,
+  type BrandingKind
+} from "../../../../lib/branding-cache";
 import { getApiUrl } from "../../../../lib/api";
 
-function fallbackPath(kind: "logo" | "logo-dark" | "favicon") {
+function fallbackPath(kind: BrandingKind) {
   return kind === "logo-dark"
     ? "/brand-terceiro-andar-dark.svg"
     : "/brand-terceiro-andar.svg";
 }
 
-function fallbackResponse(kind: "logo" | "logo-dark" | "favicon") {
+function fallbackResponse(kind: BrandingKind) {
   return new Response(null, {
     status: 307,
     headers: {
-      // Keep this relative. In production the Next app can be behind a reverse
-      // proxy, and building the redirect from request.url may expose the
-      // internal localhost host/port to the browser.
       location: fallbackPath(kind),
       "cache-control": "no-store, max-age=0"
     }
   });
+}
+
+function cachedResponse(
+  body: Uint8Array,
+  contentType: string,
+  updatedAt?: string
+) {
+  const headers = new Headers({
+    "content-type": contentType,
+    "content-length": String(body.byteLength),
+    "cache-control": "no-store, max-age=0",
+    "x-branding-source": "local-cache"
+  });
+
+  if (updatedAt) {
+    headers.set("last-modified", new Date(updatedAt).toUTCString());
+  }
+
+  return new Response(body, { status: 200, headers });
 }
 
 export async function GET(
@@ -25,14 +46,27 @@ export async function GET(
   { params }: { params: Promise<{ kind: string }> }
 ) {
   const { kind } = await params;
-  const normalizedKind: "logo" | "logo-dark" | "favicon" =
+  const normalizedKind: BrandingKind =
     kind === "favicon" ? "favicon" : kind === "logo-dark" ? "logo-dark" : "logo";
+
+  const range = request.headers.get("range");
+
+  if (!range) {
+    const cached = await readBrandingCache(normalizedKind);
+
+    if (cached) {
+      return cachedResponse(
+        new Uint8Array(cached.body),
+        cached.contentType,
+        cached.updatedAt
+      );
+    }
+  }
+
   const endpoint = new URL(
     `/api/public/branding/${normalizedKind}`,
     getApiUrl()
   );
-
-  const range = request.headers.get("range");
 
   let response: Response;
 
@@ -53,6 +87,24 @@ export async function GET(
 
   if (!response.ok) {
     return fallbackResponse(normalizedKind);
+  }
+
+  const contentType =
+    response.headers.get("content-type") || "application/octet-stream";
+
+  if (!range && response.status === 200 && contentType.startsWith("image/")) {
+    const body = new Uint8Array(await response.arrayBuffer());
+
+    try {
+      await writeBrandingCache(normalizedKind, body, contentType);
+    } catch (error) {
+      console.error(
+        `[branding] Falha ao gravar cache local de ${normalizedKind}.`,
+        error
+      );
+    }
+
+    return cachedResponse(body, contentType);
   }
 
   const headers = new Headers();
