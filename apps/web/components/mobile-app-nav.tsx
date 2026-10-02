@@ -61,7 +61,7 @@ export function MobileAppNav({
   return (
     <>
       <header className="mobile-app-nav">
-        <Brand compact />
+        <Brand />
         <button
           type="button"
           className="mobile-nav-toggle"
