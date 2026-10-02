@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireDesigner, requireRole, SESSION_COOKIE } from "../lib/auth";
+import { requireDesigner, requirePermission, requireRole, SESSION_COOKIE } from "../lib/auth";
 import { canAccessClient, getApiUrl, getCalendar, getClient } from "../lib/api";
 import {
   clearBrandingCache,
@@ -224,7 +224,7 @@ export async function setClientActive(formData: FormData) {
 }
 
 export async function createClient(formData: FormData) {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("CLIENTS_MANAGE");
   const selectedDesignerId = String(
     formData.get("assignedDesignerId") ?? "",
   ).trim();
@@ -295,7 +295,7 @@ export async function createClient(formData: FormData) {
 
 
 export async function updateClient(formData: FormData) {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("CLIENTS_MANAGE");
   const clientId = required(formData, "clientId");
   const client = await getClient(clientId);
 
@@ -471,7 +471,7 @@ export async function toggleCommemorativeDate(formData: FormData) {
 }
 
 export async function createCalendar(formData: FormData) {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("CALENDARS_MANAGE");
   const clientId = required(formData, "clientId");
   const client = await getClient(clientId);
 
@@ -512,7 +512,7 @@ export async function createCalendar(formData: FormData) {
 }
 
 export async function updateCalendar(formData: FormData) {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("CALENDARS_MANAGE");
   const calendarId = required(formData, "calendarId");
   const calendar = await getCalendar(calendarId);
 
@@ -562,6 +562,7 @@ export async function updateCalendar(formData: FormData) {
 }
 
 export async function archiveCalendar(calendarId: string) {
+  await requirePermission("CALENDARS_MANAGE");
   const designer = await requireDesigner();
   const calendar = await getCalendar(calendarId);
 
@@ -580,6 +581,7 @@ export async function archiveCalendar(calendarId: string) {
 }
 
 export async function restoreCalendar(calendarId: string) {
+  await requirePermission("CALENDARS_MANAGE");
   const designer = await requireDesigner();
   const calendar = await getCalendar(calendarId);
 
@@ -598,6 +600,7 @@ export async function restoreCalendar(calendarId: string) {
 }
 
 export async function createPlanningItem(formData: FormData) {
+  await requirePermission("CONTENT_MANAGE");
   await requireRole("ADMIN", "DEV");
   const calendarId = required(formData, "calendarId");
   const postingDate = required(formData, "postingDate");
@@ -639,6 +642,7 @@ export async function createPlanningItem(formData: FormData) {
 }
 
 export async function updatePlanningItem(formData: FormData) {
+  await requirePermission("CONTENT_MANAGE");
   await requireRole("ADMIN", "DEV");
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
@@ -679,6 +683,7 @@ export async function updatePlanningItem(formData: FormData) {
 }
 
 export async function submitPlanning(calendarId: string) {
+  await requirePermission("CONTENT_MANAGE");
   await requireRole("ADMIN", "DEV");
 
   await adminPost(
@@ -822,6 +827,7 @@ export async function assignOperationalDemand(formData: FormData) {
 }
 
 export async function updateContentProductionStage(formData: FormData) {
+  await requirePermission("PRODUCTION_MANAGE");
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
@@ -844,6 +850,7 @@ export async function updateContentProductionStage(formData: FormData) {
 }
 
 export async function attachArtwork(formData: FormData) {
+  await requirePermission("PRODUCTION_MANAGE");
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
@@ -877,6 +884,7 @@ export async function attachArtwork(formData: FormData) {
 }
 
 export async function submitArtwork(calendarId: string) {
+  await requirePermission("PRODUCTION_MANAGE");
   const designer = await requireDesigner();
   const calendar = await getCalendar(calendarId);
 
@@ -895,7 +903,7 @@ export async function submitArtwork(calendarId: string) {
 }
 
 export async function markContentScheduled(formData: FormData) {
-  await requireRole("ADMIN", "DEV");
+  await requirePermission("SCHEDULING_MANAGE");
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
 
@@ -913,7 +921,7 @@ export async function markContentScheduled(formData: FormData) {
 }
 
 export async function markContentPublished(formData: FormData) {
-  await requireRole("ADMIN", "DEV");
+  await requirePermission("SCHEDULING_MANAGE");
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
 
@@ -927,7 +935,7 @@ export async function markContentPublished(formData: FormData) {
 }
 
 export async function markContentSchedulingError(formData: FormData) {
-  await requireRole("ADMIN", "DEV");
+  await requirePermission("SCHEDULING_MANAGE");
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
 
@@ -1066,7 +1074,7 @@ export async function resolveContentAnnotation(formData: FormData) {
 }
 
 export async function updateContentMetrics(formData: FormData) {
-  await requireRole("ADMIN", "DEV");
+  await requirePermission("REPORTS_VIEW");
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
 
@@ -1107,6 +1115,7 @@ export async function markNotificationRead(formData: FormData) {
 }
 
 export async function createContentItem(formData: FormData) {
+  await requirePermission("CONTENT_MANAGE");
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
   const calendar = await getCalendar(calendarId);
@@ -1156,6 +1165,7 @@ export async function createContentItem(formData: FormData) {
 }
 
 export async function moveContentItem(formData: FormData) {
+  await requirePermission("CONTENT_MANAGE");
   const designer = await requireDesigner();
   const calendarId = required(formData, "calendarId");
   const itemId = required(formData, "itemId");
@@ -1185,6 +1195,7 @@ export async function moveContentItem(formData: FormData) {
 }
 
 export async function createStandaloneArtwork(formData: FormData) {
+  await requirePermission("STANDALONE_MANAGE");
   const designer = await requireDesigner();
   const designerId =
     designer.role === "DESIGNER"
@@ -1216,6 +1227,7 @@ export async function createStandaloneArtwork(formData: FormData) {
 }
 
 export async function updateStandaloneArtworkStatus(formData: FormData) {
+  await requirePermission("STANDALONE_MANAGE");
   await requireDesigner();
   const id = required(formData, "id");
 
@@ -1270,6 +1282,7 @@ export async function updateContentFormat(formData: FormData) {
 }
 
 export async function rotateCalendarToken(calendarId: string) {
+  await requirePermission("CALENDARS_MANAGE");
   const designer = await requireDesigner();
   const calendar = await getCalendar(calendarId);
 
