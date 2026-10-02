@@ -7,7 +7,7 @@ import {
   FiShare2
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
-import { requireDesigner } from "../../lib/auth";
+import { requirePermission } from "../../lib/auth";
 import { getAccessibleClients } from "../../lib/api";
 
 function number(value: number) {
@@ -15,7 +15,7 @@ function number(value: number) {
 }
 
 export default async function ReportsPage() {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("REPORTS_VIEW");
   const clients = await getAccessibleClients(designer);
   const published = clients.flatMap((client) =>
     client.calendars.flatMap((calendar) =>
