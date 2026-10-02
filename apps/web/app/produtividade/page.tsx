@@ -6,11 +6,11 @@ import {
   FiTrendingUp
 } from "react-icons/fi";
 import { AppShell } from "../../components/app-shell";
-import { requireDesigner } from "../../lib/auth";
+import { requirePermission } from "../../lib/auth";
 import { getProductivity } from "../../lib/api";
 
 export default async function ProductivityPage() {
-  const designer = await requireDesigner();
+  const designer = await requirePermission("REPORTS_VIEW");
   const rows = await getProductivity();
 
   const totals = rows.reduce(
