@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Designer, getApiUrl, UserRole } from "./api";
+import {
+  Designer,
+  getApiUrl,
+  type UserPermission,
+  UserRole
+} from "./api";
 
 export const SESSION_COOKIE = "ta_designer_session";
 
@@ -64,6 +69,28 @@ export async function requireRole(...roles: UserRole[]) {
   const designer = await requireDesigner();
 
   if (!roles.includes(designer.role)) {
+    redirect("/");
+  }
+
+  return designer;
+}
+
+
+export function hasPermission(
+  designer: Pick<Designer, "role" | "permissions">,
+  permission: UserPermission
+) {
+  return (
+    designer.role === "DEV" ||
+    designer.role === "ADMIN" ||
+    designer.permissions.includes(permission)
+  );
+}
+
+export async function requirePermission(permission: UserPermission) {
+  const designer = await requireDesigner();
+
+  if (!hasPermission(designer, permission)) {
     redirect("/");
   }
 
