@@ -20321,15 +20321,19 @@ body:has(.instagram-preview-page) {
 }
 
 .instagram-post-modal {
-  width: min(1180px, calc(100vw - 48px));
-  max-height: min(92vh, 920px);
-  grid-template-columns: minmax(0, 640px) minmax(320px, 1fr);
+  --calendar-art-width: min(608px, calc(80vh - 25.6px));
+  --calendar-modal-height: min(760px, calc(100vh - 32px));
+  width: min(calc(var(--calendar-art-width) + 360px), calc(100vw - 48px));
+  height: var(--calendar-modal-height);
+  max-height: var(--calendar-modal-height);
+  grid-template-columns: var(--calendar-art-width) minmax(320px, 360px);
 }
 
 .instagram-post-media {
+  width: 100%;
+  height: 100%;
   min-height: 0;
   aspect-ratio: 4 / 5;
-  max-height: min(88vh, 800px);
   background: #111;
 }
 
@@ -20365,14 +20369,21 @@ body:has(.instagram-preview-page) {
 
   .instagram-post-modal {
     width: min(760px, calc(100vw - 28px));
+    height: auto;
     max-height: 94vh;
     grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 
   .instagram-post-media {
     width: min(100%, 560px);
+    height: auto;
     max-height: none;
     margin-inline: auto;
+  }
+
+  .instagram-post-panel {
+    height: auto;
   }
 }
 
