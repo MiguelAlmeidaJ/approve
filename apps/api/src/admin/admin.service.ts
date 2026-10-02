@@ -1470,7 +1470,7 @@ export class AdminService {
     calendarId: string,
     dto: CreatePlanningItemDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CONTENT_MANAGE");
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active || calendar.archivedAt) {
@@ -1521,7 +1521,7 @@ export class AdminService {
     contentItemId: string,
     dto: UpdatePlanningItemDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CONTENT_MANAGE");
 
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
@@ -1590,7 +1590,6 @@ export class AdminService {
 
   async submitPlanning(actor: InternalActor, calendarId: string) {
     this.requirePermission(actor, "CONTENT_MANAGE");
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
     const calendar = await this.assertCalendarAccess(actor, calendarId);
 
     if (!calendar.client.active || calendar.archivedAt) {
@@ -1681,6 +1680,7 @@ export class AdminService {
     contentItemId: string,
     dto: UpdateDemandPlannedDateDto
   ) {
+    this.requirePermission(actor, "PRODUCTION_MANAGE");
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
       select: {
@@ -1752,6 +1752,7 @@ export class AdminService {
     id: string,
     dto: UpdateDemandPlannedDateDto
   ) {
+    this.requirePermission(actor, "PRODUCTION_MANAGE");
     const artwork = await this.prisma.standaloneArtwork.findUnique({
       where: { id },
       select: {
@@ -1979,6 +1980,7 @@ export class AdminService {
     contentItemId: string,
     dto: UpdateContentProductionStageDto
   ) {
+    this.requirePermission(actor, "PRODUCTION_MANAGE");
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
       select: {
@@ -2064,6 +2066,7 @@ export class AdminService {
     contentItemId: string,
     dto: AttachArtworkDto
   ) {
+    this.requirePermission(actor, "PRODUCTION_MANAGE");
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
       select: {
@@ -2405,6 +2408,7 @@ export class AdminService {
     actor: InternalActor,
     dto: CreateContentItemDto
   ) {
+    this.requirePermission(actor, "CONTENT_MANAGE");
     await this.assertCalendarAccess(actor, dto.calendarId);
 
     throw new BadRequestException(
@@ -2417,7 +2421,7 @@ export class AdminService {
     contentItemId: string,
     dto: MoveContentItemDto
   ) {
-    this.requireRoles(actor, UserRole.ADMIN, UserRole.DEV);
+    this.requirePermission(actor, "CONTENT_MANAGE");
     const item = await this.prisma.contentItem.findUnique({
       where: { id: contentItemId },
       select: {
@@ -3356,6 +3360,7 @@ export class AdminService {
     actor: InternalActor,
     dto: CreateStandaloneArtworkDto
   ) {
+    this.requirePermission(actor, "STANDALONE_MANAGE");
     const client = await this.prisma.client.findFirst({
       where: {
         id: dto.clientId,
@@ -3486,6 +3491,7 @@ export class AdminService {
     id: string,
     dto: UpdateStandaloneArtworkStatusDto
   ) {
+    this.requirePermission(actor, "STANDALONE_MANAGE");
     const artwork = await this.prisma.standaloneArtwork.findUnique({
       where: { id },
       include: {
