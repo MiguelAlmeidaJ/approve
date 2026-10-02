@@ -27,6 +27,7 @@ import {
 import { logoutDesigner, markNotificationRead } from "../app/actions";
 import { getNotifications, type Designer } from "../lib/api";
 import { Brand } from "./brand";
+import { MobileAppNav } from "./mobile-app-nav";
 
 export type AppSection =
   | "panel"
@@ -101,6 +102,8 @@ export async function AppShell({
 
   return (
     <div className="app-frame">
+      <MobileAppNav designer={designer} activeSection={activeSection} />
+
       <aside className="sidebar">
         <div className="sidebar-brand">
           <Brand />
