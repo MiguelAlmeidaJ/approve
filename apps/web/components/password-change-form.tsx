@@ -6,6 +6,7 @@ import {
   FiCircle
 } from "react-icons/fi";
 import { changeDesignerPassword } from "../app/login/actions";
+import { PasswordInput } from "./password-input";
 
 const rules = [
   {
@@ -77,8 +78,7 @@ export function PasswordChangeForm({
 
       <label className="field">
         <span>Nova senha</span>
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -124,8 +124,7 @@ export function PasswordChangeForm({
 
       <label className="field">
         <span>Confirmar nova senha</span>
-        <input
-          type="password"
+        <PasswordInput
           name="confirmPassword"
           value={confirmation}
           onChange={(event) => setConfirmation(event.target.value)}
