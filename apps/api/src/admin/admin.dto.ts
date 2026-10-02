@@ -93,10 +93,6 @@ export class CreateClientDto {
   references?: string;
 
   @IsOptional()
-  @IsString()
-  mlabsProfileId?: string;
-
-  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(10000)
@@ -218,10 +214,6 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   references?: string;
-
-  @IsOptional()
-  @IsString()
-  mlabsProfileId?: string;
 
   @IsOptional()
   @IsInt()
