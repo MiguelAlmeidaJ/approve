@@ -22100,3 +22100,34 @@ body:has(.instagram-preview-page) {
     width: 100%;
   }
 }
+
+
+/* Fix client folder browser row structure */
+.client-folder-browser {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
+.client-folder-browser .client-folder-create {
+  position: relative;
+  z-index: 2;
+  min-height: 72px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.client-folder-browser .nextcloud-browser-body {
+  min-height: 0;
+  padding-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .client-folder-browser {
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  }
+
+  .client-folder-browser .client-folder-create {
+    min-height: 0;
+    padding: 12px;
+  }
+}
