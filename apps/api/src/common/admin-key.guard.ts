@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { createHash } from "node:crypto";
+import { normalizeUserPermissions, UserRole } from "@approve/database";
 import { PrismaService } from "../prisma.service";
 import type { InternalActorRequest } from "./internal-actor";
 import { IS_PUBLIC_KEY } from "./public.decorator";
@@ -78,7 +79,11 @@ export class AdminKeyGuard implements CanActivate {
       id: session.designer.id,
       name: session.designer.name,
       email: session.designer.email,
-      role: session.designer.role
+      role: session.designer.role,
+      permissions:
+        session.designer.role === UserRole.DESIGNER
+          ? normalizeUserPermissions(session.designer.permissions)
+          : []
     };
 
     return true;
