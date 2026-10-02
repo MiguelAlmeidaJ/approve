@@ -7,11 +7,13 @@ import {
 import { AppShell } from "../../components/app-shell";
 import { ClientsList } from "../../components/clients-list";
 import { requireDesigner } from "../../lib/auth";
+import { hasUserPermission } from "../../lib/permissions";
 import { getAccessibleClients } from "../../lib/api";
 
 export default async function ClientsPage() {
   const designer = await requireDesigner();
   const clients = await getAccessibleClients(designer);
+  const canManageClients = hasUserPermission(designer, "CLIENTS_MANAGE");
   const withDesigner = clients.filter(
     (client) => client.assignedDesignerId
   ).length;
@@ -31,10 +33,12 @@ export default async function ClientsPage() {
               : "Gerencie a carteira, os responsáveis e os acessos dos clientes."}
           </p>
         </div>
-        <Link href="/clients/new" className="button button-primary">
-          <FiPlus aria-hidden="true" />
-          Novo cliente
-        </Link>
+        {canManageClients ? (
+          <Link href="/clients/new" className="button button-primary">
+            <FiPlus aria-hidden="true" />
+            Novo cliente
+          </Link>
+        ) : null}
       </header>
 
       {clients.length > 0 ? (
@@ -68,10 +72,12 @@ export default async function ClientsPage() {
           <div className="empty-icon">+</div>
           <h3>Nenhum cliente disponível</h3>
           <p>Cadastre ou atribua um cliente para começar.</p>
-          <Link href="/clients/new" className="button button-primary">
-            <FiPlus aria-hidden="true" />
-            Cadastrar cliente
-          </Link>
+          {canManageClients ? (
+            <Link href="/clients/new" className="button button-primary">
+              <FiPlus aria-hidden="true" />
+              Cadastrar cliente
+            </Link>
+          ) : null}
         </div>
       ) : (
         <ClientsList clients={clients} />
